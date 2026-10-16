@@ -1,0 +1,17 @@
+# Исходные материалы преподавателя: только локально, репозиторий публичный
+docs/source/
+
+# Зависимости и сборка
+node_modules/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+
+# Окружение
+.env
+.env*.local
+
+# Система
+.DS_Store
