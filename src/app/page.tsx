@@ -1,7 +1,7 @@
 export default function HomePage() {
   return (
-    <main>
-      <h1>Avocado Travel</h1>
-    </main>
+    <div className="container-site py-12">
+      <h1 className="text-3xl">Avocado Travel</h1>
+    </div>
   );
 }
