@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Санкт-Петербург: здание со шпилем и разведённый мост над рекой</title>
+  <rect width="800" height="400" fill="#DCE8C9"/>
+  <g fill="#FFFFFF">
+    <rect x="560" y="70" width="150" height="34" rx="17"/>
+    <circle cx="605" cy="74" r="34"/>
+    <circle cx="645" cy="66" r="44"/>
+    <circle cx="680" cy="82" r="28"/></g>
+  <rect x="60" y="196" width="400" height="74" fill="#E3D3BF"/>
+  <g fill="#FFFFFF">
+    <rect x="80" y="214" width="14" height="32" rx="7"/><rect x="112" y="214" width="14" height="32" rx="7"/><rect x="144" y="214" width="14" height="32" rx="7"/><rect x="176" y="214" width="14" height="32" rx="7"/><rect x="208" y="214" width="14" height="32" rx="7"/>
+    <rect x="300" y="214" width="14" height="32" rx="7"/><rect x="332" y="214" width="14" height="32" rx="7"/><rect x="364" y="214" width="14" height="32" rx="7"/><rect x="396" y="214" width="14" height="32" rx="7"/><rect x="428" y="214" width="14" height="32" rx="7"/></g>
+  <rect x="50" y="186" width="420" height="12" fill="#BFD5A0"/>
+  <rect x="226" y="140" width="68" height="130" fill="#E3D3BF"/>
+  <rect x="220" y="132" width="80" height="12" fill="#BFD5A0"/>
+  <path d="M248 270V230Q248 214 260 214Q272 214 272 230V270Z" fill="#4A5058"/>
+  <rect x="238" y="96" width="44" height="38" fill="#E3D3BF"/>
+  <path d="M234 98 260 72 286 98Z" fill="#A87B22"/>
+  <path d="M256 74 260 8 264 74Z" fill="#A87B22"/>
+  <circle cx="260" cy="10" r="4" fill="#A87B22"/>
+  <rect y="268" width="800" height="132" fill="#7D8790"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".5">
+    <path d="M60 300h60M180 320h80M90 350h50M300 340h70M640 330h60M700 360h50M420 372h60"/></g>
+  <rect x="470" y="256" width="20" height="74" fill="#4A5058"/>
+  <rect x="700" y="256" width="20" height="74" fill="#4A5058"/>
+  <path d="M420 262H490" stroke="#2A2E33" stroke-width="12"/>
+  <path d="M720 262H800" stroke="#2A2E33" stroke-width="12"/>
+  <path d="M490 262 580 166" stroke="#2A2E33" stroke-width="12" stroke-linecap="round"/>
+  <path d="M700 262 610 166" stroke="#2A2E33" stroke-width="12" stroke-linecap="round"/>
+  <g fill="#A87B22"><circle cx="480" cy="248" r="5"/><circle cx="710" cy="248" r="5"/></g>
+  <path d="M60 130C160 70 300 60 420 100" fill="none" stroke="#4A5058" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 12"/>
+  <path d="M0-20c2 0 3 3 3 7v9l17 9v3L3 3v9l5 4v2l-8-2-8 2v-2l5-4V3l-17 5V5l17-9v-9c0-4 1-7 3-7z" fill="#2A2E33" transform="translate(436 108) rotate(108) scale(1.3)"/>
+</svg>

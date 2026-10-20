@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Калининград: кирпичный собор с башней и фахверковые домики у реки</title>
+  <rect width="800" height="400" fill="#DCE8C9"/>
+  <g fill="#FFFFFF">
+    <rect x="70" y="70" width="130" height="30" rx="15"/>
+    <circle cx="108" cy="74" r="30"/>
+    <circle cx="144" cy="66" r="40"/>
+    <circle cx="176" cy="80" r="26"/></g>
+  <rect x="120" y="170" width="240" height="120" fill="#8A5A3B"/>
+  <path d="M110 172 240 112 370 172Z" fill="#5E3B26"/>
+  <rect x="300" y="96" width="70" height="194" fill="#A8754F"/>
+  <path d="M294 98 335 30 376 98Z" fill="#3F6420"/>
+  <rect x="331" y="12" width="8" height="22" fill="#3F6420"/>
+  <g fill="#E2ECCF">
+    <path d="M150 260V214Q150 198 162 198Q174 198 174 214V260Z"/><path d="M200 260V214Q200 198 212 198Q224 198 224 214V260Z"/><path d="M250 260V214Q250 198 262 198Q274 198 274 214V260Z"/>
+    <path d="M323 160V128Q323 116 335 116Q347 116 347 128V160Z"/></g>
+  <circle cx="335" cy="200" r="16" fill="#E2ECCF"/>
+  <g>
+    <rect x="430" y="170" width="70" height="120" fill="#BFD5A0"/>
+    <path d="M424 172 465 110 506 172Z" fill="#5E3B26"/>
+    <rect x="500" y="186" width="66" height="104" fill="#E3D3BF"/>
+    <path d="M494 188 533 132 572 188Z" fill="#8A5A3B"/>
+    <rect x="566" y="160" width="74" height="130" fill="#7FA54A"/>
+    <path d="M560 162 603 98 646 162Z" fill="#5E3B26"/>
+    <rect x="640" y="180" width="68" height="110" fill="#E3D3BF"/>
+    <path d="M634 182 674 124 714 182Z" fill="#3F6420"/></g>
+  <g fill="none" stroke="#5E3B26" stroke-width="5">
+    <path d="M430 230H500M500 244H566M566 222H640M640 238H708"/></g>
+  <g fill="#FFFFFF">
+    <rect x="444" y="188" width="16" height="24" rx="3"/><rect x="470" y="188" width="16" height="24" rx="3"/><rect x="444" y="246" width="16" height="24" rx="3"/><rect x="470" y="246" width="16" height="24" rx="3"/>
+    <rect x="512" y="204" width="16" height="24" rx="3"/><rect x="538" y="204" width="16" height="24" rx="3"/><path d="M522 290V266Q522 256 533 256Q544 256 544 266V290Z"/>
+    <rect x="580" y="180" width="16" height="24" rx="3"/><rect x="610" y="180" width="16" height="24" rx="3"/><rect x="580" y="240" width="16" height="24" rx="3"/><rect x="610" y="240" width="16" height="24" rx="3"/>
+    <rect x="652" y="198" width="16" height="24" rx="3"/><rect x="680" y="198" width="16" height="24" rx="3"/><rect x="652" y="254" width="16" height="24" rx="3"/><rect x="680" y="254" width="16" height="24" rx="3"/></g>
+  <rect y="288" width="800" height="112" fill="#7D8790"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".5">
+    <path d="M40 316h70M170 340h90M440 322h60M560 350h80M680 318h60M300 368h70"/></g>
+  <path d="M120 300H360M430 300H708" stroke="#5E656D" stroke-width="8" opacity=".5"/>
+</svg>

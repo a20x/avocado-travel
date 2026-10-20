@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 320" width="440" height="320" role="img" aria-labelledby="t">
+  <title id="t">Грозовое облако и самолёт на круге ожидания</title>
+  <ellipse cx="220" cy="190" rx="170" ry="70" fill="none" stroke="#4A5058" stroke-width="3" stroke-dasharray="2 10"/>
+  <g fill="#4A5058" opacity="1">
+    <rect x="120.0" y="107.8" width="200.0" height="46.2" rx="22.7"/>
+    <circle cx="180.0" cy="116.2" r="46.2"/>
+    <circle cx="230.0" cy="105.3" r="63.0"/>
+    <circle cx="276.0" cy="122.1" r="42.0"/></g>
+  <path d="M228 150 206 196h20l-14 40 38-54h-22l14-32z" fill="#7FA54A"/>
+  <path d="M0-20c2 0 3 3 3 7v9l17 9v3L3 3v9l5 4v2l-8-2-8 2v-2l5-4V3l-17 5V5l17-9v-9c0-4 1-7 3-7z" fill="#2A2E33" transform="translate(388.0 196.0) rotate(180.0) scale(1.2)"/>
+</svg>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" width="1200" height="560" role="img" aria-labelledby="t">
+  <title id="t">Самолёт летит по маршруту между двумя городами</title>
+  <circle cx="930" cy="170" r="110" fill="#DCE8C9"/>
+  <g fill="#FFFFFF" opacity="1">
+    <rect x="120.0" y="152.1" width="170.0" height="39.3" rx="19.3"/>
+    <circle cx="171.0" cy="159.3" r="39.3"/>
+    <circle cx="213.5" cy="150.0" r="53.5"/>
+    <circle cx="252.6" cy="164.3" r="35.7"/></g><g fill="#FFFFFF" opacity="0.9">
+    <rect x="640.0" y="232.7" width="120.0" height="27.7" rx="13.6"/>
+    <circle cx="676.0" cy="237.7" r="27.7"/>
+    <circle cx="706.0" cy="231.2" r="37.8"/>
+    <circle cx="733.6" cy="241.2" r="25.2"/></g><g fill="#FFFFFF" opacity="1">
+    <rect x="960.0" y="106.5" width="140.0" height="32.3" rx="15.9"/>
+    <circle cx="1002.0" cy="112.3" r="32.3"/>
+    <circle cx="1037.0" cy="104.7" r="44.1"/>
+    <circle cx="1069.2" cy="116.5" r="29.4"/></g>
+  <path d="M0 420C160 360 300 380 460 410S800 360 1200 380V560H0Z" fill="#BFD5A0"/>
+  <path d="M0 470C200 420 380 450 600 470S960 420 1200 450V560H0Z" fill="#7FA54A"/>
+  <path d="M0 520C240 490 520 515 760 510S1050 490 1200 505V560H0Z" fill="#3F6420"/>
+  <rect x="558" y="444" width="4" height="17" fill="#2F4D18"/><circle cx="560" cy="444" r="14" fill="#2F4D18"/><rect x="588" y="452" width="4" height="12" fill="#2F4D18"/><circle cx="590" cy="452" r="10" fill="#2F4D18"/><rect x="1078" y="428" width="4" height="19" fill="#2F4D18"/><circle cx="1080" cy="428" r="16" fill="#2F4D18"/><rect x="148" y="446" width="4" height="14" fill="#2F4D18"/><circle cx="150" cy="446" r="12" fill="#2F4D18"/>
+  <path d="M220 430C330 120 820 70 960 400" fill="none" stroke="#4A5058" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 12"/>
+  <g transform="translate(184.0 361.4) scale(1.125)">
+    <path d="M32 61C27 54 11 43 11 26.5C11 14.6 20.4 5 32 5S53 14.6 53 26.5C53 43 37 54 32 61Z" fill="#3F6420"/>
+    <path d="M32 61C27 54 11 43 11 26.5C11 14.6 20.4 5 32 5S53 14.6 53 26.5C53 43 37 54 32 61Z" fill="#7FA54A" transform="translate(32 28) scale(.9) translate(-32 -28)"/>
+    <ellipse cx="32" cy="29" rx="15.5" ry="18" fill="#E2ECCF"/>
+    <circle cx="32" cy="25" r="10" fill="#8A5A3B"/></g><g transform="translate(924.0 331.4) scale(1.125)">
+    <path d="M32 61C27 54 11 43 11 26.5C11 14.6 20.4 5 32 5S53 14.6 53 26.5C53 43 37 54 32 61Z" fill="#3F6420"/>
+    <path d="M32 61C27 54 11 43 11 26.5C11 14.6 20.4 5 32 5S53 14.6 53 26.5C53 43 37 54 32 61Z" fill="#7FA54A" transform="translate(32 28) scale(.9) translate(-32 -28)"/>
+    <ellipse cx="32" cy="29" rx="15.5" ry="18" fill="#E2ECCF"/>
+    <circle cx="32" cy="25" r="10" fill="#8A5A3B"/></g>
+  <path d="M0-20c2 0 3 3 3 7v9l17 9v3L3 3v9l5 4v2l-8-2-8 2v-2l5-4V3l-17 5V5l17-9v-9c0-4 1-7 3-7z" fill="#2A2E33" transform="translate(634.1 174.9) rotate(93.5) scale(1.5)"/>
+</svg>

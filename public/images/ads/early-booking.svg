@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300" role="img" aria-labelledby="t">
+  <title id="t">Календарь с отмеченной датой и ценник со скидкой</title>
+  <rect width="600" height="300" fill="#DCE8C9"/>
+  <g fill="#FFFFFF">
+    <rect x="40" y="62" width="120" height="28" rx="14"/>
+    <circle cx="76" cy="66" r="28"/>
+    <circle cx="108" cy="60" r="36"/>
+    <circle cx="136" cy="70" r="24"/></g>
+  <path d="M60 230C110 150 170 140 210 160" fill="none" stroke="#4A5058" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 10"/>
+  <path d="M0-20c2 0 3 3 3 7v9l17 9v3L3 3v9l5 4v2l-8-2-8 2v-2l5-4V3l-17 5V5l17-9v-9c0-4 1-7 3-7z" fill="#2A2E33" transform="translate(56 240) rotate(30) scale(1.2)"/>
+  <rect x="200" y="60" width="200" height="190" rx="16" fill="#FFFFFF"/>
+  <path d="M216 60H384A16 16 0 0 1 400 76V110H200V76A16 16 0 0 1 216 60Z" fill="#3F6420"/>
+  <rect x="240" y="46" width="10" height="30" rx="5" fill="#2A2E33"/>
+  <rect x="350" y="46" width="10" height="30" rx="5" fill="#2A2E33"/>
+  <g fill="#EEF1EE">
+    <rect x="221" y="126" width="24" height="24" rx="6"/><rect x="253" y="126" width="24" height="24" rx="6"/><rect x="285" y="126" width="24" height="24" rx="6"/><rect x="317" y="126" width="24" height="24" rx="6"/><rect x="349" y="126" width="24" height="24" rx="6"/>
+    <rect x="221" y="160" width="24" height="24" rx="6"/><rect x="253" y="160" width="24" height="24" rx="6"/><rect x="285" y="160" width="24" height="24" rx="6"/><rect x="349" y="160" width="24" height="24" rx="6"/>
+    <rect x="221" y="194" width="24" height="24" rx="6"/><rect x="253" y="194" width="24" height="24" rx="6"/><rect x="285" y="194" width="24" height="24" rx="6"/><rect x="317" y="194" width="24" height="24" rx="6"/></g>
+  <rect x="317" y="160" width="24" height="24" rx="6" fill="#7FA54A"/>
+  <path d="M323 172l5 5 9-10" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M395 140C420 150 430 150 446 146" fill="none" stroke="#4A5058" stroke-width="2.5" stroke-linecap="round"/>
+  <g transform="rotate(-14 485 150)">
+    <path d="M430 150 462 114H540V186H462Z" fill="#8A5A3B" stroke-linejoin="round"/>
+    <circle cx="456" cy="150" r="7" fill="#DCE8C9"/>
+    <g fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round">
+      <circle cx="489" cy="134" r="7"/><circle cx="515" cy="166" r="7"/><path d="M519 128 485 172"/></g></g>
+</svg>

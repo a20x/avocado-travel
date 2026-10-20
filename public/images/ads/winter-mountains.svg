@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300" role="img" aria-labelledby="t">
+  <title id="t">Заснеженные горы и ели</title>
+  <rect width="600" height="300" fill="#DCE8C9"/>
+  <g fill="#FFFFFF">
+    <circle cx="60" cy="50" r="4"/><circle cx="140" cy="96" r="3"/><circle cx="210" cy="40" r="4"/><circle cx="330" cy="30" r="3"/><circle cx="470" cy="56" r="4"/><circle cx="540" cy="110" r="3"/><circle cx="90" cy="150" r="3"/><circle cx="560" cy="30" r="3"/><circle cx="400" cy="90" r="3"/></g>
+  <path d="M40 240 220 66 400 240Z" fill="#4A5058"/>
+  <path d="M220 66 266 110 248 104 234 118 218 104 200 116 180 106Z" fill="#FFFFFF"/>
+  <path d="M290 240 438 104 592 240Z" fill="#5E656D"/>
+  <path d="M438 104 476 139 460 134 446 146 432 134 416 142 402 137Z" fill="#FFFFFF"/>
+  <path d="M0 232C160 206 380 222 600 210V300H0Z" fill="#FFFFFF"/>
+  <path d="M0 262C200 246 420 258 600 248V300H0Z" fill="#EEF1EE"/>
+  <g fill="#3F6420">
+    <path d="M90 236 112 196 104 198 120 168 112 170 126 142 140 170 132 168 148 198 140 196 162 236Z"/>
+    <path d="M150 244 166 214 160 216 172 192 166 194 176 172 186 194 180 192 192 216 186 214 202 244Z"/>
+    <path d="M470 238 490 202 483 204 497 178 490 180 503 154 516 180 509 178 523 204 516 202 536 238Z"/></g>
+  <g fill="#2F4D18"><rect x="122" y="236" width="8" height="12"/><rect x="172" y="244" width="8" height="10"/><rect x="499" y="238" width="8" height="12"/></g>
+  <g transform="translate(330 196) scale(.9)">
+    <path d="M32 61C27 54 11 43 11 26.5C11 14.6 20.4 5 32 5S53 14.6 53 26.5C53 43 37 54 32 61Z" fill="#3F6420"/>
+    <path d="M32 61C27 54 11 43 11 26.5C11 14.6 20.4 5 32 5S53 14.6 53 26.5C53 43 37 54 32 61Z" fill="#7FA54A" transform="translate(32 28) scale(.9) translate(-32 -28)"/>
+    <ellipse cx="32" cy="29" rx="15.5" ry="18" fill="#E2ECCF"/>
+    <circle cx="32" cy="25" r="10" fill="#8A5A3B"/></g>
+</svg>

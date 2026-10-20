@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Макет: результаты поиска — Avocado Travel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="mockups.css" />
+    <style>
+      .query {
+        background: var(--white);
+        border-bottom: 1px solid var(--line);
+        padding: 24px 0;
+      }
+      .query-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .query-phrase {
+        font-size: 22px;
+        font-weight: 500;
+      }
+      .query-phrase b {
+        color: var(--leaf);
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 24px;
+        margin-top: 24px;
+      }
+      .filters {
+        padding: 20px;
+        align-self: start;
+      }
+      .filters fieldset {
+        border: 0;
+        margin: 0 0 20px;
+        padding: 0;
+      }
+      .filters legend {
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .filters label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 0;
+      }
+      .filters input {
+        accent-color: var(--leaf);
+        width: 18px;
+        height: 18px;
+      }
+      .filters label img {
+        width: 24px;
+        height: 24px;
+      }
+      .filters .from {
+        margin-left: auto;
+        white-space: nowrap;
+        color: var(--slate);
+        font-size: 14px;
+      }
+      .sort {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+      .chip {
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--white);
+        font-weight: 500;
+      }
+      .chip[aria-pressed='true'] {
+        background: var(--graphite);
+        border-color: var(--graphite);
+        color: var(--white);
+      }
+      .flight {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 200px;
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+      .flight-main {
+        padding: 20px 24px;
+      }
+      .flight-airline {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .flight-airline img {
+        width: 32px;
+        height: 32px;
+      }
+      .route {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 16px;
+      }
+      .time {
+        font-size: 28px;
+        font-weight: 600;
+        line-height: 1.1;
+      }
+      .route-line {
+        position: relative;
+        text-align: center;
+        font-size: 14px;
+        color: var(--slate);
+      }
+      .route-line span {
+        display: block;
+        white-space: nowrap;
+      }
+      .route-line::before {
+        content: '';
+        display: block;
+        height: 0;
+        border-top: 2px dashed var(--sage);
+        margin: 0 10px 6px;
+      }
+      .route-line::after {
+        content: '';
+        position: absolute;
+        top: -5px;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--pit);
+      }
+      .flight-meta {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+        font-size: 14px;
+        color: var(--slate);
+      }
+      .flight-side {
+        background: var(--sage-light);
+        padding: 20px;
+        display: grid;
+        align-content: center;
+        gap: 6px;
+        text-align: center;
+      }
+      .price {
+        font-size: 28px;
+        font-weight: 600;
+      }
+      .filters-btn {
+        display: none;
+      }
+      @media (max-width: 767px) {
+        .layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .filters {
+          display: none;
+        }
+        .filters-btn {
+          display: inline-flex;
+        }
+        .query-phrase {
+          font-size: 18px;
+        }
+        .flight {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .flight-main {
+          padding: 16px;
+        }
+        .flight-airline {
+          flex-wrap: wrap;
+          gap: 4px 10px;
+        }
+        .route {
+          gap: 8px;
+        }
+        .route-line {
+          font-size: 12px;
+        }
+        .route-line span:last-child {
+          display: none;
+        }
+        .flight-side {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          text-align: left;
+          padding: 12px 16px;
+        }
+        .time {
+          font-size: 22px;
+        }
+        .price {
+          font-size: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mockup-note">Макет результатов поиска · T-04</div>
+    <header data-active="flights"></header>
+
+    <section class="query">
+      <div class="container query-inner">
+        <p class="query-phrase">
+          <b>Москва</b> → <b>Калининград</b>, <b>14 ноября</b>, 2 пассажира, эконом
+        </p>
+        <a class="btn btn-secondary" href="home.html">Изменить запрос</a>
+      </div>
+    </section>
+
+    <main class="container">
+      <div class="layout">
+        <form class="card filters" aria-label="Фильтры">
+          <fieldset>
+            <legend>Авиакомпании</legend>
+            <label
+              ><input type="checkbox" checked /><img
+                src="../../public/images/airlines/lastavia.svg"
+                alt=""
+              /><span>Ластавиа</span><span class="from">от 5 200 ₽</span></label
+            >
+            <label
+              ><input type="checkbox" checked /><img
+                src="../../public/images/airlines/kirra.svg"
+                alt=""
+              /><span>Кирра</span><span class="from">от 5 900 ₽</span></label
+            >
+            <label
+              ><input type="checkbox" checked /><img
+                src="../../public/images/airlines/striva.svg"
+                alt=""
+              /><span>Стрива</span><span class="from">от 6 400 ₽</span></label
+            >
+          </fieldset>
+          <fieldset>
+            <legend>Время вылета</legend>
+            <label><input type="checkbox" checked /><span>Утро, 06–12</span></label>
+            <label><input type="checkbox" checked /><span>День, 12–18</span></label>
+            <label><input type="checkbox" /><span>Вечер, 18–24</span></label>
+          </fieldset>
+          <fieldset>
+            <legend>Багаж</legend>
+            <label><input type="checkbox" /><span>Только с багажом</span></label>
+          </fieldset>
+        </form>
+
+        <section>
+          <div class="sort" role="group" aria-label="Сортировка">
+            <span class="muted small">Сначала:</span>
+            <button class="chip" type="button" aria-pressed="true">дешёвые</button>
+            <button class="chip" type="button" aria-pressed="false">ранние</button>
+            <button class="chip" type="button" aria-pressed="false">быстрые</button>
+            <button class="btn btn-secondary filters-btn" type="button">Фильтры</button>
+          </div>
+          <p class="small muted" style="margin-bottom: 12px">Найдено 4 рейса · время местное</p>
+
+          <article class="card flight">
+            <div class="flight-main">
+              <div class="flight-airline">
+                <img src="../../public/images/airlines/lastavia.svg" alt="" />
+                <b>Ластавиа</b><span class="muted small">LST 1204 · Airbus A320neo</span>
+                <span class="badge badge-pit" style="margin-left: auto">выгодно</span>
+              </div>
+              <div class="route">
+                <div>
+                  <div class="time">08:40</div>
+                  <span class="small muted">SVO Шереметьево</span>
+                </div>
+                <div class="route-line"><span>2 ч 25 мин</span><span>без пересадок</span></div>
+                <div style="text-align: right">
+                  <div class="time">09:05</div>
+                  <span class="small muted">KGD Храброво</span>
+                </div>
+              </div>
+              <div class="flight-meta">
+                <span>Ручная кладь 10 кг</span><span>Осталось 7 мест</span>
+              </div>
+            </div>
+            <div class="flight-side">
+              <div>
+                <div class="price">5 200 ₽</div>
+                <span class="small muted">за пассажира</span>
+              </div>
+              <a class="btn btn-primary" href="flight.html">Выбрать места</a>
+            </div>
+          </article>
+
+          <article class="card flight">
+            <div class="flight-main">
+              <div class="flight-airline">
+                <img src="../../public/images/airlines/kirra.svg" alt="" />
+                <b>Кирра</b><span class="muted small">KRR 318 · Boeing 737-800</span>
+              </div>
+              <div class="route">
+                <div>
+                  <div class="time">12:15</div>
+                  <span class="small muted">VKO Внуково</span>
+                </div>
+                <div class="route-line"><span>2 ч 30 мин</span><span>без пересадок</span></div>
+                <div style="text-align: right">
+                  <div class="time">12:45</div>
+                  <span class="small muted">KGD Храброво</span>
+                </div>
+              </div>
+              <div class="flight-meta"><span>Багаж 23 кг включён</span><span>Много мест</span></div>
+            </div>
+            <div class="flight-side">
+              <div>
+                <div class="price">5 900 ₽</div>
+                <span class="small muted">за пассажира</span>
+              </div>
+              <a class="btn btn-primary" href="flight.html">Выбрать места</a>
+            </div>
+          </article>
+
+          <article class="card flight">
+            <div class="flight-main">
+              <div class="flight-airline">
+                <img src="../../public/images/airlines/striva.svg" alt="" />
+                <b>Стрива</b><span class="muted small">STV 77 · Sukhoi Superjet 100</span>
+              </div>
+              <div class="route">
+                <div>
+                  <div class="time">16:50</div>
+                  <span class="small muted">DME Домодедово</span>
+                </div>
+                <div class="route-line"><span>2 ч 35 мин</span><span>без пересадок</span></div>
+                <div style="text-align: right">
+                  <div class="time">17:25</div>
+                  <span class="small muted">KGD Храброво</span>
+                </div>
+              </div>
+              <div class="flight-meta">
+                <span>Ручная кладь 10 кг</span><span>Осталось 2 места</span>
+              </div>
+            </div>
+            <div class="flight-side">
+              <div>
+                <div class="price">6 400 ₽</div>
+                <span class="small muted">за пассажира</span>
+              </div>
+              <a class="btn btn-primary" href="flight.html">Выбрать места</a>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+
+    <footer></footer>
+    <script src="partials.js"></script>
+  </body>
+</html>

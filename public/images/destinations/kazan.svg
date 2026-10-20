@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Казань: белые стены кремля, минареты и ярусная кирпичная башня</title>
+  <rect width="800" height="400" fill="#DCE8C9"/>
+  <g fill="#FFFFFF" opacity=".9">
+    <rect x="600" y="60" width="130" height="30" rx="15"/>
+    <circle cx="638" cy="64" r="30"/>
+    <circle cx="674" cy="56" r="40"/>
+    <circle cx="706" cy="70" r="26"/></g>
+  <g fill="#FFFFFF">
+    <rect x="236" y="70" width="18" height="190"/><rect x="306" y="40" width="20" height="220"/><rect x="474" y="40" width="20" height="220"/><rect x="546" y="70" width="18" height="190"/>
+    <rect x="300" y="180" width="200" height="90"/></g>
+  <g fill="#3F6420">
+    <path d="M236 72 245 30 254 72Z"/><path d="M306 42 316 0 326 42Z"/><path d="M474 42 484 0 494 42Z"/><path d="M546 72 555 30 564 72Z"/>
+    <path d="M330 182C330 110 470 110 470 182Z"/>
+    <rect x="396" y="98" width="8" height="24"/></g>
+  <g fill="#BFD5A0"><rect x="234" y="120" width="22" height="6"/><rect x="304" y="100" width="24" height="6"/><rect x="472" y="100" width="24" height="6"/><rect x="544" y="120" width="22" height="6"/></g>
+  <g fill="#7FA54A">
+    <path d="M330 238V210Q330 196 342 196Q354 196 354 210V238Z"/><path d="M388 238V206Q388 192 400 192Q412 192 412 206V238Z"/><path d="M446 238V210Q446 196 458 196Q470 196 470 210V238Z"/></g>
+  <g fill="#8A5A3B">
+    <rect x="96" y="210" width="80" height="70"/>
+    <rect x="104" y="160" width="64" height="52"/>
+    <rect x="112" y="118" width="48" height="44"/>
+    <rect x="120" y="84" width="32" height="36"/></g>
+  <path d="M118 86 136 28 154 86Z" fill="#3F6420"/>
+  <g fill="#E2ECCF">
+    <path d="M128 200V180Q128 172 136 172Q144 172 144 180V200Z"/><path d="M128 154V136Q128 128 136 128Q144 128 144 136V154Z"/></g>
+  <rect y="262" width="800" height="70" fill="#FFFFFF"/>
+  <path d="M0 254H800" stroke="#FFFFFF" stroke-width="16" stroke-dasharray="14 10"/>
+  <g fill="#FFFFFF"><rect x="620" y="210" width="48" height="122"/><rect x="40" y="226" width="40" height="106"/></g>
+  <g fill="#3F6420"><path d="M614 212 644 160 674 212Z"/><path d="M34 228 60 184 86 228Z"/></g>
+  <path d="M0 332H800" stroke="#BFD5A0" stroke-width="3"/>
+  <path d="M0 336C220 326 560 326 800 338V400H0Z" fill="#7FA54A"/>
+  <path d="M0 368C260 356 540 358 800 370V400H0Z" fill="#3F6420"/>
+</svg>

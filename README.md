@@ -15,9 +15,12 @@ pnpm install          # зависимости
 cp .env.example .env  # переменные окружения
 pnpm db:up            # PostgreSQL в Docker
 pnpm db:migrate       # структура базы
-pnpm db:seed          # демо-данные
 pnpm dev              # http://localhost:3000
 ```
+
+Для тестов один раз скачайте браузер: `pnpm exec playwright install chromium`. Полная проверка проекта — `pnpm check`.
+
+Демо-данные (`pnpm db:seed`) появятся в задаче T-07.
 
 ## Документация
 

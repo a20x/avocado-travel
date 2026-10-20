@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Макет: личный кабинет — Avocado Travel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="mockups.css" />
+    <style>
+      .page-head {
+        padding: 32px 0 0;
+      }
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin: 20px 0 24px;
+        border-bottom: 1px solid var(--line);
+      }
+      .tabs a {
+        padding: 10px 4px;
+        margin-right: 16px;
+        text-decoration: none;
+        color: var(--slate);
+        font-weight: 500;
+        border-bottom: 3px solid transparent;
+      }
+      .tabs a[aria-current='page'] {
+        color: var(--leaf);
+        border-color: var(--leaf);
+      }
+      .order {
+        display: grid;
+        grid-template-columns: 180px minmax(0, 1fr) auto;
+        gap: 24px;
+        align-items: center;
+        padding: 20px 24px;
+        margin-bottom: 16px;
+      }
+      .code {
+        font-family: ui-monospace, monospace;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 2px;
+      }
+      .order-route {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .order-actions {
+        display: grid;
+        gap: 8px;
+        justify-items: end;
+        text-align: right;
+      }
+      .order-total {
+        font-size: 22px;
+        font-weight: 600;
+      }
+      .order.cancelled {
+        opacity: 0.7;
+      }
+      .empty {
+        display: grid;
+        justify-items: center;
+        gap: 12px;
+        text-align: center;
+        padding: 32px;
+        margin-top: 32px;
+      }
+      .empty img {
+        width: 260px;
+      }
+      @media (max-width: 767px) {
+        .order {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 12px;
+          padding: 16px;
+        }
+        .order-actions {
+          justify-items: start;
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mockup-note">Макет личного кабинета · T-04</div>
+    <header data-active="" data-user="Анна"></header>
+
+    <main class="container">
+      <div class="page-head">
+        <h1>Здравствуйте, Анна</h1>
+        <nav class="tabs" aria-label="Разделы кабинета">
+          <a href="#" aria-current="page">Мои заказы</a>
+          <a href="#">Профиль</a>
+        </nav>
+      </div>
+
+      <article class="card order">
+        <div>
+          <span class="small muted">Код брони</span>
+          <div class="code">AV7K2M</div>
+        </div>
+        <div>
+          <div class="order-route">Москва → Калининград</div>
+          <p class="muted">14 ноября, 08:40 · LST 1204 · 2 пассажира, места 7D, 7E</p>
+          <span class="badge badge-warn" style="margin-top: 6px">Ожидает оплаты до 12:55</span>
+        </div>
+        <div class="order-actions">
+          <div class="order-total">10 400 ₽</div>
+          <a class="btn btn-primary" href="#">Оплатить</a>
+          <a class="small" href="#">Отменить бронь</a>
+        </div>
+      </article>
+
+      <article class="card order">
+        <div>
+          <span class="small muted">Код брони</span>
+          <div class="code">QP4T9R</div>
+        </div>
+        <div>
+          <div class="order-route">Москва → Сочи</div>
+          <p class="muted">2 декабря, 06:15 · KRR 512 · 1 пассажир, место 14A</p>
+          <span class="badge badge-ok" style="margin-top: 6px">Оплачен</span>
+        </div>
+        <div class="order-actions">
+          <div class="order-total">4 700 ₽</div>
+          <a class="small" href="#">Отменить бронь</a>
+        </div>
+      </article>
+
+      <article class="card order cancelled">
+        <div>
+          <span class="small muted">Код брони</span>
+          <div class="code">ZX2M8L</div>
+        </div>
+        <div>
+          <div class="order-route">Москва → Казань</div>
+          <p class="muted">3 сентября, 19:30 · STV 41 · 1 пассажир</p>
+          <span class="badge badge-off" style="margin-top: 6px">Отменён</span>
+        </div>
+        <div class="order-actions">
+          <div class="order-total">4 100 ₽</div>
+        </div>
+      </article>
+
+      <section class="card empty">
+        <span class="small muted">Так выглядит кабинет без заказов:</span>
+        <img src="../../public/images/illustrations/empty-orders.svg" alt="" />
+        <h3>Заказов пока нет</h3>
+        <p class="muted">Найдите рейс — и бронь появится здесь.</p>
+        <a class="btn btn-primary" href="home.html">Найти рейс</a>
+      </section>
+    </main>
+
+    <footer></footer>
+    <script src="partials.js"></script>
+  </body>
+</html>

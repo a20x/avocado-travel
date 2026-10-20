@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Макет: главная — Avocado Travel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="mockups.css" />
+    <style>
+      .hero {
+        position: relative;
+        background: var(--sage-light) url('../../public/images/illustrations/hero.svg') center
+          bottom / cover no-repeat;
+        padding: 72px 0 200px;
+      }
+      .phrase {
+        max-width: 880px;
+        padding: 40px;
+      }
+      .phrase-kicker {
+        font-weight: 600;
+        color: var(--leaf);
+        margin-bottom: 12px;
+      }
+      .phrase-text {
+        font-size: 36px;
+        line-height: 1.8;
+        font-weight: 500;
+      }
+      .field {
+        display: inline-block;
+        padding: 0 12px;
+        border: 2px solid var(--sage);
+        border-radius: var(--radius-sm);
+        background: var(--white);
+        color: var(--leaf);
+        font-weight: 600;
+        line-height: 1.4;
+        white-space: nowrap;
+      }
+      .field::after {
+        content: ' ▾';
+        font-size: 0.5em;
+        color: var(--slate);
+        vertical-align: middle;
+      }
+      .phrase .btn {
+        margin-top: 24px;
+        font-size: 18px;
+        padding: 14px 28px;
+      }
+      .section {
+        margin-top: 56px;
+      }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 20px;
+      }
+      .destinations {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      .dest {
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+      }
+      .dest img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 2 / 1;
+        object-fit: cover;
+      }
+      .dest-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 18px;
+      }
+      .promos {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .promo {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        overflow: hidden;
+      }
+      .promo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .promo-body {
+        padding: 20px;
+        display: grid;
+        gap: 8px;
+        align-content: start;
+      }
+      .widgets {
+        display: grid;
+        grid-template-columns: 1fr 1.3fr 1fr;
+        gap: 20px;
+      }
+      .widget {
+        padding: 24px;
+      }
+      .widget h3 {
+        margin-bottom: 12px;
+      }
+      .weather-now {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 48px;
+        font-weight: 600;
+      }
+      .poll label {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 6px 0;
+      }
+      .poll input {
+        accent-color: var(--leaf);
+        width: 18px;
+        height: 18px;
+      }
+      .stars {
+        font-size: 32px;
+        color: var(--avocado);
+        letter-spacing: 4px;
+      }
+      .toc {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px 24px;
+      }
+      .toc a {
+        display: block;
+        padding: 14px 16px;
+        border-radius: var(--radius-sm);
+        background: var(--white);
+        text-decoration: none;
+        color: var(--graphite);
+      }
+      .toc b {
+        display: block;
+        color: var(--leaf);
+      }
+      @media (max-width: 767px) {
+        .hero {
+          padding: 24px 0 120px;
+          background-size: 220% auto;
+        }
+        .phrase {
+          padding: 24px;
+        }
+        .phrase-text {
+          font-size: 22px;
+        }
+        .phrase .btn {
+          width: 100%;
+          justify-content: center;
+        }
+        .destinations,
+        .promos,
+        .widgets {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .dest-body,
+        .section-head {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .promo {
+          grid-template-columns: 1fr;
+        }
+        .promo img {
+          aspect-ratio: 2 / 1;
+        }
+        .toc {
+          grid-template-columns: 1fr 1fr;
+        }
+        .section {
+          margin-top: 40px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mockup-note">Макет главной страницы · T-04</div>
+    <header data-active="flights"></header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="card phrase">
+            <p class="phrase-kicker">Куда летим?</p>
+            <p class="phrase-text">
+              Я лечу из <span class="field">Москвы</span> в <span class="field">Калининград</span>
+              <span class="field">14 ноября</span>, нас <span class="field">2</span>, класс
+              <span class="field">эконом</span>.
+            </p>
+            <a class="btn btn-primary" href="results.html">Подобрать рейсы →</a>
+          </div>
+        </div>
+      </section>
+
+      <div class="container">
+        <section class="section">
+          <div class="section-head">
+            <h2>Популярные направления</h2>
+            <a href="#">Все направления</a>
+          </div>
+          <div class="destinations">
+            <a class="card dest" href="#"
+              ><img src="../../public/images/destinations/saint-petersburg.svg" alt="" />
+              <div class="dest-body">
+                <div>
+                  <h3>Санкт-Петербург</h3>
+                  <p class="small muted">1 ч 25 мин · 6 рейсов в день</p>
+                </div>
+                <span class="badge badge-sage">от 3 900 ₽</span>
+              </div></a
+            >
+            <a class="card dest" href="#"
+              ><img src="../../public/images/destinations/kaliningrad.svg" alt="" />
+              <div class="dest-body">
+                <div>
+                  <h3>Калининград</h3>
+                  <p class="small muted">2 ч 25 мин · 4 рейса в день</p>
+                </div>
+                <span class="badge badge-sage">от 5 200 ₽</span>
+              </div></a
+            >
+            <a class="card dest" href="#"
+              ><img src="../../public/images/destinations/sochi.svg" alt="" />
+              <div class="dest-body">
+                <div>
+                  <h3>Сочи</h3>
+                  <p class="small muted">2 ч 30 мин · 5 рейсов в день</p>
+                </div>
+                <span class="badge badge-pit">выгодно · 4 700 ₽</span>
+              </div></a
+            >
+            <a class="card dest" href="#"
+              ><img src="../../public/images/destinations/kazan.svg" alt="" />
+              <div class="dest-body">
+                <div>
+                  <h3>Казань</h3>
+                  <p class="small muted">1 ч 40 мин · 3 рейса в день</p>
+                </div>
+                <span class="badge badge-sage">от 4 100 ₽</span>
+              </div></a
+            >
+            <a class="card dest" href="#"
+              ><img src="../../public/images/destinations/vladivostok.svg" alt="" />
+              <div class="dest-body">
+                <div>
+                  <h3>Владивосток</h3>
+                  <p class="small muted">8 ч 50 мин · 1 рейс в день</p>
+                </div>
+                <span class="badge badge-sage">от 18 900 ₽</span>
+              </div></a
+            >
+            <a class="card dest" href="#"
+              ><img src="../../public/images/destinations/default.svg" alt="" />
+              <div class="dest-body">
+                <div>
+                  <h3>Екатеринбург</h3>
+                  <p class="small muted">2 ч 20 мин · 4 рейса в день</p>
+                </div>
+                <span class="badge badge-sage">от 5 600 ₽</span>
+              </div></a
+            >
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head"><h2>Предложения</h2></div>
+          <div class="promos">
+            <a class="card promo" href="#" style="text-decoration: none; color: inherit">
+              <img src="../../public/images/ads/early-booking.svg" alt="" />
+              <div class="promo-body">
+                <span class="small muted">Промо · Avocado Travel</span>
+                <h3>−15% при бронировании за 30 дней</h3>
+                <p class="small">Чем раньше планируете поездку, тем меньше платите.</p>
+                <span style="color: var(--leaf); font-weight: 600">Подробнее →</span>
+              </div>
+            </a>
+            <a class="card promo" href="#" style="text-decoration: none; color: inherit">
+              <img src="../../public/images/ads/baggage.svg" alt="" />
+              <div class="promo-body">
+                <span class="small muted">Промо · Кирра</span>
+                <h3>Багаж 23 кг уже в цене</h3>
+                <p class="small">На всех рейсах Кирры в эконом-классе до конца ноября.</p>
+                <span style="color: var(--leaf); font-weight: 600">Подробнее →</span>
+              </div>
+            </a>
+          </div>
+        </section>
+
+        <section class="section widgets">
+          <div class="card widget">
+            <h3>Погода в Москве</h3>
+            <div class="weather-now"><span>☁</span><span>+6°</span></div>
+            <p class="muted">Облачно, ветер 4 м/с</p>
+            <p class="small muted" style="margin-top: 8px">Завтра +4° · Послезавтра +7°</p>
+          </div>
+          <form class="card widget poll">
+            <h3>Куда полетите этой зимой?</h3>
+            <label><input type="radio" name="poll" checked /> К морю</label>
+            <label><input type="radio" name="poll" /> В горы</label>
+            <label><input type="radio" name="poll" /> В другой город России</label>
+            <label><input type="radio" name="poll" /> За границу</label>
+            <label><input type="radio" name="poll" /> Останусь дома</label>
+            <button class="btn btn-secondary" type="button" style="margin-top: 8px">
+              Голосовать
+            </button>
+          </form>
+          <div class="card widget">
+            <h3>Оцените сайт</h3>
+            <div class="stars" aria-label="Оценка 4 из 5">★★★★☆</div>
+            <p class="muted">Средняя оценка 4,6 · 312 голосов</p>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head"><h2>Что есть на сайте</h2></div>
+          <nav class="toc" aria-label="Содержание сайта">
+            <a href="#"><b>Рейсы</b><span class="small muted">Поиск и бронирование</span></a>
+            <a href="#"><b>Направления</b><span class="small muted">Города, погода, время</span></a>
+            <a href="#"><b>Авиакомпании</b><span class="small muted">Флот и условия</span></a>
+            <a href="#"><b>Новости</b><span class="small muted">Наши и отраслевые</span></a>
+            <a href="#"><b>Сервисы</b><span class="small muted">Валюты, карта, часы</span></a>
+            <a href="#"><b>Форум</b><span class="small muted">Вопросы путешественников</span></a>
+            <a href="#"><b>Аналитика</b><span class="small muted">Отчёты о продажах</span></a>
+            <a href="#"><b>Справка</b><span class="small muted">Ответы на вопросы</span></a>
+          </nav>
+        </section>
+      </div>
+    </main>
+
+    <footer></footer>
+    <script src="partials.js"></script>
+  </body>
+</html>
