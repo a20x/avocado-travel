@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 320" width="440" height="320" role="img" aria-labelledby="t">
+  <title id="t">Самолёт взлетает с полосы, рядом зелёная галочка</title>
+  <rect x="40" y="250" width="360" height="34" rx="17" fill="#2A2E33"/>
+  <path d="M70 267h300" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="18 14"/>
+  <path d="M120 248C190 230 240 190 290 130" fill="none" stroke="#4A5058" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 10"/>
+  <path d="M0-20c2 0 3 3 3 7v9l17 9v3L3 3v9l5 4v2l-8-2-8 2v-2l5-4V3l-17 5V5l17-9v-9c0-4 1-7 3-7z" fill="#2A2E33" transform="translate(300.0 112.0) rotate(40.0) scale(1.5)"/>
+  <circle cx="350" cy="80" r="34" fill="#3F6420"/>
+  <path d="M334 80l11 11 21-22" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#FFFFFF" opacity="1">
+    <rect x="60.0" y="90.8" width="110.0" height="25.4" rx="12.5"/>
+    <circle cx="93.0" cy="95.4" r="25.4"/>
+    <circle cx="120.5" cy="89.4" r="34.6"/>
+    <circle cx="145.8" cy="98.6" r="23.1"/></g>
+</svg>

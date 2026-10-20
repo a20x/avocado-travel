@@ -52,5 +52,6 @@ export default defineConfig([
   // Последним: отключает правила оформления, которые решает Prettier.
   prettier,
 
-  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
+  // docs/design — статические макеты дизайн-концепции, не код сайта.
+  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'docs/design/**']),
 ]);

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Москва: кремлёвская стена и башня с часами</title>
+  <rect width="800" height="400" fill="#DCE8C9"/>
+  <g fill="#FFFFFF">
+    <rect x="80" y="80" width="140" height="32" rx="16"/>
+    <circle cx="122" cy="84" r="32"/>
+    <circle cx="160" cy="76" r="42"/>
+    <circle cx="194" cy="90" r="27"/></g>
+  <g fill="#FFFFFF" opacity=".85">
+    <rect x="560" y="60" width="120" height="28" rx="14"/>
+    <circle cx="596" cy="64" r="28"/>
+    <circle cx="628" cy="58" r="36"/>
+    <circle cx="656" cy="70" r="22"/></g>
+  <g fill="#8A5A3B">
+    <rect x="96" y="208" width="48" height="122"/>
+    <rect x="656" y="208" width="48" height="122"/>
+    <rect x="364" y="176" width="72" height="154"/>
+    <rect x="378" y="120" width="44" height="60"/></g>
+  <g fill="#3F6420">
+    <path d="M90 210 120 140 150 210Z"/>
+    <path d="M650 210 680 140 710 210Z"/>
+    <path d="M372 122 400 40 428 122Z"/></g>
+  <path d="M400 14 404 26H417L407 33 411 45 400 38 389 45 393 33 383 26H396Z" fill="#A8754F"/>
+  <circle cx="400" cy="214" r="18" fill="#FFFFFF"/>
+  <path d="M400 214V202M400 214H410" stroke="#2A2E33" stroke-width="3" stroke-linecap="round"/>
+  <path d="M386 330V286Q386 268 400 268Q414 268 414 286V330Z" fill="#5E3B26"/>
+  <rect x="110" y="236" width="20" height="28" rx="10" fill="#5E3B26"/>
+  <rect x="670" y="236" width="20" height="28" rx="10" fill="#5E3B26"/>
+  <rect x="0" y="262" width="800" height="68" fill="#A8754F"/>
+  <rect x="364" y="262" width="72" height="68" fill="#8A5A3B"/>
+  <rect x="96" y="262" width="48" height="68" fill="#8A5A3B"/>
+  <rect x="656" y="262" width="48" height="68" fill="#8A5A3B"/>
+  <path d="M386 330V286Q386 268 400 268Q414 268 414 286V330Z" fill="#5E3B26"/>
+  <path d="M0 254H96M144 254H364M436 254H656M704 254H800" stroke="#A8754F" stroke-width="16" stroke-dasharray="14 10"/>
+  <path d="M0 330C200 318 600 318 800 330V400H0Z" fill="#7FA54A"/>
+  <path d="M0 362C260 350 540 352 800 364V400H0Z" fill="#3F6420"/>
+</svg>

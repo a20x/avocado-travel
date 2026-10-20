@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="t">
+  <title id="t">Avocado Travel</title>
+  <g transform="rotate(-12 32 33)"><path d="M32 61C27 54 11 43 11 26.5C11 14.6 20.4 5 32 5S53 14.6 53 26.5C53 43 37 54 32 61Z" fill="#3F6420"/>
+  <path d="M32 61C27 54 11 43 11 26.5C11 14.6 20.4 5 32 5S53 14.6 53 26.5C53 43 37 54 32 61Z" fill="#7FA54A" transform="translate(32 28) scale(.78) translate(-32 -28)"/>
+  <circle cx="32" cy="25" r="11" fill="#8A5A3B"/></g>
+</svg>

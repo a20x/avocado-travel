@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300" role="img" aria-labelledby="t">
+  <title id="t">Морское побережье с пальмой, горами и самолётом</title>
+  <rect width="600" height="300" fill="#DCE8C9"/>
+  <circle cx="470" cy="86" r="42" fill="#FFFFFF"/>
+  <g fill="#FFFFFF" opacity=".9">
+    <rect x="70" y="58" width="100" height="24" rx="12"/>
+    <circle cx="100" cy="62" r="24"/>
+    <circle cx="128" cy="56" r="30"/>
+    <circle cx="152" cy="66" r="20"/></g>
+  <path d="M0 196 92 116 168 170 262 98 372 196Z" fill="#BFD5A0"/>
+  <path d="M190 198 306 136 430 198Z" fill="#7FA54A"/>
+  <path d="M262 98 286 120 272 116 262 128 250 116 240 120Z" fill="#FFFFFF"/>
+  <rect y="194" width="600" height="70" fill="#7D8790"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".55">
+    <path d="M300 214h40M380 222h56M470 210h36M330 238h48M520 236h44M200 230h30"/></g>
+  <path d="M410 214 448 170V214Z" fill="#FFFFFF"/>
+  <path d="M400 218H460L452 228H408Z" fill="#2A2E33"/>
+  <path d="M0 300V250C140 230 320 240 600 266V300Z" fill="#E3D3BF"/>
+  <path d="M112 292C114 246 122 206 146 176" fill="none" stroke="#8A5A3B" stroke-width="10" stroke-linecap="round"/>
+  <g fill="#3F6420">
+    <ellipse cx="176" cy="176" rx="34" ry="9" transform="rotate(-10 146 176)"/>
+    <ellipse cx="176" cy="176" rx="32" ry="9" transform="rotate(30 146 176)"/>
+    <ellipse cx="176" cy="176" rx="32" ry="9" transform="rotate(150 146 176)"/>
+    <ellipse cx="176" cy="176" rx="34" ry="9" transform="rotate(190 146 176)"/>
+    <ellipse cx="176" cy="176" rx="28" ry="8" transform="rotate(-70 146 176)"/>
+    <ellipse cx="176" cy="176" rx="28" ry="8" transform="rotate(-115 146 176)"/></g>
+  <path d="M220 130C280 60 360 50 400 64" fill="none" stroke="#4A5058" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 10"/>
+  <path d="M0-20c2 0 3 3 3 7v9l17 9v3L3 3v9l5 4v2l-8-2-8 2v-2l5-4V3l-17 5V5l17-9v-9c0-4 1-7 3-7z" fill="#2A2E33" transform="translate(414 68) rotate(100) scale(1.1)"/>
+</svg>

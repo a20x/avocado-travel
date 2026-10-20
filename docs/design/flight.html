@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Макет: рейс и выбор мест — Avocado Travel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="mockups.css" />
+    <style>
+      .flight-head {
+        background: var(--white);
+        border-bottom: 1px solid var(--line);
+        padding: 24px 0;
+      }
+      .flight-head-inner {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      .flight-head img {
+        width: 48px;
+        height: 48px;
+      }
+      .head-times {
+        margin-left: auto;
+      }
+      .flight-head .times {
+        font-size: 22px;
+        font-weight: 600;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 24px;
+        margin-top: 24px;
+        align-items: start;
+      }
+      .cabin {
+        padding: 24px;
+      }
+      .legend {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .plane {
+        max-width: 420px;
+        margin: 0 auto;
+        padding: 40px 24px 24px;
+        border: 2px solid var(--line);
+        border-radius: 160px 160px 24px 24px;
+        background: var(--mist);
+      }
+      .class-title {
+        text-align: center;
+        font-size: 14px;
+        color: var(--slate);
+        margin: 8px 0;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr) 32px repeat(3, 1fr);
+        gap: 6px;
+        margin-bottom: 6px;
+        align-items: center;
+      }
+      .row.business {
+        grid-template-columns: repeat(2, minmax(0, 60px)) 32px repeat(2, minmax(0, 60px));
+        justify-content: center;
+        gap: 10px;
+      }
+      .row-num {
+        text-align: center;
+        font-size: 13px;
+        color: var(--slate);
+      }
+      .seat {
+        aspect-ratio: 1;
+        border-radius: 8px 8px 4px 4px;
+        border: 2px solid var(--sage);
+        background: var(--white);
+        font: inherit;
+        font-size: 12px;
+        color: var(--slate);
+        padding: 0;
+      }
+      .seat.taken {
+        background: var(--line);
+        border-color: var(--line);
+        color: transparent;
+      }
+      .seat.selected {
+        background: var(--leaf);
+        border-color: var(--leaf);
+        color: var(--white);
+        font-weight: 600;
+      }
+      .seat.extra {
+        border-color: var(--pit);
+      }
+      .legend .seat {
+        width: 22px;
+        aspect-ratio: 1;
+      }
+      .summary {
+        padding: 24px;
+        position: sticky;
+        top: 16px;
+      }
+      .pax {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .total {
+        display: flex;
+        justify-content: space-between;
+        font-size: 22px;
+        font-weight: 600;
+        margin: 16px 0;
+      }
+      @media (max-width: 767px) {
+        .layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .cabin {
+          padding: 16px;
+        }
+        .plane {
+          padding: 32px 12px 16px;
+        }
+        .head-times {
+          margin-left: 0;
+        }
+        /* На телефоне — компактная панель внизу экрана: итог и кнопка, схема остаётся видна. */
+        .summary {
+          position: sticky;
+          bottom: 0;
+          top: auto;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 16px;
+          border-radius: var(--radius) var(--radius) 0 0;
+        }
+        .summary h3,
+        .summary .pax,
+        .summary p {
+          display: none;
+        }
+        .summary .total {
+          flex-direction: column;
+          white-space: nowrap;
+          margin: 0;
+          font-size: 18px;
+          line-height: 1.2;
+        }
+        .summary .total span:first-child {
+          font-size: 13px;
+          font-weight: 400;
+          color: var(--slate);
+        }
+        .summary .btn {
+          flex: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mockup-note">Макет страницы рейса · T-04</div>
+    <header data-active="flights"></header>
+
+    <section class="flight-head">
+      <div class="container flight-head-inner">
+        <img src="../../public/images/airlines/lastavia.svg" alt="" />
+        <div>
+          <h1 style="font-size: 28px">Москва → Калининград</h1>
+          <p class="muted">Ластавиа · LST 1204 · Airbus A320neo · 14 ноября, пятница</p>
+        </div>
+        <div class="head-times">
+          <div class="times">08:40 SVO → 09:05 KGD</div>
+          <p class="small muted">2 ч 25 мин в пути · время местное</p>
+        </div>
+      </div>
+    </section>
+
+    <main class="container">
+      <div class="layout">
+        <section class="card cabin" aria-label="Схема салона">
+          <h2 style="font-size: 22px; margin-bottom: 12px">Выберите места</h2>
+          <div class="legend">
+            <span><span class="seat"></span> свободно</span>
+            <span><span class="seat extra"></span> больше места для ног, +900 ₽</span>
+            <span><span class="seat taken"></span> занято</span>
+            <span><span class="seat selected"></span> ваш выбор</span>
+          </div>
+          <div class="plane" id="plane"></div>
+        </section>
+
+        <aside class="card summary">
+          <h3>Ваш выбор</h3>
+          <div class="pax"><span>Пассажир 1</span><span class="badge badge-ok">место 7D</span></div>
+          <div class="pax"><span>Пассажир 2</span><span class="badge badge-ok">место 7E</span></div>
+          <div class="total"><span>Итого</span><span>10 400 ₽</span></div>
+          <p class="small muted" style="margin-bottom: 16px">
+            Места держатся за вами 15 минут после перехода к оформлению.
+          </p>
+          <a
+            class="btn btn-primary"
+            href="account.html"
+            style="width: 100%; justify-content: center"
+            >Перейти к оформлению</a
+          >
+        </aside>
+      </div>
+    </main>
+
+    <footer></footer>
+    <script src="partials.js"></script>
+    <script>
+      // Схема для макета: ряды 1–3 бизнес (2+2), с 4-го эконом (3+3); занятость условная.
+      const plane = document.getElementById('plane');
+      const taken = new Set([
+        '1A',
+        '2D',
+        '4B',
+        '4C',
+        '5A',
+        '5F',
+        '6E',
+        '8A',
+        '8B',
+        '8C',
+        '9D',
+        '10F',
+        '11B',
+        '12E',
+        '12F',
+        '13A',
+      ]);
+      const selected = new Set(['7D', '7E']);
+      const seat = (id, extra) =>
+        `<button class="seat${taken.has(id) ? ' taken' : ''}${selected.has(id) ? ' selected' : ''}${extra ? ' extra' : ''}" type="button" aria-label="Место ${id}">${taken.has(id) ? '' : id}</button>`;
+      let html = '<p class="class-title">Бизнес</p>';
+      for (let r = 1; r <= 3; r++) {
+        html += `<div class="row business">${seat(r + 'A')}${seat(r + 'C')}<span class="row-num">${r}</span>${seat(r + 'D')}${seat(r + 'F')}</div>`;
+      }
+      html += '<p class="class-title">Эконом</p>';
+      for (let r = 4; r <= 14; r++) {
+        const extra = r === 4 || r === 11;
+        const left = ['A', 'B', 'C'].map((l) => seat(r + l, extra)).join('');
+        const right = ['D', 'E', 'F'].map((l) => seat(r + l, extra)).join('');
+        html += `<div class="row">${left}<span class="row-num">${r}</span>${right}</div>`;
+      }
+      html += '<p class="class-title">… ряды 15–30</p>';
+      plane.innerHTML = html;
+    </script>
+  </body>
+</html>

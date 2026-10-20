@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Сочи: море, заснеженные горы, пальма и парусник</title>
+  <rect width="800" height="400" fill="#DCE8C9"/>
+  <circle cx="640" cy="96" r="50" fill="#FFFFFF"/>
+  <path d="M0 250 120 120 220 196 350 70 500 220 600 150 800 250Z" fill="#BFD5A0"/>
+  <path d="M350 70 384 104 368 100 354 114 340 100 324 106 316 102Z" fill="#FFFFFF"/>
+  <path d="M120 120 144 146 132 142 120 152 108 142 98 146Z" fill="#FFFFFF"/>
+  <path d="M160 254 330 160 520 254Z" fill="#7FA54A"/>
+  <path d="M480 256 620 196 780 256Z" fill="#3F6420" opacity=".8"/>
+  <rect y="250" width="800" height="86" fill="#7D8790"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".55">
+    <path d="M380 272h50M480 288h70M600 270h46M420 312h60M660 306h56M300 296h40"/></g>
+  <path d="M520 276 568 210V276Z" fill="#FFFFFF"/>
+  <path d="M560 276 572 236 590 276Z" fill="#E2ECCF"/>
+  <path d="M506 280H598L588 294H516Z" fill="#2A2E33"/>
+  <path d="M0 400V320C180 300 420 310 800 336V400Z" fill="#E3D3BF"/>
+  <path d="M150 392C152 330 162 276 192 236" fill="none" stroke="#8A5A3B" stroke-width="12" stroke-linecap="round"/>
+  <g fill="#3F6420">
+    <ellipse cx="232" cy="236" rx="44" ry="11" transform="rotate(-10 192 236)"/>
+    <ellipse cx="232" cy="236" rx="42" ry="11" transform="rotate(30 192 236)"/>
+    <ellipse cx="232" cy="236" rx="42" ry="11" transform="rotate(150 192 236)"/>
+    <ellipse cx="232" cy="236" rx="44" ry="11" transform="rotate(190 192 236)"/>
+    <ellipse cx="232" cy="236" rx="36" ry="10" transform="rotate(-70 192 236)"/>
+    <ellipse cx="232" cy="236" rx="36" ry="10" transform="rotate(-115 192 236)"/></g>
+</svg>

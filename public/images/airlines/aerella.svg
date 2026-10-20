@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="t" color="#5B4B8A">
+  <title id="t">Аэрелла</title>
+  <rect width="64" height="64" rx="16" fill="#5B4B8A"/>
+  <path fill="#FFFFFF" d="M18 50 33 14h9l-4 36z"/><path fill="currentColor" d="M27.6 30h12.6l-.5 5H25.4z"/><path fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" d="M12 53h40"/>
+</svg>

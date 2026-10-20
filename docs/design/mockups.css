@@ -1,0 +1,282 @@
+/* Стили макетов дизайн-концепции (T-04). Не код сайта: токены отсюда переносятся в Tailwind в T-05. */
+
+:root {
+  --graphite: #2a2e33;
+  --slate: #4a5058;
+  --mist: #eef1ee;
+  --sage: #bfd5a0;
+  --sage-light: #e2eccf;
+  --avocado: #7fa54a;
+  --leaf: #3f6420;
+  --pit: #8a5a3b;
+  --white: #ffffff;
+  --line: #d9ded8;
+  --error: #a3261e;
+  --error-bg: #f9e3e1;
+  --warning: #7a5a00;
+  --warning-bg: #fbefc5;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 2px rgb(42 46 51 / 0.06), 0 4px 16px rgb(42 46 51 / 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+img {
+  max-width: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Onest', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--graphite);
+  background: var(--mist);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.25;
+  font-weight: 600;
+}
+h1 {
+  font-size: 36px;
+}
+h2 {
+  font-size: 28px;
+}
+h3 {
+  font-size: 18px;
+}
+p {
+  margin: 0;
+}
+a {
+  color: var(--leaf);
+}
+.muted {
+  color: var(--slate);
+}
+.small {
+  font-size: 14px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Кнопки */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--leaf);
+  color: var(--white);
+}
+.btn-secondary {
+  background: transparent;
+  border-color: var(--leaf);
+  color: var(--leaf);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--slate);
+  padding-inline: 12px;
+}
+
+/* Бейджи */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.badge-sage {
+  background: var(--sage);
+  color: var(--graphite);
+}
+.badge-pit {
+  background: var(--pit);
+  color: var(--white);
+}
+.badge-ok {
+  background: var(--sage-light);
+  color: var(--leaf);
+}
+.badge-warn {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.badge-off {
+  background: var(--mist);
+  color: var(--slate);
+}
+
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* Шапка */
+.header {
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  height: 72px;
+}
+.header-logo img {
+  display: block;
+  height: 40px;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+.nav a {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--graphite);
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.nav a[aria-current='page'] {
+  background: var(--sage-light);
+  color: var(--leaf);
+}
+.header-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 220px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--slate);
+  font-size: 14px;
+}
+.icon-btn {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--mist);
+  font-size: 20px;
+  line-height: 40px;
+  text-align: center;
+}
+
+/* Подвал */
+.footer {
+  margin-top: 64px;
+  background: var(--graphite);
+  color: var(--mist);
+  padding: 48px 0 32px;
+  font-size: 14px;
+}
+.footer a {
+  color: var(--sage);
+  text-decoration: none;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 2fr 1fr 1fr;
+  gap: 32px;
+}
+.footer h3 {
+  font-size: 14px;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+.footer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2;
+  line-height: 2;
+}
+.footer-bottom {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--slate);
+  display: flex;
+  justify-content: space-between;
+  color: #b7bdb6;
+}
+.rates div {
+  display: flex;
+  justify-content: space-between;
+  max-width: 180px;
+}
+
+/* Подпись к макету (не часть интерфейса) */
+.mockup-note {
+  background: var(--line);
+  color: var(--slate);
+  font-size: 13px;
+  padding: 6px 24px;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  h1 {
+    font-size: 28px;
+  }
+  h2 {
+    font-size: 22px;
+  }
+  .container {
+    padding: 0 16px;
+  }
+  .header-inner {
+    gap: 8px;
+    height: 60px;
+  }
+  .header-logo {
+    flex: 1;
+  }
+  .header-logo img {
+    height: 32px;
+  }
+  .nav,
+  .header-search,
+  .header .btn {
+    display: none;
+  }
+  .icon-btn {
+    display: block;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
