@@ -9,6 +9,10 @@ coverage/
 playwright-report/
 test-results/
 
+# Генерируются TypeScript и Next.js при каждом запуске
+*.tsbuildinfo
+next-env.d.ts
+
 # Окружение
 .env
 .env*.local
