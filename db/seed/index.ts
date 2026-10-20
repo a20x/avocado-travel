@@ -4,20 +4,31 @@
  * Скрипты в db/seed — инструмент разработчика, а не код сайта, поэтому пишут в базу через
  * Drizzle напрямую (так принято в проектах на Drizzle). Таблицы берутся из index.ts модулей.
  * Каждый запуск даёт одинаковый результат: таблицы очищаются и заполняются заново.
+ * Даты рейсов отсчитываются от сегодняшнего дня по Москве.
  */
 import { sql } from 'drizzle-orm';
 import { db } from '@/server/db';
+import { dateInZone } from '@/shared/lib/time';
 import { seedCatalogData } from './catalog-data';
+import { seedFlights } from './flights';
 
 async function main() {
   const started = Date.now();
+  const today = dateInZone(new Date(), 'Europe/Moscow');
 
   // Всё или ничего: если что-то упадёт, база останется как была.
   const counts = await db.transaction(async (tx) => {
     await tx.execute(
-      sql`TRUNCATE TABLE airports, airlines, aircraft_models RESTART IDENTITY CASCADE`,
+      sql`TRUNCATE TABLE flights, airports, airlines, aircraft_models RESTART IDENTITY CASCADE`,
     );
-    return { ...(await seedCatalogData(tx)) };
+    const catalog = await seedCatalogData(tx);
+    const flightCount = await seedFlights(tx, catalog, today);
+    return {
+      airports: catalog.airports.length,
+      airlines: catalog.airlines.length,
+      aircraftModels: catalog.aircraftModels.length,
+      flights: flightCount,
+    };
   });
 
   console.log('Демо-данные загружены:', counts, `за ${Date.now() - started} мс`);
