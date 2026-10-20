@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Новый пуш в ту же ветку отменяет устаревшую проверку.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Та же база, что в docker-compose.yml.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: avocado
+          POSTGRES_PASSWORD: avocado
+          POSTGRES_DB: avocado
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U avocado -d avocado"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+
+    env:
+      DATABASE_URL: postgresql://avocado:avocado@localhost:5432/avocado
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Версия pnpm берётся из поля packageManager в package.json.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - run: pnpm db:migrate
+
+      - run: pnpm check
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
