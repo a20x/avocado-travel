@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
   <title id="t">Москва: кремлёвская стена и башня с часами</title>
-  <rect width="800" height="400" fill="#DCE8C9"/>
+  <rect width="800" height="400" fill="#E8EDF0"/>
   <g fill="#FFFFFF">
     <rect x="80" y="80" width="140" height="32" rx="16"/>
     <circle cx="122" cy="84" r="32"/>

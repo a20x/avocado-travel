@@ -11,6 +11,8 @@
   --pit: #8a5a3b;
   --white: #ffffff;
   --line: #d9ded8;
+  --sky: #e8edf0;
+  --line-strong: #b9c0b8;
   --error: #a3261e;
   --error-bg: #f9e3e1;
   --warning: #7a5a00;
@@ -92,8 +94,8 @@ a {
 }
 .btn-secondary {
   background: transparent;
-  border-color: var(--leaf);
-  color: var(--leaf);
+  border-color: var(--graphite);
+  color: var(--graphite);
 }
 .btn-ghost {
   background: transparent;
@@ -110,7 +112,7 @@ a {
   font-weight: 600;
 }
 .badge-sage {
-  background: var(--sage);
+  background: var(--mist);
   color: var(--graphite);
 }
 .badge-pit {
@@ -166,8 +168,8 @@ a {
   white-space: nowrap;
 }
 .nav a[aria-current='page'] {
-  background: var(--sage-light);
-  color: var(--leaf);
+  background: var(--mist);
+  font-weight: 600;
 }
 .header-search {
   display: flex;

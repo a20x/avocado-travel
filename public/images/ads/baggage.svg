@@ -11,7 +11,7 @@
     <circle cx="66" cy="114" r="22"/>
     <circle cx="92" cy="108" r="28"/>
     <circle cx="114" cy="118" r="18"/></g>
-  <ellipse cx="320" cy="268" rx="190" ry="14" fill="#DCE8C9"/>
+  <ellipse cx="320" cy="268" rx="190" ry="14" fill="#E8EDF0"/>
   <path d="M275 102V82Q275 70 287 70H313Q325 70 325 82V102" fill="none" stroke="#2A2E33" stroke-width="9" stroke-linecap="round"/>
   <rect x="220" y="100" width="160" height="152" rx="20" fill="#7FA54A"/>
   <rect x="256" y="100" width="10" height="152" fill="#3F6420"/>

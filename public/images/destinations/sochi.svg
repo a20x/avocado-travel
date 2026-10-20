@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
   <title id="t">Сочи: море, заснеженные горы, пальма и парусник</title>
-  <rect width="800" height="400" fill="#DCE8C9"/>
+  <rect width="800" height="400" fill="#E8EDF0"/>
   <circle cx="640" cy="96" r="50" fill="#FFFFFF"/>
   <path d="M0 250 120 120 220 196 350 70 500 220 600 150 800 250Z" fill="#BFD5A0"/>
   <path d="M350 70 384 104 368 100 354 114 340 100 324 106 316 102Z" fill="#FFFFFF"/>
