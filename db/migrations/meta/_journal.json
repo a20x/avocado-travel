@@ -8,6 +8,13 @@
       "when": 1792532567608,
       "tag": "0000_utc-timezone",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792538218341,
+      "tag": "0001_catalog-data",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Ереван: гора Арарат над городом из розового туфа</title>
+  <rect width="800" height="400" fill="#E8EDF0"/>
+  <g fill="#FFFFFF" opacity="0.9"><rect x="640" y="60" width="91" height="21" rx="10"/><circle cx="667" cy="63" r="21"/><circle cx="690" cy="57" r="28"/><circle cx="711" cy="67" r="18"/></g>
+  <path d="M60 280 300 70 460 200 520 160 700 280Z" fill="#7D8790"/>
+  <path d="M300 70 352 116 332 112 316 126 300 112 282 120 262 114 248 116Z" fill="#FFFFFF"/><path d="M520 160 546 182 534 180 522 188 510 180 498 182Z" fill="#FFFFFF"/>
+  <path d="M0 290C200 270 600 270 800 290V300H0Z" fill="#BFD5A0"/>
+  <rect x="60" y="230" width="110" height="80" fill="#D9A58C"/><rect x="60" y="230" width="110" height="8" fill="#A8754F"/>
+  <path d="M74 282V260.0Q74 254 80.0 254Q86 254 86 260.0V282Z" fill="#8A5A3B"/>
+  <path d="M100 282V260.0Q100 254 106.0 254Q112 254 112 260.0V282Z" fill="#8A5A3B"/>
+  <path d="M126 282V260.0Q126 254 132.0 254Q138 254 138 260.0V282Z" fill="#8A5A3B"/>
+  <path d="M152 282V260.0Q152 254 158.0 254Q164 254 164 260.0V282Z" fill="#8A5A3B"/>
+  <rect x="190" y="210" width="120" height="100" fill="#D9A58C"/><rect x="190" y="210" width="120" height="8" fill="#A8754F"/>
+  <path d="M204 262V240.0Q204 234 210.0 234Q216 234 216 240.0V262Z" fill="#8A5A3B"/>
+  <path d="M230 262V240.0Q230 234 236.0 234Q242 234 242 240.0V262Z" fill="#8A5A3B"/>
+  <path d="M256 262V240.0Q256 234 262.0 234Q268 234 268 240.0V262Z" fill="#8A5A3B"/>
+  <path d="M282 262V240.0Q282 234 288.0 234Q294 234 294 240.0V262Z" fill="#8A5A3B"/>
+  <rect x="330" y="240" width="90" height="70" fill="#D9A58C"/><rect x="330" y="240" width="90" height="8" fill="#A8754F"/>
+  <path d="M344 292V270.0Q344 264 350.0 264Q356 264 356 270.0V292Z" fill="#8A5A3B"/>
+  <path d="M370 292V270.0Q370 264 376.0 264Q382 264 382 270.0V292Z" fill="#8A5A3B"/>
+  <path d="M396 292V270.0Q396 264 402.0 264Q408 264 408 270.0V292Z" fill="#8A5A3B"/>
+  <rect x="440" y="220" width="130" height="90" fill="#D9A58C"/><rect x="440" y="220" width="130" height="8" fill="#A8754F"/>
+  <path d="M454 272V250.0Q454 244 460.0 244Q466 244 466 250.0V272Z" fill="#8A5A3B"/>
+  <path d="M480 272V250.0Q480 244 486.0 244Q492 244 492 250.0V272Z" fill="#8A5A3B"/>
+  <path d="M506 272V250.0Q506 244 512.0 244Q518 244 518 250.0V272Z" fill="#8A5A3B"/>
+  <path d="M532 272V250.0Q532 244 538.0 244Q544 244 544 250.0V272Z" fill="#8A5A3B"/>
+  <rect x="590" y="236" width="150" height="74" fill="#D9A58C"/><rect x="590" y="236" width="150" height="8" fill="#A8754F"/>
+  <path d="M604 288V266.0Q604 260 610.0 260Q616 260 616 266.0V288Z" fill="#8A5A3B"/>
+  <path d="M630 288V266.0Q630 260 636.0 260Q642 260 642 266.0V288Z" fill="#8A5A3B"/>
+  <path d="M656 288V266.0Q656 260 662.0 260Q668 260 668 266.0V288Z" fill="#8A5A3B"/>
+  <path d="M682 288V266.0Q682 260 688.0 260Q694 260 694 266.0V288Z" fill="#8A5A3B"/>
+  <path d="M708 288V266.0Q708 260 714.0 260Q720 260 720 266.0V288Z" fill="#8A5A3B"/>
+  <rect y="300" width="800" height="100" fill="#E3D3BF"/><path d="M0 330H800M0 366H800" stroke="#FFFFFF" stroke-width="2" opacity=".6"/>
+  <circle cx="40" cy="298" r="14" fill="#3F6420"/><rect x="38" y="298" width="4" height="20" fill="#2F4D18"/>
+  <circle cx="760" cy="298" r="16" fill="#3F6420"/><rect x="758" y="298" width="4" height="22" fill="#2F4D18"/>
+</svg>

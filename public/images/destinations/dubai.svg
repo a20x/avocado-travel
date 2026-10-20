@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Дубай: небоскрёб Бурдж-Халифа, отель-парус, пустыня и море</title>
+  <rect width="800" height="400" fill="#E8EDF0"/>
+  <g fill="#FFFFFF" opacity="1.0"><rect x="80" y="70" width="130" height="30" rx="15"/><circle cx="118" cy="74" r="30"/><circle cx="152" cy="66" r="40"/><circle cx="182" cy="80" r="26"/></g>
+  <g fill="#FFFFFF" opacity="0.8"><rect x="460" y="110" width="78" height="18" rx="9"/><circle cx="483" cy="112" r="18"/><circle cx="503" cy="108" r="24"/><circle cx="521" cy="116" r="16"/></g>
+  <path d="M380 300V180H392V120H400V60H405V18H407V60H412V120H420V180H432V300Z" fill="#5E656D"/>
+  <path d="M372 300V220H384V300ZM428 300V220H440V300Z" fill="#4A5058"/>
+  <rect x="250" y="210" width="40" height="90" fill="#7D8790"/>
+  <rect x="296" y="180" width="34" height="120" fill="#9AA19A"/>
+  <rect x="460" y="200" width="36" height="100" fill="#9AA19A"/>
+  <rect x="502" y="230" width="44" height="70" fill="#7D8790"/>
+  <rect x="200" y="240" width="40" height="60" fill="#B9C0B8"/>
+  <rect y="292" width="800" height="108" fill="#7D8790"/>
+  <path d="M40 318h70M170 342h90M330 326h60M460 354h80M600 322h70M690 348h60M250 372h70" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+  <path d="M640 280C640 180 690 120 740 100V280Z" fill="#FFFFFF"/><path d="M640 280C660 200 700 150 740 120" fill="none" stroke="#B9C0B8" stroke-width="3"/>
+  <path d="M742 90V280" stroke="#4A5058" stroke-width="5"/><rect x="620" y="278" width="140" height="10" fill="#E3D3BF"/>
+  <path d="M0 400V320C80 290 160 300 240 320S380 330 420 340V400Z" fill="#E3D3BF"/><path d="M0 400V350C100 330 200 344 300 360V400Z" fill="#D6C2A8"/>
+  <path d="M120 330C122 300 126 284 136 268" fill="none" stroke="#8A5A3B" stroke-width="7" stroke-linecap="round"/>
+  <ellipse cx="160" cy="268" rx="26" ry="7" fill="#3F6420" transform="rotate(-10 136 268)"/>
+  <ellipse cx="160" cy="268" rx="26" ry="7" fill="#3F6420" transform="rotate(30 136 268)"/>
+  <ellipse cx="160" cy="268" rx="26" ry="7" fill="#3F6420" transform="rotate(150 136 268)"/>
+  <ellipse cx="160" cy="268" rx="26" ry="7" fill="#3F6420" transform="rotate(190 136 268)"/>
+  <ellipse cx="160" cy="268" rx="26" ry="7" fill="#3F6420" transform="rotate(-70 136 268)"/>
+  <ellipse cx="160" cy="268" rx="26" ry="7" fill="#3F6420" transform="rotate(-115 136 268)"/>
+</svg>
