@@ -45,7 +45,7 @@ export default function UiShowcasePage() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10 md:px-6">
+    <div className="mx-auto max-w-5xl px-4 py-10 md:px-6">
       <h1 className="text-3xl">Компоненты</h1>
       <p className="text-slate">
         Общие компоненты из <code>src/shared/ui</code>. Страница есть только в режиме разработки.
@@ -172,6 +172,6 @@ export default function UiShowcasePage() {
           />
         </Card>
       </Section>
-    </main>
+    </div>
   );
 }

@@ -81,6 +81,16 @@
   --shadow-card: 0 1px 2px rgb(42 46 51 / 0.06), 0 4px 16px rgb(42 46 51 / 0.06);
 }
 
+/* Ширина содержимого страницы: до 1200 px, поля 16 px на телефоне и 24 px от 768 px. */
+@utility container-site {
+  margin-inline: auto;
+  max-width: 1200px;
+  padding-inline: 1rem;
+  @media (width >= 48rem) {
+    padding-inline: 1.5rem;
+  }
+}
+
 @layer base {
   body {
     background-color: var(--color-mist);
