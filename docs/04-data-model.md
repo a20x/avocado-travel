@@ -51,7 +51,7 @@ erDiagram
 | code | text, уникальное | Внутренний код из трёх латинских букв, например `LST`. Настоящие двухбуквенные коды ИАТА не используем: они принадлежат реальным компаниям |
 | name | text | «Ластавиа» |
 | color | text | Фирменный цвет для логотипа и карточек |
-| logo | text | Путь к SVG в `public/airlines/` |
+| logo | text | Путь к SVG в `public/images/airlines/` |
 | description | text | |
 | baggage_included | boolean | Включён ли багаж в эконом |
 
