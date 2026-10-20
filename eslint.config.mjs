@@ -8,8 +8,8 @@ const app = { element: { type: 'app' } };
 const shared = { element: { type: 'shared' } };
 const server = { element: { type: 'server' } };
 const anyModule = { element: { type: 'module' } };
-// Чужой модуль виден только через свою «витрину» index.ts.
-const modulePublicApi = { element: { type: 'module', fileInternalPath: 'index.ts' } };
+// Чужой модуль виден только через свои входы: index.ts (общее) и server.ts (только сервер), ADR-0008.
+const modulePublicApi = { element: { type: 'module', fileInternalPath: '{index,server}.ts' } };
 
 export default defineConfig([
   ...nextVitals,

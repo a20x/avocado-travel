@@ -54,13 +54,11 @@ const AIRCRAFT_MODELS: NewAircraftModel[] = [
   { manufacturer: 'Sukhoi', model: 'Superjet 100', businessRows: 3, businessLayout: 'AC-DF', economyRows: 18, economyLayout: 'AC-DEF' },
 ];
 
+/** Вставляет справочники и возвращает строки с id — на них ссылаются рейсы. */
 export async function seedCatalogData(db: Db) {
-  await db.insert(airports).values(AIRPORTS);
-  await db.insert(airlines).values(AIRLINES);
-  await db.insert(aircraftModels).values(AIRCRAFT_MODELS);
   return {
-    airports: AIRPORTS.length,
-    airlines: AIRLINES.length,
-    aircraftModels: AIRCRAFT_MODELS.length,
+    airports: await db.insert(airports).values(AIRPORTS).returning(),
+    airlines: await db.insert(airlines).values(AIRLINES).returning(),
+    aircraftModels: await db.insert(aircraftModels).values(AIRCRAFT_MODELS).returning(),
   };
 }
