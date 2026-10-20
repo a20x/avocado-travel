@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" width="1200" height="560" role="img" aria-labelledby="t">
   <title id="t">Самолёт летит по маршруту между двумя городами</title>
-  <circle cx="930" cy="170" r="110" fill="#DCE8C9"/>
+  <circle cx="930" cy="170" r="110" fill="#E8EDF0"/>
   <g fill="#FFFFFF" opacity="1">
     <rect x="120.0" y="152.1" width="170.0" height="39.3" rx="19.3"/>
     <circle cx="171.0" cy="159.3" r="39.3"/>

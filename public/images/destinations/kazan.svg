@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
   <title id="t">Казань: белые стены кремля, минареты и ярусная кирпичная башня</title>
-  <rect width="800" height="400" fill="#DCE8C9"/>
+  <rect width="800" height="400" fill="#E8EDF0"/>
   <g fill="#FFFFFF" opacity=".9">
     <rect x="600" y="60" width="130" height="30" rx="15"/>
     <circle cx="638" cy="64" r="30"/>

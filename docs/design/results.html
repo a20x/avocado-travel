@@ -28,7 +28,7 @@
         font-weight: 500;
       }
       .query-phrase b {
-        color: var(--leaf);
+        font-weight: 600;
       }
       .layout {
         display: grid;
@@ -133,7 +133,7 @@
         content: '';
         display: block;
         height: 0;
-        border-top: 2px dashed var(--sage);
+        border-top: 2px dashed var(--line-strong);
         margin: 0 10px 6px;
       }
       .route-line::after {
@@ -155,7 +155,8 @@
         color: var(--slate);
       }
       .flight-side {
-        background: var(--sage-light);
+        background: var(--white);
+        border-left: 1px solid var(--line);
         padding: 20px;
         display: grid;
         align-content: center;
@@ -202,6 +203,8 @@
           display: none;
         }
         .flight-side {
+          border-left: 0;
+          border-top: 1px solid var(--line);
           display: flex;
           justify-content: space-between;
           align-items: center;

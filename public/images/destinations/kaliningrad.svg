@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
   <title id="t">Калининград: кирпичный собор с башней и фахверковые домики у реки</title>
-  <rect width="800" height="400" fill="#DCE8C9"/>
+  <rect width="800" height="400" fill="#E8EDF0"/>
   <g fill="#FFFFFF">
     <rect x="70" y="70" width="130" height="30" rx="15"/>
     <circle cx="108" cy="74" r="30"/>

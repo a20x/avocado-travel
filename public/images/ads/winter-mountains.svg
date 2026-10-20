@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300" role="img" aria-labelledby="t">
   <title id="t">Заснеженные горы и ели</title>
-  <rect width="600" height="300" fill="#DCE8C9"/>
+  <rect width="600" height="300" fill="#E8EDF0"/>
   <g fill="#FFFFFF">
     <circle cx="60" cy="50" r="4"/><circle cx="140" cy="96" r="3"/><circle cx="210" cy="40" r="4"/><circle cx="330" cy="30" r="3"/><circle cx="470" cy="56" r="4"/><circle cx="540" cy="110" r="3"/><circle cx="90" cy="150" r="3"/><circle cx="560" cy="30" r="3"/><circle cx="400" cy="90" r="3"/></g>
   <path d="M40 240 220 66 400 240Z" fill="#4A5058"/>

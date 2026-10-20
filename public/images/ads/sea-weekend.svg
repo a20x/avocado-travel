@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300" role="img" aria-labelledby="t">
   <title id="t">Морское побережье с пальмой, горами и самолётом</title>
-  <rect width="600" height="300" fill="#DCE8C9"/>
+  <rect width="600" height="300" fill="#E8EDF0"/>
   <circle cx="470" cy="86" r="42" fill="#FFFFFF"/>
   <g fill="#FFFFFF" opacity=".9">
     <rect x="70" y="58" width="100" height="24" rx="12"/>
