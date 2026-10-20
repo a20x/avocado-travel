@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Минеральные Воды: двуглавый Эльбрус и ротонда на холме</title>
+  <rect width="800" height="400" fill="#E8EDF0"/>
+  <g fill="#FFFFFF" opacity="1.0"><rect x="80" y="60" width="104" height="24" rx="12"/><circle cx="110" cy="63" r="24"/><circle cx="138" cy="57" r="32"/><circle cx="162" cy="68" r="21"/></g>
+  <g fill="#FFFFFF" opacity="0.9"><rect x="620" y="50" width="91" height="21" rx="10"/><circle cx="647" cy="53" r="21"/><circle cx="670" cy="47" r="28"/><circle cx="691" cy="57" r="18"/></g>
+  <path d="M120 260 300 90 360 140 430 80 640 260Z" fill="#5E656D"/>
+  <path d="M300 90 336 124 320 120 306 132 292 120 278 126Z" fill="#FFFFFF"/><path d="M430 80 470 116 452 112 438 126 424 112 408 118 394 112Z" fill="#FFFFFF"/>
+  <path d="M0 270C120 200 240 230 360 250S600 200 800 250V300H0Z" fill="#BFD5A0"/>
+  <path d="M440 300C500 200 640 190 720 300Z" fill="#7FA54A"/>
+  <rect x="530" y="214" width="110" height="10" fill="#E3D3BF"/><path d="M524 192A61 26 0 0 1 646 192V200H524Z" fill="#E3D3BF"/>
+  <rect x="534" y="200" width="8" height="16" fill="#FFFFFF"/>
+  <rect x="554" y="200" width="8" height="16" fill="#FFFFFF"/>
+  <rect x="574" y="200" width="8" height="16" fill="#FFFFFF"/>
+  <rect x="594" y="200" width="8" height="16" fill="#FFFFFF"/>
+  <rect x="614" y="200" width="8" height="16" fill="#FFFFFF"/>
+  <rect x="634" y="200" width="8" height="16" fill="#FFFFFF"/>
+  <path d="M585 166V178" stroke="#E3D3BF" stroke-width="4"/>
+  <path d="M0 300C200 288 600 288 800 300V400H0Z" fill="#7FA54A"/>
+  <path d="M0 334C260 322 540 324 800 336V400H0Z" fill="#3F6420"/>
+  <circle cx="130" cy="300" r="16" fill="#3F6420"/><rect x="128" y="300" width="4" height="22" fill="#2F4D18"/>
+  <circle cx="170" cy="306" r="12" fill="#3F6420"/><rect x="168" y="306" width="4" height="18" fill="#2F4D18"/>
+  <circle cx="760" cy="300" r="14" fill="#3F6420"/><rect x="758" y="300" width="4" height="20" fill="#2F4D18"/>
+</svg>

@@ -22,7 +22,8 @@
     "db:down": "docker compose down",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:reset": "docker compose down --volumes && pnpm db:up && pnpm db:migrate"
+    "db:reset": "docker compose down --volumes && pnpm db:up && pnpm db:migrate && pnpm db:seed",
+    "db:seed": "tsx --conditions=react-server --env-file-if-exists=.env db/seed/index.ts"
   },
   "dependencies": {
     "drizzle-orm": "0.45.4",
@@ -48,6 +49,7 @@
     "html-validate": "11.16.4",
     "prettier": "3.9.10",
     "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
     "typescript": "6.0.3",
     "vitest": "5.0.5"
   }

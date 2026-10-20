@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Новосибирск: оперный театр с большим серебристым куполом</title>
+  <rect width="800" height="400" fill="#E8EDF0"/>
+  <g fill="#FFFFFF" opacity="1.0"><rect x="80" y="70" width="130" height="30" rx="15"/><circle cx="118" cy="74" r="30"/><circle cx="152" cy="66" r="40"/><circle cx="182" cy="80" r="26"/></g>
+  <g fill="#FFFFFF" opacity="1.0"><rect x="560" y="60" width="117" height="27" rx="14"/><circle cx="594" cy="64" r="27"/><circle cx="625" cy="56" r="36"/><circle cx="652" cy="69" r="23"/></g>
+  <path d="M240 200A160 110 0 0 1 560 200Z" fill="#B9C0B8"/>
+  <path d="M400 92V200M330 104Q300 150 290 200M470 104Q500 150 510 200M360 95Q350 150 345 200M440 95Q450 150 455 200" stroke="#9AA19A" stroke-width="3" fill="none"/>
+  <rect x="386" y="70" width="28" height="24" fill="#B9C0B8"/><path d="M382 72A18 14 0 0 1 418 72Z" fill="#9AA19A"/>
+  <rect x="140" y="200" width="520" height="100" fill="#E3D3BF"/><rect x="130" y="192" width="540" height="12" fill="#B9C0B8"/>
+  <rect x="320" y="182" width="160" height="118" fill="#E3D3BF"/><path d="M310 184H490L400 150Z" fill="#E3D3BF"/><path d="M310 184H490" stroke="#B9C0B8" stroke-width="6"/>
+  <rect x="330" y="200" width="12" height="100" fill="#FFFFFF"/>
+  <rect x="356" y="200" width="12" height="100" fill="#FFFFFF"/>
+  <rect x="382" y="200" width="12" height="100" fill="#FFFFFF"/>
+  <rect x="408" y="200" width="12" height="100" fill="#FFFFFF"/>
+  <rect x="434" y="200" width="12" height="100" fill="#FFFFFF"/>
+  <rect x="460" y="200" width="12" height="100" fill="#FFFFFF"/>
+  <rect x="166" y="226" width="20" height="34" rx="3" fill="#4A5058"/>
+  <rect x="206" y="226" width="20" height="34" rx="3" fill="#4A5058"/>
+  <rect x="246" y="226" width="20" height="34" rx="3" fill="#4A5058"/>
+  <rect x="286" y="226" width="20" height="34" rx="3" fill="#4A5058"/>
+  <rect x="500" y="226" width="20" height="34" rx="3" fill="#4A5058"/>
+  <rect x="540" y="226" width="20" height="34" rx="3" fill="#4A5058"/>
+  <rect x="580" y="226" width="20" height="34" rx="3" fill="#4A5058"/>
+  <rect x="620" y="226" width="20" height="34" rx="3" fill="#4A5058"/>
+  <rect y="300" width="800" height="100" fill="#B9C0B8"/><path d="M0 330H800M0 362H800" stroke="#FFFFFF" stroke-width="2" opacity=".6"/>
+  <circle cx="70" cy="290" r="22" fill="#3F6420"/><rect x="68" y="290" width="4" height="28" fill="#2F4D18"/>
+  <circle cx="110" cy="300" r="16" fill="#3F6420"/><rect x="108" y="300" width="4" height="22" fill="#2F4D18"/>
+  <circle cx="700" cy="292" r="22" fill="#3F6420"/><rect x="698" y="292" width="4" height="28" fill="#2F4D18"/>
+  <circle cx="742" cy="302" r="16" fill="#3F6420"/><rect x="740" y="302" width="4" height="22" fill="#2F4D18"/>
+</svg>

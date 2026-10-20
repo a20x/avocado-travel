@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Ташкент: бирюзовые купола, портал с аркой и минареты</title>
+  <rect width="800" height="400" fill="#E8EDF0"/>
+  <g fill="#FFFFFF" opacity="1.0"><rect x="80" y="60" width="104" height="24" rx="12"/><circle cx="110" cy="63" r="24"/><circle cx="138" cy="57" r="32"/><circle cx="162" cy="68" r="21"/></g>
+  <g fill="#FFFFFF" opacity="0.9"><rect x="600" y="50" width="91" height="21" rx="10"/><circle cx="627" cy="53" r="21"/><circle cx="650" cy="47" r="28"/><circle cx="671" cy="57" r="18"/></g>
+  <rect x="150" y="190" width="500" height="110" fill="#E3D3BF"/>
+  <rect x="180" y="160" width="80" height="32" fill="#E3D3BF"/><rect x="540" y="160" width="80" height="32" fill="#E3D3BF"/>
+  <path d="M182.0 162C182.0 113.0 201.0 92 220 92C239.0 92 258.0 113.0 258.0 162Z" fill="#1F6F6A"/>
+  <path d="M192 162Q197 113 220 92M206 162Q209 113 220 92M220 162Q220 113 220 92M234 162Q231 113 220 92M248 162Q243 113 220 92" fill="none" stroke="#3E8F88" stroke-width="3"/>
+  <path d="M542.0 162C542.0 113.0 561.0 92 580 92C599.0 92 618.0 113.0 618.0 162Z" fill="#1F6F6A"/>
+  <path d="M552 162Q557 113 580 92M566 162Q569 113 580 92M580 162Q580 113 580 92M594 162Q591 113 580 92M608 162Q603 113 580 92" fill="none" stroke="#3E8F88" stroke-width="3"/>
+  <rect x="320" y="120" width="160" height="180" fill="#E3D3BF"/><rect x="320" y="120" width="160" height="12" fill="#1F6F6A"/>
+  <path d="M350 300V190Q350 150 400 140Q450 150 450 190V300Z" fill="#A8754F"/><path d="M366 300V196Q366 166 400 158Q434 166 434 196V300Z" fill="#1F6F6A"/>
+  <path d="M330 136H470" stroke="#3E8F88" stroke-width="4" stroke-dasharray="8 6"/>
+  <path d="M110 300L114 110H130L134 300Z" fill="#A8754F"/><rect x="110" y="96" width="24" height="16" fill="#1F6F6A"/><path d="M110 96Q122 70 134 96Z" fill="#1F6F6A"/>
+  <path d="M114 160H130M113 220H131" stroke="#1F6F6A" stroke-width="4"/>
+  <path d="M676 300L680 110H696L700 300Z" fill="#A8754F"/><rect x="676" y="96" width="24" height="16" fill="#1F6F6A"/><path d="M676 96Q688 70 700 96Z" fill="#1F6F6A"/>
+  <path d="M680 160H696M679 220H697" stroke="#1F6F6A" stroke-width="4"/>
+  <rect y="300" width="800" height="100" fill="#E3D3BF"/><path d="M0 334H800M0 370H800" stroke="#FFFFFF" stroke-width="2" opacity=".6"/>
+  <circle cx="60" cy="300" r="16" fill="#3F6420"/><rect x="58" y="300" width="4" height="22" fill="#2F4D18"/>
+  <circle cx="760" cy="300" r="16" fill="#3F6420"/><rect x="758" y="300" width="4" height="22" fill="#2F4D18"/>
+</svg>

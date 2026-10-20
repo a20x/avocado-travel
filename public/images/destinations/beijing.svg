@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Пекин: Храм Неба — круглый павильон с тремя синими крышами</title>
+  <rect width="800" height="400" fill="#E8EDF0"/>
+  <g fill="#FFFFFF" opacity="1.0"><rect x="80" y="70" width="104" height="24" rx="12"/><circle cx="110" cy="73" r="24"/><circle cx="138" cy="67" r="32"/><circle cx="162" cy="78" r="21"/></g>
+  <g fill="#FFFFFF" opacity="0.9"><rect x="580" y="50" width="104" height="24" rx="12"/><circle cx="610" cy="53" r="24"/><circle cx="638" cy="47" r="32"/><circle cx="662" cy="58" r="21"/></g>
+  <rect x="240" y="270" width="320" height="22" fill="#FFFFFF"/><rect x="270" y="250" width="260" height="22" fill="#FFFFFF"/><rect x="300" y="232" width="200" height="20" fill="#FFFFFF"/>
+  <path d="M240 270H560M270 250H530M300 232H500" stroke="#B9C0B8" stroke-width="2"/>
+  <rect x="330" y="186" width="140" height="46" fill="#9A4A2E"/><rect x="340" y="186" width="5" height="46" fill="#A87B22"/><rect x="358" y="186" width="5" height="46" fill="#A87B22"/><rect x="376" y="186" width="5" height="46" fill="#A87B22"/><rect x="394" y="186" width="5" height="46" fill="#A87B22"/><rect x="412" y="186" width="5" height="46" fill="#A87B22"/><rect x="430" y="186" width="5" height="46" fill="#A87B22"/><rect x="448" y="186" width="5" height="46" fill="#A87B22"/><rect x="466" y="186" width="5" height="46" fill="#A87B22"/>
+  <path d="M300 190Q400 150 500 190Q400 178 300 190Z" fill="#2E4A7D"/><rect x="346" y="152" width="108" height="30" fill="#9A4A2E"/>
+  <path d="M316 156Q400 118 484 156Q400 146 316 156Z" fill="#2E4A7D"/><rect x="362" y="122" width="76" height="28" fill="#9A4A2E"/>
+  <path d="M334 124Q400 66 466 124Q400 114 334 124Z" fill="#2E4A7D"/><path d="M400 82V58" stroke="#A87B22" stroke-width="5"/><circle cx="400" cy="56" r="7" fill="#A87B22"/>
+  <path d="M0 296C200 284 600 284 800 296V400H0Z" fill="#7FA54A"/>
+  <path d="M0 330C260 318 540 320 800 332V400H0Z" fill="#3F6420"/>
+  <circle cx="110" cy="280" r="22" fill="#2F4D18"/><rect x="108" y="280" width="4" height="28" fill="#2F4D18"/>
+  <circle cx="160" cy="290" r="16" fill="#2F4D18"/><rect x="158" y="290" width="4" height="22" fill="#2F4D18"/>
+  <circle cx="650" cy="282" r="22" fill="#2F4D18"/><rect x="648" y="282" width="4" height="28" fill="#2F4D18"/>
+  <circle cx="700" cy="292" r="16" fill="#2F4D18"/><rect x="698" y="292" width="4" height="22" fill="#2F4D18"/>
+</svg>

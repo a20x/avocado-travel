@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Иркутск: Байкал, горы и деревянный дом с резными наличниками</title>
+  <rect width="800" height="400" fill="#E8EDF0"/>
+  <g fill="#FFFFFF" opacity="1.0"><rect x="90" y="60" width="117" height="27" rx="14"/><circle cx="124" cy="64" r="27"/><circle cx="155" cy="56" r="36"/><circle cx="182" cy="69" r="23"/></g>
+  <g fill="#FFFFFF" opacity="0.9"><rect x="520" y="40" width="91" height="21" rx="10"/><circle cx="547" cy="43" r="21"/><circle cx="570" cy="37" r="28"/><circle cx="591" cy="47" r="18"/></g>
+  <path d="M0 230 90 150 160 200 260 110 380 220 460 160 560 230Z" fill="#5E656D"/>
+  <path d="M260 110 290 138 276 134 262 146 248 134 236 138Z" fill="#FFFFFF"/><path d="M90 150 112 170 100 168 88 176 78 168 70 170Z" fill="#FFFFFF"/>
+  <path d="M300 236 420 170 560 236Z" fill="#9AA19A"/>
+  <rect y="232" width="800" height="168" fill="#9AB0B8"/>
+  <path d="M40 270h80M200 300h110M360 262h70M120 330h90M300 352h80" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+  <path d="M430 232 470 196 492 206 510 232Z" fill="#4A5058"/>
+  <path d="M520 400V300C600 290 700 286 800 292V400Z" fill="#7FA54A"/>
+  <rect x="580" y="200" width="160" height="110" fill="#8A5A3B"/><path d="M570 204 660 140 750 204Z" fill="#5E3B26"/>
+  <path d="M580 222h160" stroke="#5E3B26" stroke-width="2" opacity=".5"/>
+  <path d="M580 244h160" stroke="#5E3B26" stroke-width="2" opacity=".5"/>
+  <path d="M580 266h160" stroke="#5E3B26" stroke-width="2" opacity=".5"/>
+  <path d="M580 288h160" stroke="#5E3B26" stroke-width="2" opacity=".5"/>
+  <rect x="600" y="226" width="40" height="50" fill="#9AB0B8"/><path d="M594 228H646L620 210Z M594 280H646" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="5" stroke-linejoin="round"/><path d="M620 226V276M600 250H640" stroke="#FFFFFF" stroke-width="3"/>
+  <rect x="680" y="226" width="40" height="50" fill="#9AB0B8"/><path d="M674 228H726L700 210Z M674 280H726" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="5" stroke-linejoin="round"/><path d="M700 226V276M680 250H720" stroke="#FFFFFF" stroke-width="3"/>
+  <path d="M640 180A20 20 0 0 1 680 180Z" fill="#FFFFFF"/>
+</svg>

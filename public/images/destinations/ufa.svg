@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Уфа: белая мечеть с минаретами в форме бутонов тюльпана над рекой</title>
+  <rect width="800" height="400" fill="#E8EDF0"/>
+  <g fill="#FFFFFF" opacity="1.0"><rect x="560" y="70" width="130" height="30" rx="15"/><circle cx="598" cy="74" r="30"/><circle cx="632" cy="66" r="40"/><circle cx="662" cy="80" r="26"/></g>
+  <g fill="#FFFFFF" opacity="0.9"><rect x="80" y="50" width="91" height="21" rx="10"/><circle cx="107" cy="53" r="21"/><circle cx="130" cy="47" r="28"/><circle cx="151" cy="57" r="18"/></g>
+  <rect x="318" y="80" width="20" height="200" fill="#FFFFFF"/><rect x="462" y="80" width="20" height="200" fill="#FFFFFF"/>
+  <path d="M314.0 68C314.0 48.4 322.4 40 328 28.799999999999997C333.6 40 342.0 48.4 342.0 68Z" fill="#3F6420"/>
+  <path d="M328 68V44.2M321.0 68Q321.0 51.2 328 44.2M335.0 68Q335.0 51.2 328 44.2" stroke="#7FA54A" stroke-width="2" fill="none"/>
+  <path d="M458.0 68C458.0 48.4 466.4 40 472 28.799999999999997C477.6 40 486.0 48.4 486.0 68Z" fill="#3F6420"/>
+  <path d="M472 68V44.2M465.0 68Q465.0 51.2 472 44.2M479.0 68Q479.0 51.2 472 44.2" stroke="#7FA54A" stroke-width="2" fill="none"/>
+  <path d="M330 300V200L400 170 470 200V300Z" fill="#FFFFFF"/>
+  <path d="M368.0 174C368.0 129.2 387.2 110 400 84.4C412.8 110 432.0 129.2 432.0 174Z" fill="#3F6420"/>
+  <path d="M400 174V119.6M384.0 174Q384.0 135.6 400 119.6M416.0 174Q416.0 135.6 400 119.6" stroke="#7FA54A" stroke-width="2" fill="none"/>
+  <rect x="368" y="172" width="64" height="10" fill="#FFFFFF"/>
+  <path d="M352 254V227.0Q352 220 359.0 220Q366 220 366 227.0V254Z" fill="#7FA54A"/>
+  <path d="M380 254V227.0Q380 220 387.0 220Q394 220 394 227.0V254Z" fill="#7FA54A"/>
+  <path d="M408 254V227.0Q408 220 415.0 220Q422 220 422 227.0V254Z" fill="#7FA54A"/>
+  <path d="M436 254V227.0Q436 220 443.0 220Q450 220 450 227.0V254Z" fill="#7FA54A"/>
+  <path d="M0 300V230C40 220 70 190 110 200 150 180 190 210 220 240V300Z" fill="#A8754F"/><path d="M0 300V260C60 250 120 240 220 260V300Z" fill="#8A5A3B"/>
+  <circle cx="40" cy="196" r="16" fill="#3F6420"/><rect x="38" y="196" width="4" height="22" fill="#2F4D18"/>
+  <circle cx="90" cy="186" r="18" fill="#3F6420"/><rect x="88" y="186" width="4" height="24" fill="#2F4D18"/>
+  <circle cx="150" cy="192" r="14" fill="#3F6420"/><rect x="148" y="192" width="4" height="20" fill="#2F4D18"/>
+  <path d="M0 296C200 284 600 284 800 296V400H0Z" fill="#7FA54A"/>
+  <path d="M0 330C260 318 540 320 800 332V400H0Z" fill="#3F6420"/>
+  <path d="M500 330C600 320 700 326 800 330V400H420Z" fill="#7D8790"/>
+</svg>

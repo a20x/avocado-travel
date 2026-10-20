@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t">
+  <title id="t">Стамбул: мечеть с куполами и минаретами, башня Галата и пролив Босфор</title>
+  <rect width="800" height="400" fill="#E8EDF0"/>
+  <g fill="#FFFFFF" opacity="1.0"><rect x="560" y="40" width="104" height="24" rx="12"/><circle cx="590" cy="43" r="24"/><circle cx="618" cy="37" r="32"/><circle cx="642" cy="48" r="21"/></g>
+  <g fill="#FFFFFF" opacity="0.9"><rect x="80" y="60" width="91" height="21" rx="10"/><circle cx="107" cy="63" r="21"/><circle cx="130" cy="57" r="28"/><circle cx="151" cy="67" r="18"/></g>
+  <rect x="180" y="200" width="300" height="80" fill="#E3D3BF"/>
+  <path d="M200 205A40 30 0 0 1 280 205Z M380 205A40 30 0 0 1 460 205Z" fill="#9AA19A"/>
+  <path d="M250 190A80 50 0 0 1 410 190Z" fill="#B9C0B8"/><rect x="246" y="188" width="168" height="16" fill="#E3D3BF"/>
+  <path d="M290 150A40 50 0 0 1 370 150V156H290Z" fill="#9AA19A"/><path d="M330 100V92" stroke="#A87B22" stroke-width="3"/>
+  <path d="M300 152A30 54 0 0 1 360 152Z" fill="#B9C0B8"/>
+  <rect x="160" y="100" width="10" height="180" fill="#FFFFFF"/><path d="M158 102 165 60 172 102Z" fill="#9AA19A"/><rect x="157" y="150" width="16" height="5" fill="#B9C0B8"/>
+  <rect x="200" y="100" width="10" height="180" fill="#FFFFFF"/><path d="M198 102 205 60 212 102Z" fill="#9AA19A"/><rect x="197" y="150" width="16" height="5" fill="#B9C0B8"/>
+  <rect x="456" y="100" width="10" height="180" fill="#FFFFFF"/><path d="M454 102 461 60 468 102Z" fill="#9AA19A"/><rect x="453" y="150" width="16" height="5" fill="#B9C0B8"/>
+  <rect x="496" y="100" width="10" height="180" fill="#FFFFFF"/><path d="M494 102 501 60 508 102Z" fill="#9AA19A"/><rect x="493" y="150" width="16" height="5" fill="#B9C0B8"/>
+  <path d="M560 290C590 250 680 240 740 290Z" fill="#7FA54A"/>
+  <rect x="626" y="150" width="40" height="110" fill="#E3D3BF"/><path d="M620 152 646 100 672 152Z" fill="#4A5058"/><rect x="622" y="170" width="48" height="8" fill="#A8754F"/>
+  <path d="M634 204V191.0Q634 186 639.0 186Q644 186 644 191.0V204Z" fill="#4A5058"/>
+  <path d="M648 204V191.0Q648 186 653.0 186Q658 186 658 191.0V204Z" fill="#4A5058"/>
+  <rect y="280" width="800" height="120" fill="#7D8790"/>
+  <path d="M40 306h70M170 330h90M330 314h60M460 342h80M600 310h70M690 336h60M250 360h70" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+  <path d="M90 330H230L216 348H104Z" fill="#FFFFFF"/><rect x="120" y="314" width="70" height="16" fill="#FFFFFF"/><rect x="146" y="300" width="10" height="14" fill="#9A4A2E"/>
+</svg>
