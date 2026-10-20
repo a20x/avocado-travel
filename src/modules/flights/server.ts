@@ -3,4 +3,9 @@
  */
 import 'server-only';
 
-export { searchFlights } from './server/service';
+export {
+  listAirlineStats,
+  listDestinationStats,
+  listRoutes,
+  searchFlights,
+} from './server/service';

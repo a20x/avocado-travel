@@ -2,4 +2,4 @@
  * Публичные страницы сайта (docs/02-product.md). Каждая проверяется на валидность HTML
  * и отсутствие горизонтальной прокрутки. Новая страница — новая строка здесь.
  */
-export const PUBLIC_PAGES = ['/'];
+export const PUBLIC_PAGES = ['/', '/destinations', '/destinations/kaliningrad', '/airlines'];

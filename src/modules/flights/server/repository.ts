@@ -1,9 +1,10 @@
 import 'server-only';
-import { and, eq, gte, lt } from 'drizzle-orm';
+import { and, count, eq, gte, lt, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { aircraftModels, airlines, airports } from '@/modules/catalog-data';
 import { db } from '@/server/db';
 import { flights } from '../schema';
+import type { RouteStatRow } from '../routes';
 import type { FlightRow } from '../search';
 
 // Таблица аэропортов нужна дважды — для вылета и прилёта, поэтому у каждой копии своё имя.
@@ -67,5 +68,57 @@ export function findFlightCandidates(filter: CandidateFilter): Promise<FlightRow
         gte(flights.departsAt, filter.from),
         lt(flights.departsAt, filter.to),
       ),
+    );
+}
+
+type RouteStatFilter = {
+  /** Только рейсы в этот город; без него — вся сеть. */
+  destinationCitySlug?: string;
+  from: Date;
+  to: Date;
+};
+
+/** Рейсы за промежуток, сгруппированные по маршруту, авиакомпании и модели самолёта. */
+export function findRouteStats(filter: RouteStatFilter): Promise<RouteStatRow[]> {
+  return db
+    .select({
+      originSlug: origin.citySlug,
+      originCity: origin.city,
+      destinationSlug: destination.citySlug,
+      destinationCity: destination.city,
+      airlineCode: airlines.code,
+      airlineName: airlines.name,
+      manufacturer: aircraftModels.manufacturer,
+      model: aircraftModels.model,
+      flights: count(),
+      minPrice: sql<number>`min(${flights.priceEconomy})`.mapWith(Number),
+      durationMinutes:
+        sql<number>`min(extract(epoch from ${flights.arrivesAt} - ${flights.departsAt}))::int / 60`.mapWith(
+          Number,
+        ),
+    })
+    .from(flights)
+    .innerJoin(airlines, eq(flights.airlineId, airlines.id))
+    .innerJoin(aircraftModels, eq(flights.aircraftModelId, aircraftModels.id))
+    .innerJoin(origin, eq(flights.originId, origin.id))
+    .innerJoin(destination, eq(flights.destinationId, destination.id))
+    .where(
+      and(
+        filter.destinationCitySlug
+          ? eq(destination.citySlug, filter.destinationCitySlug)
+          : undefined,
+        gte(flights.departsAt, filter.from),
+        lt(flights.departsAt, filter.to),
+      ),
+    )
+    .groupBy(
+      origin.citySlug,
+      origin.city,
+      destination.citySlug,
+      destination.city,
+      airlines.code,
+      airlines.name,
+      aircraftModels.manufacturer,
+      aircraftModels.model,
     );
 }

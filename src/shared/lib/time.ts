@@ -103,3 +103,13 @@ export function daysBetween(from: string, to: string): number {
   const [y2, m2, d2] = parseDate(to);
   return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86_400_000);
 }
+
+/** Смещение пояса от UTC для подписи: «UTC+3», «UTC+5:30», «UTC» (в данный момент). */
+export function utcOffsetLabel(timeZone: string, at: Date = new Date()): string {
+  const minutes = Math.round(offsetMs(at, timeZone) / 60_000);
+  if (minutes === 0) return 'UTC';
+  const sign = minutes > 0 ? '+' : '−';
+  const abs = Math.abs(minutes);
+  const rest = abs % 60;
+  return `UTC${sign}${Math.floor(abs / 60)}${rest ? `:${pad(rest)}` : ''}`;
+}

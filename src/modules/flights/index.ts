@@ -9,3 +9,4 @@ export { flights } from './schema';
 
 export { MAX_PASSENGERS, SEARCH_DAYS_AHEAD, SORT_OPTIONS, searchQuerySchema } from './model';
 export type { Flight, FlightOffer, SearchError, SearchQuery, SortOption } from './model';
+export type { AirlineStats, DestinationStats, RouteSummary } from './routes';
