@@ -7,7 +7,7 @@ test('из списка направлений открывается стран
   await expect(page).toHaveURL('/destinations/kazan');
   await expect(page.getByRole('heading', { level: 1, name: 'Казань' })).toBeVisible();
   const routes = page.getByRole('table', { name: /Прямые рейсы/ });
-  await expect(routes.getByRole('link', { name: 'Москва' })).toBeVisible();
+  await expect(routes.getByRole('link', { name: 'Москва', exact: true })).toBeVisible();
 });
 
 test('неизвестный город — страница 404', async ({ page }) => {

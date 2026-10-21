@@ -72,7 +72,8 @@ export function findFlightCandidates(filter: CandidateFilter): Promise<FlightRow
 }
 
 type RouteStatFilter = {
-  /** Только рейсы в этот город; без него — вся сеть. */
+  /** Только рейсы из этого города и (или) в этот город; без них — вся сеть. */
+  originCitySlug?: string;
   destinationCitySlug?: string;
   from: Date;
   to: Date;
@@ -104,6 +105,7 @@ export function findRouteStats(filter: RouteStatFilter): Promise<RouteStatRow[]>
     .innerJoin(destination, eq(flights.destinationId, destination.id))
     .where(
       and(
+        filter.originCitySlug ? eq(origin.citySlug, filter.originCitySlug) : undefined,
         filter.destinationCitySlug
           ? eq(destination.citySlug, filter.destinationCitySlug)
           : undefined,

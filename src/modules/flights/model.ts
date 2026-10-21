@@ -11,18 +11,37 @@ export const SEARCH_DAYS_AHEAD = 60;
 export const SORT_OPTIONS = ['price', 'departure', 'duration'] as const;
 export type SortOption = (typeof SORT_OPTIONS)[number];
 
+/** Время вылета по местному времени города вылета: утро 06–12, день 12–18, вечер 18–24. */
+export const DEPARTURE_PERIODS = ['morning', 'day', 'evening'] as const;
+export type DeparturePeriod = (typeof DEPARTURE_PERIODS)[number];
+
 const citySlug = z.string().regex(/^[a-z]+(-[a-z]+)*$/, 'Неверный город');
 
-/** Запрос поиска. Проверяется на сервере, даже если форма уже проверила его в браузере. */
+/** Параметр адреса, который может повторяться (`?airlines=LST&airlines=KRR`), — всегда массив. */
+const repeated = <T extends z.ZodType>(item: T) =>
+  z.preprocess(
+    (value) => (value === undefined ? [] : Array.isArray(value) ? value : [value]),
+    z.array(item),
+  );
+
+/**
+ * Запрос поиска — параметры адреса страницы результатов. Проверяется на сервере,
+ * даже если форма уже проверила его в браузере. Необязательные параметры получают значения
+ * по умолчанию, чтобы короткая ссылка `/flights?from=…&to=…&date=…` тоже работала.
+ */
 export const searchQuerySchema = z.object({
   from: citySlug,
   to: citySlug,
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Дата в формате ГГГГ-ММ-ДД'),
-  passengers: z.coerce.number().int().min(1).max(MAX_PASSENGERS),
-  cabinClass: z.enum(['economy', 'business']),
+  passengers: z.coerce.number().int().min(1).max(MAX_PASSENGERS).default(1),
+  cabinClass: z.enum(['economy', 'business']).default('economy'),
   sort: z.enum(SORT_OPTIONS).default('price'),
-  /** Коды авиакомпаний для фильтра; пусто — все. */
-  airlines: z.array(z.string().regex(/^[A-Z]{3}$/)).default([]),
+  /** Фильтры. Коды авиакомпаний; пусто — все. */
+  airlines: repeated(z.string().regex(/^[A-Z]{3}$/)),
+  /** Время вылета; пусто — любое. */
+  times: repeated(z.enum(DEPARTURE_PERIODS)),
+  /** Только рейсы с багажом в цене. Флажок формы присылает «on». */
+  baggage: z.stringbool().default(false),
 });
 
 export type SearchQuery = z.infer<typeof searchQuerySchema>;
@@ -46,4 +65,19 @@ export type FlightOffer = {
   /** Цена за одного пассажира в выбранном классе, копейки. */
   price: number;
   seatsLeft: number;
+};
+
+/** Авиакомпания среди найденных рейсов — для фильтра, с самой низкой ценой. */
+export type AirlineFacet = {
+  code: string;
+  name: string;
+  logo: string;
+  minPrice: number;
+};
+
+/** Ответ поиска: рейсы после фильтров и все авиакомпании маршрута на эту дату. */
+export type SearchResult = {
+  query: SearchQuery;
+  offers: FlightOffer[];
+  airlines: AirlineFacet[];
 };

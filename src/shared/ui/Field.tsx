@@ -5,6 +5,14 @@ import { cn } from '@/shared/lib/cn';
 export const fieldControlClasses =
   'w-full rounded-sm border-2 border-line-strong bg-white px-3 py-2 text-base text-graphite placeholder:text-slate focus:border-leaf focus:outline-none aria-[invalid=true]:border-error';
 
+/**
+ * Поле внутри предложения — для поиска-фразы: «Я лечу из [Москвы ▾] в [Казань ▾]».
+ * Размер шрифта наследуется от текста вокруг, ширина — по выбранному значению (field-sizing),
+ * а не по самому длинному варианту списка. Браузер без field-sizing покажет поле пошире.
+ */
+export const inlineFieldClasses =
+  'field-sizing-content inline-block max-w-full rounded-sm border-2 border-line-strong bg-white px-2 py-0 align-baseline font-semibold leading-snug text-graphite focus:border-leaf focus:outline-none';
+
 type FieldProps = {
   id: string;
   label: string;

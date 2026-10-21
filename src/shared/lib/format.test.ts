@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDuration, formatPrice, plural } from './format';
+import { formatDate, formatDuration, formatPrice, plural } from './format';
 
 // Intl разделяет разряды неразрывным пробелом — в ожиданиях заменяем его обычным.
 const spaces = (text: string) => text.replace(/\s/g, ' ');
@@ -23,5 +23,10 @@ describe('форматирование', () => {
     expect(plural(11, forms)).toBe('рейсов');
     expect(plural(21, forms)).toBe('рейс');
     expect(plural(25, forms)).toBe('рейсов');
+  });
+
+  it('дата словами', () => {
+    expect(formatDate('2026-11-14')).toBe('14 ноября');
+    expect(formatDate('2026-11-14', { weekday: true })).toBe('сб, 14 ноября');
   });
 });
