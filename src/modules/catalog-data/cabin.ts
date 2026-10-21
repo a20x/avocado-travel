@@ -7,6 +7,8 @@ export type CabinRow = {
   cabinClass: CabinClass;
   /** Группы кресел между проходами: `ABC-DEF` → [['A','B','C'], ['D','E','F']]. */
   groups: string[][];
+  /** Ряд с увеличенным расстоянием для ног: первый ряд эконома и ряд у аварийного выхода. */
+  extraLegroom: boolean;
 };
 
 type CabinLayout = Pick<
@@ -43,11 +45,19 @@ export function buildCabin(model: CabinLayout): CabinRow[] {
   const economy = parseLayout(model.economyLayout);
   const rows: CabinRow[] = [];
 
+  // Аварийный выход — посередине эконома: перед ним ряд стоит свободнее.
+  const exitRow = Math.floor(model.economyRows / 2) + 1;
+
   for (let i = 1; i <= model.businessRows; i++) {
-    rows.push({ number: i, cabinClass: 'business', groups: business });
+    rows.push({ number: i, cabinClass: 'business', groups: business, extraLegroom: false });
   }
   for (let i = 1; i <= model.economyRows; i++) {
-    rows.push({ number: model.businessRows + i, cabinClass: 'economy', groups: economy });
+    rows.push({
+      number: model.businessRows + i,
+      cabinClass: 'economy',
+      groups: economy,
+      extraLegroom: i === 1 || i === exitRow,
+    });
   }
   return rows;
 }

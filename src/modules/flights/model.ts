@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { CabinClass } from '@/modules/catalog-data';
+import type { SeatMapRow } from './seat-map';
 import type { flights } from './schema';
 
 export type Flight = typeof flights.$inferSelect;
@@ -48,7 +49,7 @@ export type SearchQuery = z.infer<typeof searchQuerySchema>;
 
 export type SearchError = 'INVALID_QUERY' | 'SAME_CITY' | 'UNKNOWN_CITY' | 'DATE_OUT_OF_RANGE';
 
-type PlaceInfo = { iata: string; name: string; city: string; timezone: string };
+type PlaceInfo = { iata: string; name: string; city: string; citySlug: string; timezone: string };
 
 /** Рейс в результатах поиска — всё, что нужно показать в карточке. */
 export type FlightOffer = {
@@ -81,3 +82,14 @@ export type SearchResult = {
   offers: FlightOffer[];
   airlines: AirlineFacet[];
 };
+
+/** Рейс на своей странице: цены обоих классов, свободные места и схема салона. */
+export type FlightDetails = Omit<FlightOffer, 'cabinClass' | 'price' | 'seatsLeft'> & {
+  prices: Record<CabinClass, number>;
+  seatsLeft: Record<CabinClass, number>;
+  seatMap: SeatMapRow[];
+  /** Вылет уже был — места не выбираются. */
+  isDeparted: boolean;
+};
+
+export type FlightError = 'NOT_FOUND';

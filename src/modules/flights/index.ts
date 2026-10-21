@@ -18,6 +18,8 @@ export type {
   AirlineFacet,
   DeparturePeriod,
   Flight,
+  FlightDetails,
+  FlightError,
   FlightOffer,
   SearchError,
   SearchQuery,
@@ -29,3 +31,4 @@ export type {
 export { defaultSearchDate, searchUrl } from './search';
 export type { SearchLink } from './search';
 export type { AirlineStats, DestinationStats, RouteSummary } from './routes';
+export type { SeatInfo, SeatMapRow } from './seat-map';
