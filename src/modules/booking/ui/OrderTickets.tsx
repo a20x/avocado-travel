@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { formatDate, formatPrice } from '@/shared/lib/format';
 import { dateInZone, timeInZone } from '@/shared/lib/time';
 import { Card } from '@/shared/ui/Card';
@@ -5,17 +6,33 @@ import type { OrderDetails } from '../model';
 
 const CLASS_NAME = { economy: 'эконом', business: 'бизнес' } as const;
 
-/** Рейс и билеты заказа: на странице брони и (в T-14) в личном кабинете. */
-export function OrderTickets({ order }: { order: OrderDetails }) {
+type OrderTicketsProps = {
+  order: OrderDetails;
+  /** Над маршрутом: статус и код брони в личном кабинете. */
+  header?: ReactNode;
+  /** Под итогом: кнопки «Оплатить», «Отменить бронь». */
+  footer?: ReactNode;
+  /** h3 — когда заказы стоят списком под общим заголовком. */
+  headingLevel?: 'h2' | 'h3';
+};
+
+/** Рейс и билеты заказа: на странице брони и в личном кабинете. */
+export function OrderTickets({
+  order,
+  header,
+  footer,
+  headingLevel: Heading = 'h2',
+}: OrderTicketsProps) {
   const { flight } = order;
   const departureDate = dateInZone(flight.departsAt, flight.origin.timezone);
 
   return (
     <Card as="section" aria-labelledby={`order-${order.id}`} className="grid gap-4 p-4 md:p-6">
+      {header}
       <div>
-        <h2 id={`order-${order.id}`} className="text-xl">
+        <Heading id={`order-${order.id}`} className="text-xl">
           {flight.origin.city} → {flight.destination.city}
-        </h2>
+        </Heading>
         <p className="text-slate">
           {flight.airlineName} · {flight.number} · {formatDate(departureDate, { weekday: true })} ·{' '}
           {timeInZone(flight.departsAt, flight.origin.timezone)} {flight.origin.iata} →{' '}
@@ -42,6 +59,7 @@ export function OrderTickets({ order }: { order: OrderDetails }) {
         <span>Итого</span>
         <span>{formatPrice(order.total)}</span>
       </p>
+      {footer}
     </Card>
   );
 }

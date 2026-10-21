@@ -27,6 +27,7 @@ const ORDER_MESSAGES: Record<OrderError, string> = {
   ORDER_NOT_FOUND: 'Заказ не найден.',
   ORDER_EXPIRED: 'Время на оплату истекло, бронь отменена. Выберите места заново.',
   ORDER_NOT_PENDING: 'Этот заказ уже оплачен или отменён.',
+  ORDER_NOT_CANCELLABLE: 'Эту бронь уже нельзя отменить: она отменена или рейс улетел.',
 };
 
 const list = (formData: FormData, key: string) => formData.getAll(key).map(String);
@@ -90,4 +91,12 @@ export async function payOrderAction(_: FormState, formData: FormData): Promise<
   if (!result.ok) return { error: ORDER_MESSAGES[result.error] };
 
   redirect(`/booking/${orderId}?paid=1`);
+}
+
+/** «Отменить бронь» в личном кабинете — после подтверждения в диалоге. */
+export async function cancelOrderAction(_: FormState, formData: FormData): Promise<FormState> {
+  const user = await requireUser('/account');
+  const result = await service.cancelOrder(user.id, String(formData.get('order') ?? ''));
+  if (!result.ok) return { error: ORDER_MESSAGES[result.error] };
+  redirect('/account?cancelled=1');
 }

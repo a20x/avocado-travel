@@ -3,5 +3,14 @@
  */
 import 'server-only';
 
-export { createOrder, getOrder, payOrder, prepareBooking } from './server/service';
+export {
+  cancelOrder,
+  createOrder,
+  expireStaleOrders,
+  getOrder,
+  listOrders,
+  payOrder,
+  prepareBooking,
+} from './server/service';
 export type { BookingDraft } from './server/service';
+export { handleExpireOrdersCron } from './server/cron';

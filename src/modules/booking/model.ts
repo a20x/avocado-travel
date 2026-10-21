@@ -83,7 +83,12 @@ export type BookingError =
   /** Место не существует, другого класса или уже занято. */
   | 'SEAT_UNAVAILABLE';
 
-export type OrderError = 'ORDER_NOT_FOUND' | 'ORDER_EXPIRED' | 'ORDER_NOT_PENDING';
+export type OrderError =
+  | 'ORDER_NOT_FOUND'
+  | 'ORDER_EXPIRED'
+  | 'ORDER_NOT_PENDING'
+  /** Уже отменён или рейс уже улетел. */
+  | 'ORDER_NOT_CANCELLABLE';
 
 /** Заказ для страниц брони и кабинета: билеты и рейс. */
 export type OrderDetails = Pick<
@@ -102,3 +107,11 @@ export type OrderDetails = Pick<
     destination: { city: string; iata: string; timezone: string };
   };
 };
+
+/** Отменить можно неоплаченный или оплаченный заказ до вылета (docs/02-product.md, «Заказы»). */
+export function canCancel(
+  order: Pick<OrderDetails, 'status'> & { flight: Pick<OrderDetails['flight'], 'departsAt'> },
+  now: Date,
+): boolean {
+  return (order.status === 'pending' || order.status === 'paid') && order.flight.departsAt > now;
+}

@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, asc, eq, gt, inArray, lte } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, lte } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { airlines, airports, type CabinClass } from '@/modules/catalog-data';
 import { flights } from '@/modules/flights';
@@ -101,12 +101,12 @@ export async function insertOrder(
 const origin = alias(airports, 'origin');
 const destination = alias(airports, 'destination');
 
-/** Заказ пользователя с билетами и рейсом. Чужой заказ не найдётся — как и несуществующий. */
-export async function findOrderForUser(
-  userId: string,
-  orderId: string,
-): Promise<OrderDetails | null> {
-  const [order] = await db
+/**
+ * Заказы пользователя с билетами и рейсом, новые сверху. С `orderId` — только этот заказ.
+ * Чужой заказ не найдётся — как и несуществующий.
+ */
+export async function findOrdersForUser(userId: string, orderId?: string): Promise<OrderDetails[]> {
+  const found = await db
     .select({
       id: orders.id,
       pnr: orders.pnr,
@@ -118,11 +118,13 @@ export async function findOrderForUser(
       createdAt: orders.createdAt,
     })
     .from(orders)
-    .where(and(eq(orders.id, orderId), eq(orders.userId, userId)));
-  if (!order) return null;
+    .where(and(eq(orders.userId, userId), orderId ? eq(orders.id, orderId) : undefined))
+    .orderBy(desc(orders.createdAt));
+  if (found.length === 0) return [];
 
   const rows = await db
     .select({
+      orderId: tickets.orderId,
       seat: tickets.seat,
       passengerFirstName: tickets.passengerFirstName,
       passengerLastName: tickets.passengerLastName,
@@ -147,22 +149,63 @@ export async function findOrderForUser(
     .innerJoin(airlines, eq(flights.airlineId, airlines.id))
     .innerJoin(origin, eq(flights.originId, origin.id))
     .innerJoin(destination, eq(flights.destinationId, destination.id))
-    .where(eq(tickets.orderId, order.id))
+    .where(
+      inArray(
+        tickets.orderId,
+        found.map((order) => order.id),
+      ),
+    )
     .orderBy(asc(tickets.seat));
 
-  const first = rows[0];
-  if (!first) return null;
-  return {
-    ...order,
-    cabinClass: first.cabinClass,
-    tickets: rows.map(({ seat, passengerFirstName, passengerLastName, price }) => ({
-      seat,
-      passengerFirstName,
-      passengerLastName,
-      price,
-    })),
-    flight: { ...first.flight, origin: first.origin, destination: first.destination },
-  };
+  return found.flatMap((order): OrderDetails[] => {
+    const own = rows.filter((row) => row.orderId === order.id);
+    const first = own[0];
+    if (!first) return [];
+    return [
+      {
+        ...order,
+        cabinClass: first.cabinClass,
+        tickets: own.map(({ seat, passengerFirstName, passengerLastName, price }) => ({
+          seat,
+          passengerFirstName,
+          passengerLastName,
+          price,
+        })),
+        flight: { ...first.flight, origin: first.origin, destination: first.destination },
+      },
+    ];
+  });
+}
+
+export async function findOrderForUser(
+  userId: string,
+  orderId: string,
+): Promise<OrderDetails | null> {
+  const [order] = await findOrdersForUser(userId, orderId);
+  return order ?? null;
+}
+
+/**
+ * Отменяет заказ, если он ещё ждёт оплаты или оплачен, и освобождает места — одной транзакцией.
+ * Условие по статусу — в самом запросе: два одновременных нажатия «Отменить» не отменят дважды.
+ */
+export async function cancelOrder(userId: string, orderId: string, now: Date): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    const cancelled = await tx
+      .update(orders)
+      .set({ status: 'cancelled', cancelledAt: now })
+      .where(
+        and(
+          eq(orders.id, orderId),
+          eq(orders.userId, userId),
+          inArray(orders.status, ['pending', 'paid']),
+        ),
+      )
+      .returning({ id: orders.id });
+    if (cancelled.length === 0) return false;
+    await tx.update(tickets).set({ isActive: false }).where(eq(tickets.orderId, orderId));
+    return true;
+  });
 }
 
 /** Отмечает заказ оплаченным, если он ещё ждёт оплаты и не просрочен. true — получилось. */
