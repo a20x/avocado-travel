@@ -8,10 +8,12 @@ import { Card } from '@/shared/ui/Card';
 import { DatePicker } from '@/shared/ui/DatePicker';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Input } from '@/shared/ui/Input';
+import { Pagination } from '@/shared/ui/Pagination';
 import { Select } from '@/shared/ui/Select';
 import { Skeleton, SkeletonGroup } from '@/shared/ui/Skeleton';
 import { Table } from '@/shared/ui/Table';
 import { Tabs } from '@/shared/ui/Tabs';
+import { Textarea } from '@/shared/ui/Textarea';
 import { DialogDemo } from './DialogDemo';
 import { ToastDemo } from './ToastDemo';
 
@@ -119,6 +121,16 @@ export default function UiShowcasePage() {
             ]}
           />
         </Card>
+      </Section>
+
+      <Section title="Многострочное поле">
+        <Card className="max-w-3xl p-6">
+          <Textarea name="demo-text" label="Сообщение" rows={4} hint="До 2000 символов" />
+        </Card>
+      </Section>
+
+      <Section title="Страницы">
+        <Pagination page={6} totalPages={12} href={(p) => `/dev/ui?page=${p}`} />
       </Section>
 
       <Section title="Дата">

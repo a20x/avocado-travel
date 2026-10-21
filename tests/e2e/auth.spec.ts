@@ -1,17 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import {
+  ADMIN,
   expectValidHtml,
   fillRegistration,
   registerCustomer,
   signIn,
   uniqueEmail,
 } from './helpers';
-
-// Те же значения, что в .env.example и CI; скрипт демо-данных создаёт этого администратора.
-const ADMIN = {
-  email: process.env.ADMIN_EMAIL ?? 'admin@avocado.local',
-  password: process.env.ADMIN_PASSWORD ?? 'avocado-admin',
-};
 
 /** В шапке видна кнопка входа или раздела пользователя (на телефоне — внутри меню). */
 async function expectAccountButton(page: Page, name: string) {

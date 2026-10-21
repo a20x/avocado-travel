@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { requireAdmin } from '@/modules/auth/server';
 import { SignOutButton } from '@/modules/auth/ui';
 import { Card } from '@/shared/ui/Card';
@@ -6,8 +7,10 @@ import { Card } from '@/shared/ui/Card';
 export const metadata: Metadata = { title: 'Админка', robots: { index: false } };
 
 /** Разделы появляются вместе с модулями (docs/08-roadmap.md). */
-const SECTIONS = [
-  { title: 'Новости', task: 'T-16' },
+type Section = { title: string; href?: string; description?: string; task?: string };
+
+const SECTIONS: Section[] = [
+  { title: 'Новости', href: '/admin/news', description: 'Написать, изменить, удалить' },
   { title: 'Гостевая книга', task: 'T-17' },
   { title: 'Форум', task: 'T-18' },
   { title: 'Статистика посещений', task: 'T-19' },
@@ -35,8 +38,16 @@ export default async function AdminPage() {
           {SECTIONS.map((section) => (
             <li key={section.title}>
               <Card className="grid gap-1 p-5">
-                <span className="font-semibold">{section.title}</span>
-                <span className="text-sm text-slate">Появится в задаче {section.task}</span>
+                {section.href ? (
+                  <Link href={section.href} className="font-semibold">
+                    {section.title}
+                  </Link>
+                ) : (
+                  <span className="font-semibold">{section.title}</span>
+                )}
+                <span className="text-sm text-slate">
+                  {section.description ?? `Появится в задаче ${section.task}`}
+                </span>
               </Card>
             </li>
           ))}

@@ -16,7 +16,8 @@ type TabsProps = {
  */
 export function Tabs({ items, current, label }: TabsProps) {
   return (
-    <nav aria-label={label} className="flex gap-6 border-b border-line">
+    // На узком экране вкладки прокручиваются вбок внутри полосы, страница не уезжает.
+    <nav aria-label={label} className="flex gap-6 overflow-x-auto border-b border-line">
       {items.map((item) => {
         const isCurrent = item.href === current;
         return (
@@ -25,7 +26,7 @@ export function Tabs({ items, current, label }: TabsProps) {
             href={item.href}
             aria-current={isCurrent ? 'page' : undefined}
             className={cn(
-              '-mb-px border-b-[3px] px-1 py-2.5 font-medium no-underline',
+              '-mb-px border-b-[3px] px-1 py-2.5 font-medium whitespace-nowrap no-underline',
               isCurrent
                 ? 'border-leaf text-leaf'
                 : 'border-transparent text-slate hover:text-graphite',
