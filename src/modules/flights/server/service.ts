@@ -65,8 +65,13 @@ export async function searchFlights(
     to: day.end,
   });
 
+  const taken = await repository.countTakenSeats(
+    rows.map((row) => row.id),
+    query.cabinClass,
+    now,
+  );
   // Авиакомпании для фильтра считаются до фильтров: иначе, отметив одну, не вернёшь остальные.
-  const offers = buildOffers(rows, query);
+  const offers = buildOffers(rows, query, taken);
   return ok({
     query,
     offers: sortOffers(filterOffers(offers, query), query.sort),
@@ -107,8 +112,8 @@ export async function listAirlineStats(now: Date = new Date()): Promise<Map<stri
 }
 
 /**
- * Рейс для страницы с выбором мест. Принимает непроверенный id из адреса страницы.
- * Занятых мест пока нет: они появятся вместе с билетами (T-13).
+ * Рейс для страницы с выбором мест и для оформления брони: схема салона с ценами и занятыми местами.
+ * Принимает непроверенный id из адреса страницы.
  */
 export async function getFlight(
   id: unknown,
@@ -122,15 +127,24 @@ export async function getFlight(
 
   const { priceEconomy, priceBusiness, layout, ...flight } = row;
   const prices = { economy: priceEconomy, business: priceBusiness };
-  const taken = new Set<string>();
+  const taken = new Set(await repository.findTakenSeats(row.id, now));
+  const seatMap = buildSeatMap(layout, prices, taken);
   const capacity = seatCapacity(layout);
+  const takenIn = (cls: 'economy' | 'business') =>
+    seatMap
+      .filter((r) => r.cabinClass === cls)
+      .flatMap((r) => r.groups.flat())
+      .filter((seat) => seat.taken).length;
 
   return ok({
     ...flight,
     durationMinutes: Math.round((row.arrivesAt.getTime() - row.departsAt.getTime()) / 60_000),
     prices,
-    seatsLeft: { economy: capacity.economy, business: capacity.business },
-    seatMap: buildSeatMap(layout, prices, taken),
+    seatsLeft: {
+      economy: capacity.economy - takenIn('economy'),
+      business: capacity.business - takenIn('business'),
+    },
+    seatMap,
     isDeparted: row.departsAt <= now,
   });
 }

@@ -47,8 +47,8 @@
 
 Общие компоненты лежат в `src/shared/ui/`. Каждая страница собирается из них; новые варианты кнопок или карточек добавляются в общий набор, а не рисуются заново на месте. Все компоненты на одной странице — `/dev/ui` (только в режиме разработки).
 
-- **Готовы:** Button, Input, Select, Card, Badge, Tabs, EmptyState, Table (T-05); DatePicker, Skeleton (T-10).
-- **Добавляются в задаче, где впервые нужны** (записаны в [08-roadmap.md](08-roadmap.md)): Toast — T-13, Dialog — T-14, Pagination — T-16.
+- **Готовы:** Button, Input, Select, Card, Badge, Tabs, EmptyState, Table (T-05); DatePicker, Skeleton (T-10); Toast (T-13).
+- **Добавляются в задаче, где впервые нужны** (записаны в [08-roadmap.md](08-roadmap.md)): Dialog — T-14, Pagination — T-16.
 
 Где возможно, компоненты построены на стандартных элементах HTML (`<select>`, `<dialog>`, `<input type="date">`): управление с клавиатуры браузер даёт сам, сторонние библиотеки не нужны.
 

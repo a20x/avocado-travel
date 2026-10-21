@@ -31,4 +31,5 @@ export type {
 export { defaultSearchDate, searchUrl } from './search';
 export type { SearchLink } from './search';
 export type { AirlineStats, DestinationStats, RouteSummary } from './routes';
+export { buildSeatMap } from './seat-map';
 export type { SeatInfo, SeatMapRow } from './seat-map';

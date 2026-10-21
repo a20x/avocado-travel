@@ -12,6 +12,7 @@ import { Select } from '@/shared/ui/Select';
 import { Skeleton, SkeletonGroup } from '@/shared/ui/Skeleton';
 import { Table } from '@/shared/ui/Table';
 import { Tabs } from '@/shared/ui/Tabs';
+import { ToastDemo } from './ToastDemo';
 
 export const metadata: Metadata = {
   title: 'Компоненты',
@@ -149,6 +150,10 @@ export default function UiShowcasePage() {
             <Skeleton className="h-4 w-2/3" />
           </SkeletonGroup>
         </Card>
+      </Section>
+
+      <Section title="Уведомление">
+        <ToastDemo />
       </Section>
 
       <Section title="Вкладки">
