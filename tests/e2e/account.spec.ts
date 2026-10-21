@@ -1,35 +1,23 @@
-import { expect, test, type Page } from '@playwright/test';
-import { HtmlValidate, formatterFactory } from 'html-validate';
+import { expect, test } from '@playwright/test';
+import {
+  expectValidHtml,
+  freeSeats,
+  openFirstFlight,
+  registerCustomer,
+  seatCheckbox,
+} from './helpers';
 import { SEARCH_DATE } from './public-pages';
 
-const htmlValidate = new HtmlValidate({
-  extends: ['html-validate:standard', 'html-validate:a11y'],
-});
-
-/** Регистрирует нового покупателя: каждый тест начинает с пустым кабинетом. */
-async function register(page: Page, name: string, tag: string) {
-  await page.goto('/register');
-  await page.getByLabel('Имя').fill(name);
-  await page.getByLabel('Почта').fill(`${tag}-${Date.now()}@example.com`);
-  await page.getByLabel('Пароль').fill('account-password');
-  await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
-  await expect(page).toHaveURL('/account');
-}
-
 test('неоплаченная бронь в кабинете и её отмена с подтверждением', async ({ page }, testInfo) => {
-  await register(page, 'Глеб', `gleb-${testInfo.project.name}`);
+  await registerCustomer(page, 'Глеб', `gleb-${testInfo.project.name}`);
   await expect(page.getByText('Заказов пока нет')).toBeVisible();
 
   // Бронь на одно свободное место — сразу адресом, как после схемы салона.
+  // У двух экранов разные направления: тесты идут параллельно и не должны бороться за места.
   const to = testInfo.project.name === 'mobile' ? 'ufa' : 'samara';
   await page.goto(`/flights?from=moscow&to=${to}&date=${SEARCH_DATE}`);
-  await page.getByRole('link', { name: 'Выбрать места' }).first().click();
-  await expect(page).toHaveURL(/\/flights\/[0-9a-f-]{36}/);
-  const flightId = page.url().match(/flights\/([0-9a-f-]{36})/)![1]!;
-  const free = page
-    .getByRole('checkbox', { name: /^Место \d+[A-K],/ })
-    .and(page.locator(':enabled'));
-  const seat = (await free.last().getAttribute('value'))!;
+  const flightId = (await openFirstFlight(page)).match(/flights\/([0-9a-f-]{36})/)![1]!;
+  const [seat] = await freeSeats(page, 1);
   await page.goto(`/booking?flight=${flightId}&cabinClass=economy&seats=${seat}`);
   await page.getByLabel('Имя').fill('Глеб');
   await page.getByLabel('Фамилия').fill('Орлов');
@@ -41,10 +29,7 @@ test('неоплаченная бронь в кабинете и её отмен
   await expect(order.getByText('Ждёт оплаты')).toBeVisible();
   await expect(order.getByRole('link', { name: 'Оплатить' })).toBeVisible();
   await expect(order.getByText(`место ${seat}`)).toBeVisible();
-
-  const response = await page.request.get('/account');
-  const report = await htmlValidate.validateString(await response.text());
-  expect(report.valid, formatterFactory('stylish')(report.results)).toBe(true);
+  await expectValidHtml(page, '/account');
 
   // Диалог можно закрыть, ничего не отменив.
   await order.getByRole('button', { name: 'Отменить бронь' }).click();
@@ -64,9 +49,7 @@ test('неоплаченная бронь в кабинете и её отмен
 
   // Место снова свободно.
   await page.goto(`/flights/${flightId}`);
-  await expect(
-    page.getByRole('checkbox', { name: new RegExp(`^Место ${seat},.*₽$`) }),
-  ).toBeEnabled();
+  await expect(seatCheckbox(page, seat!)).toBeEnabled();
 });
 
 test('задание автоотмены открывается только с секретом', async ({ request }) => {

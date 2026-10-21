@@ -3,6 +3,7 @@ import { isAPIError } from 'better-auth/api';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { cache } from 'react';
+import { env } from '@/server/env';
 import { takeRateLimit } from '@/server/rate-limit';
 import { getClientIp } from '@/server/request';
 import { fail, ok, type Result } from '@/shared/lib/result';
@@ -18,6 +19,10 @@ import { auth } from './auth';
 /** Попыток входа и регистрации с одного IP: защита от подбора паролей и массовой регистрации. */
 const SIGN_IN_LIMIT = { limit: 10, windowMs: 60_000 };
 const SIGN_UP_LIMIT = { limit: 10, windowMs: 10 * 60_000 };
+
+async function withinLimit(action: string, rule: { limit: number; windowMs: number }) {
+  return env.RATE_LIMIT_DISABLED || takeRateLimit(`${action}:${await getClientIp()}`, rule);
+}
 
 /**
  * Кто вошёл, или null. cache — на время одного запроса: шапка и страница спрашивают
@@ -48,7 +53,7 @@ export async function requireAdmin(returnTo = '/admin'): Promise<SessionUser> {
 }
 
 export async function signUp(input: SignUpInput): Promise<Result<null, AuthError>> {
-  if (!takeRateLimit(`sign-up:${await getClientIp()}`, SIGN_UP_LIMIT)) {
+  if (!(await withinLimit('sign-up', SIGN_UP_LIMIT))) {
     return fail('TOO_MANY_REQUESTS');
   }
   try {
@@ -63,7 +68,7 @@ export async function signUp(input: SignUpInput): Promise<Result<null, AuthError
 }
 
 export async function signIn(input: SignInInput): Promise<Result<null, AuthError>> {
-  if (!takeRateLimit(`sign-in:${await getClientIp()}`, SIGN_IN_LIMIT)) {
+  if (!(await withinLimit('sign-in', SIGN_IN_LIMIT))) {
     return fail('TOO_MANY_REQUESTS');
   }
   try {

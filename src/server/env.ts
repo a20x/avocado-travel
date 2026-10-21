@@ -12,6 +12,11 @@ const envSchema = z.object({
   ADMIN_PASSWORD: z.string().min(8, 'Нужно не меньше 8 символов'),
   /** Пароль заданий по расписанию: планировщик хостинга присылает его в заголовке Authorization. */
   CRON_SECRET: z.string().min(16, 'Нужно не меньше 16 символов'),
+  /**
+   * Отключить ограничение частоты запросов. Только для сквозных тестов: они регистрируют
+   * десятки покупателей с одного адреса. Сам ограничитель проверяют модульные тесты.
+   */
+  RATE_LIMIT_DISABLED: z.stringbool().default(false),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -35,5 +35,7 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !isCI,
     timeout: 120_000,
+    // Тесты регистрируют много покупателей с одного адреса — ограничение частоты им мешает.
+    env: { ...process.env, RATE_LIMIT_DISABLED: 'true' },
   },
 });

@@ -1,29 +1,17 @@
 import { expect, test, type Page } from '@playwright/test';
-import { HtmlValidate, formatterFactory } from 'html-validate';
-
-const htmlValidate = new HtmlValidate({
-  extends: ['html-validate:standard', 'html-validate:a11y'],
-});
-
-/** Закрытые страницы не входят в общий список: HTML проверяем с cookie вошедшего пользователя. */
-async function expectValidHtml(page: Page, path: string) {
-  const response = await page.request.get(path);
-  expect(response.status()).toBe(200);
-  const report = await htmlValidate.validateString(await response.text());
-  expect(report.valid, formatterFactory('stylish')(report.results)).toBe(true);
-}
+import {
+  expectValidHtml,
+  fillRegistration,
+  registerCustomer,
+  signIn,
+  uniqueEmail,
+} from './helpers';
 
 // Те же значения, что в .env.example и CI; скрипт демо-данных создаёт этого администратора.
 const ADMIN = {
   email: process.env.ADMIN_EMAIL ?? 'admin@avocado.local',
   password: process.env.ADMIN_PASSWORD ?? 'avocado-admin',
 };
-
-async function signIn(page: Page, email: string, password: string) {
-  await page.getByLabel('Почта').fill(email);
-  await page.getByLabel('Пароль').fill(password);
-  await page.getByRole('button', { name: 'Войти' }).click();
-}
 
 /** В шапке видна кнопка входа или раздела пользователя (на телефоне — внутри меню). */
 async function expectAccountButton(page: Page, name: string) {
@@ -39,7 +27,7 @@ async function expectAccountButton(page: Page, name: string) {
 }
 
 test('регистрация, кабинет и выход', async ({ page }, testInfo) => {
-  const email = `anna-${testInfo.project.name}-${Date.now()}@example.com`;
+  const email = uniqueEmail(`anna-${testInfo.project.name}`);
 
   await page.goto('/register');
   await page.getByLabel('Имя').fill('Анна');
@@ -50,9 +38,7 @@ test('регистрация, кабинет и выход', async ({ page }, te
   // Введённое не пропадает после ошибки.
   await expect(page.getByLabel('Почта')).toHaveValue(email);
 
-  await page.getByLabel('Пароль').fill('anna-password');
-  await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
-
+  await fillRegistration(page, 'Анна', email);
   await expect(page).toHaveURL('/account');
   await expect(page.getByText(`Анна · ${email}`)).toBeVisible();
   await expectAccountButton(page, 'Кабинет');
@@ -64,10 +50,7 @@ test('регистрация, кабинет и выход', async ({ page }, te
 
   // Та же почта второй раз — понятная ошибка.
   await page.goto('/register');
-  await page.getByLabel('Имя').fill('Анна');
-  await page.getByLabel('Почта').fill(email);
-  await page.getByLabel('Пароль').fill('anna-password');
-  await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
+  await fillRegistration(page, 'Анна', email);
   await expect(page.getByRole('main').getByRole('alert')).toContainText(
     'С этой почтой уже есть аккаунт',
   );
@@ -95,12 +78,7 @@ test('админка открывается администратору и ск
   await expect(page).toHaveURL('/');
 
   // Покупатель на /admin получает 404, как будто раздела нет.
-  await page.goto('/register');
-  await page.getByLabel('Имя').fill('Борис');
-  await page.getByLabel('Почта').fill(`boris-${testInfo.project.name}-${Date.now()}@example.com`);
-  await page.getByLabel('Пароль').fill('boris-password');
-  await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
-  await expect(page).toHaveURL('/account');
+  await registerCustomer(page, 'Борис', `boris-${testInfo.project.name}`);
   const response = await page.goto('/admin');
   expect(response?.status()).toBe(404);
 });
