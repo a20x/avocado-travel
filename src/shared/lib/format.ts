@@ -31,3 +31,21 @@ export function plural(count: number, [one, few, many]: [string, string, string]
   const rule = pluralRules.select(count);
   return rule === 'one' ? one : rule === 'few' ? few : many;
 }
+
+const dayMonth = new Intl.DateTimeFormat('ru-RU', {
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'UTC',
+});
+const dayMonthWeekday = new Intl.DateTimeFormat('ru-RU', {
+  day: 'numeric',
+  month: 'long',
+  weekday: 'short',
+  timeZone: 'UTC',
+});
+
+/** Дата `YYYY-MM-DD` словами: «14 ноября»; с днём недели — «сб, 14 ноября». */
+export function formatDate(date: string, { weekday = false } = {}): string {
+  const at = new Date(`${date}T12:00:00Z`);
+  return (weekday ? dayMonthWeekday : dayMonth).format(at);
+}

@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import { cache } from 'react';
 import { getCity } from '@/modules/catalog-data/server';
+import { defaultSearchDate, searchUrl } from '@/modules/flights';
 import { listRoutes } from '@/modules/flights/server';
 import { formatDuration, formatPrice, plural } from '@/shared/lib/format';
 import { utcOffsetLabel } from '@/shared/lib/time';
@@ -27,7 +28,9 @@ export default async function CityPage(props: PageProps<'/destinations/[city]'>)
   if (!city) notFound();
 
   await connection();
-  const routes = await listRoutes({ to: city.slug });
+  const now = new Date();
+  const routes = await listRoutes({ to: city.slug }, now);
+  const searchDate = defaultSearchDate(now);
   const flightsPerWeek = routes.reduce((sum, route) => sum + route.flightsPerWeek, 0);
 
   return (
@@ -75,6 +78,9 @@ export default async function CityPage(props: PageProps<'/destinations/[city]'>)
                 <th scope="col">Рейсов в неделю</th>
                 <th scope="col">В пути</th>
                 <th scope="col">Цена от</th>
+                <th scope="col">
+                  <span className="sr-only">Поиск</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -87,6 +93,13 @@ export default async function CityPage(props: PageProps<'/destinations/[city]'>)
                   <td>{route.flightsPerWeek}</td>
                   <td className="whitespace-nowrap">{formatDuration(route.durationMinutes)}</td>
                   <td className="whitespace-nowrap">{formatPrice(route.minPrice)}</td>
+                  <td className="whitespace-nowrap">
+                    <Link
+                      href={searchUrl({ from: route.origin.slug, to: city.slug, date: searchDate })}
+                    >
+                      Найти рейсы<span className="sr-only"> из города {route.origin.city}</span>
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

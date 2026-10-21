@@ -5,9 +5,11 @@ import type { ReactNode } from 'react';
 import { Badge } from '@/shared/ui/Badge';
 import { Button, buttonClasses } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
+import { DatePicker } from '@/shared/ui/DatePicker';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Input } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
+import { Skeleton, SkeletonGroup } from '@/shared/ui/Skeleton';
 import { Table } from '@/shared/ui/Table';
 import { Tabs } from '@/shared/ui/Tabs';
 
@@ -114,6 +116,38 @@ export default function UiShowcasePage() {
               { value: 'business', label: 'Бизнес' },
             ]}
           />
+        </Card>
+      </Section>
+
+      <Section title="Дата">
+        <div className="grid max-w-3xl gap-4 sm:grid-cols-2">
+          <DatePicker
+            name="demo-date"
+            label="Дата вылета"
+            defaultValue="2026-11-14"
+            min="2026-10-21"
+            max="2026-12-20"
+            hint="От сегодня до 60 дней вперёд"
+          />
+          <p className="text-xl">
+            Внутри фразы:{' '}
+            <DatePicker
+              variant="inline"
+              name="demo-date-inline"
+              label="Дата вылета"
+              defaultValue="2026-11-14"
+            />
+          </p>
+        </div>
+      </Section>
+
+      <Section title="Загрузка">
+        <Card className="max-w-xl p-5">
+          <SkeletonGroup label="Загрузка примера">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4" />
+            <Skeleton className="h-4 w-2/3" />
+          </SkeletonGroup>
         </Card>
       </Section>
 

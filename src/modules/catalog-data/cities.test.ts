@@ -28,13 +28,15 @@ describe('города', () => {
     expect(cities[0]?.airports.map((a) => a.iata)).toEqual(['DME', 'SVO']);
   });
 
-  it('берёт описание и иллюстрацию города, для неизвестного — общую картинку', () => {
+  it('берёт описание, падежи и иллюстрацию города, для неизвестного — общую картинку', () => {
     const [kazan, unknown] = groupCities([
       airport(1, 'KZN', 'Казань', 'kazan'),
       airport(2, 'XXX', 'Новый город', 'new-city'),
     ]);
 
     expect(kazan?.description).not.toBe('');
+    expect([kazan?.nameFrom, kazan?.nameTo]).toEqual(['Казани', 'Казань']);
+    expect([unknown?.nameFrom, unknown?.nameTo]).toEqual(['Новый город', 'Новый город']);
     expect(kazan?.image).toBe('/images/destinations/kazan.svg');
     expect(unknown?.description).toBe('');
     expect(unknown?.image).toBe('/images/destinations/default.svg');

@@ -2,7 +2,7 @@ import type { Airport } from './model';
 
 /**
  * Города — не отдельная таблица: город собирается из аэропортов с одинаковым `citySlug`.
- * Описания — редакционный текст страниц направлений, он меняется вместе с кодом,
+ * Описания и падежные формы названий — редакционный текст, он меняется вместе с кодом,
  * поэтому хранится здесь, а не в базе (docs/04-data-model.md).
  */
 
@@ -12,6 +12,10 @@ export type City = {
   country: string;
   timezone: string;
   airports: Array<Pick<Airport, 'iata' | 'name'>>;
+  /** Название после «из»: «из Москвы». */
+  nameFrom: string;
+  /** Название после «в»: «в Москву». */
+  nameTo: string;
   description: string;
   /** Иллюстрация из public/images/destinations. */
   image: string;
@@ -39,6 +43,29 @@ const DESCRIPTIONS: Record<string, string> = {
   beijing: 'Столица Китая: Запретный город, храм Неба и Великая стена в часе езды. Летаем из Москвы и Новосибирска.',
 };
 
+/** Формы названий для поиска-фразы: «Я лечу из Москвы в Казань». */
+// prettier-ignore
+const FORMS: Record<string, { from: string; to: string }> = {
+  moscow: { from: 'Москвы', to: 'Москву' },
+  'saint-petersburg': { from: 'Санкт-Петербурга', to: 'Санкт-Петербург' },
+  kaliningrad: { from: 'Калининграда', to: 'Калининград' },
+  sochi: { from: 'Сочи', to: 'Сочи' },
+  kazan: { from: 'Казани', to: 'Казань' },
+  vladivostok: { from: 'Владивостока', to: 'Владивосток' },
+  yekaterinburg: { from: 'Екатеринбурга', to: 'Екатеринбург' },
+  novosibirsk: { from: 'Новосибирска', to: 'Новосибирск' },
+  samara: { from: 'Самары', to: 'Самару' },
+  ufa: { from: 'Уфы', to: 'Уфу' },
+  krasnoyarsk: { from: 'Красноярска', to: 'Красноярск' },
+  irkutsk: { from: 'Иркутска', to: 'Иркутск' },
+  'mineralnye-vody': { from: 'Минеральных Вод', to: 'Минеральные Воды' },
+  istanbul: { from: 'Стамбула', to: 'Стамбул' },
+  dubai: { from: 'Дубая', to: 'Дубай' },
+  yerevan: { from: 'Еревана', to: 'Ереван' },
+  tashkent: { from: 'Ташкента', to: 'Ташкент' },
+  beijing: { from: 'Пекина', to: 'Пекин' },
+};
+
 const DEFAULT_IMAGE = '/images/destinations/default.svg';
 
 /** Собирает города из аэропортов; порядок городов — как у первых аэропортов в списке. */
@@ -57,6 +84,9 @@ export function groupCities(airports: Airport[]): City[] {
       country: airport.country,
       timezone: airport.timezone,
       airports: [{ iata: airport.iata, name: airport.name }],
+      // Для города без записанных форм лучше несклоняемое название, чем ошибка.
+      nameFrom: FORMS[airport.citySlug]?.from ?? airport.city,
+      nameTo: FORMS[airport.citySlug]?.to ?? airport.city,
       description: description ?? '',
       // Иллюстрации нарисованы для городов с описанием, для остальных — общая картинка.
       image: description ? `/images/destinations/${airport.citySlug}.svg` : DEFAULT_IMAGE,

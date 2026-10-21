@@ -2,7 +2,7 @@ import 'server-only';
 import { listAirportsInCity } from '@/modules/catalog-data/server';
 import { fail, ok, type Result } from '@/shared/lib/result';
 import { dateInZone, zonedDayRange } from '@/shared/lib/time';
-import { searchQuerySchema, type FlightOffer, type SearchError } from '../model';
+import { searchQuerySchema, type SearchError, type SearchResult } from '../model';
 import {
   summarizeAirlines,
   summarizeDestinations,
@@ -11,7 +11,13 @@ import {
   type DestinationStats,
   type RouteSummary,
 } from '../routes';
-import { isSearchDateAllowed, toOffers } from '../search';
+import {
+  airlineFacets,
+  buildOffers,
+  filterOffers,
+  isSearchDateAllowed,
+  sortOffers,
+} from '../search';
 import * as repository from './repository';
 
 /**
@@ -22,7 +28,7 @@ import * as repository from './repository';
 export async function searchFlights(
   input: unknown,
   now: Date = new Date(),
-): Promise<Result<FlightOffer[], SearchError>> {
+): Promise<Result<SearchResult, SearchError>> {
   const parsed = searchQuerySchema.safeParse(input);
   if (!parsed.success) return fail('INVALID_QUERY');
   const query = parsed.data;
@@ -50,7 +56,13 @@ export async function searchFlights(
     to: day.end,
   });
 
-  return ok(toOffers(rows, query));
+  // Авиакомпании для фильтра считаются до фильтров: иначе, отметив одну, не вернёшь остальные.
+  const offers = buildOffers(rows, query);
+  return ok({
+    query,
+    offers: sortOffers(filterOffers(offers, query), query.sort),
+    airlines: airlineFacets(offers),
+  });
 }
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -60,12 +72,13 @@ function nextWeek(now: Date) {
   return { from: now, to: new Date(now.getTime() + WEEK_MS) };
 }
 
-/** Маршруты на ближайшую неделю; с `to` — только маршруты в этот город. */
+/** Маршруты на ближайшую неделю; с `from` или `to` — только из этого города или в этот город. */
 export async function listRoutes(
-  filter: { to?: string } = {},
+  filter: { from?: string; to?: string } = {},
   now: Date = new Date(),
 ): Promise<RouteSummary[]> {
   const rows = await repository.findRouteStats({
+    originCitySlug: filter.from,
     destinationCitySlug: filter.to,
     ...nextWeek(now),
   });
