@@ -18,8 +18,20 @@ const A320 = {
   economyRows: 24,
   economyLayout: 'ABC-DEF',
 };
-const MSK = { iata: 'SVO', name: 'Шереметьево', city: 'Москва', timezone: 'Europe/Moscow' };
-const KGD = { iata: 'KGD', name: 'Храброво', city: 'Калининград', timezone: 'Europe/Kaliningrad' };
+const MSK = {
+  iata: 'SVO',
+  name: 'Шереметьево',
+  city: 'Москва',
+  citySlug: 'moscow',
+  timezone: 'Europe/Moscow',
+};
+const KGD = {
+  iata: 'KGD',
+  name: 'Храброво',
+  city: 'Калининград',
+  citySlug: 'kaliningrad',
+  timezone: 'Europe/Kaliningrad',
+};
 
 function row(id: string, overrides: Partial<FlightRow> = {}): FlightRow {
   return {

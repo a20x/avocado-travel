@@ -2,7 +2,16 @@ import 'server-only';
 import { listAirportsInCity } from '@/modules/catalog-data/server';
 import { fail, ok, type Result } from '@/shared/lib/result';
 import { dateInZone, zonedDayRange } from '@/shared/lib/time';
-import { searchQuerySchema, type SearchError, type SearchResult } from '../model';
+import { z } from 'zod';
+import { seatCapacity } from '@/modules/catalog-data';
+import {
+  searchQuerySchema,
+  type FlightDetails,
+  type FlightError,
+  type SearchError,
+  type SearchResult,
+} from '../model';
+import { buildSeatMap } from '../seat-map';
 import {
   summarizeAirlines,
   summarizeDestinations,
@@ -95,4 +104,33 @@ export async function listDestinationStats(
 /** Маршруты, города и флот авиакомпаний на ближайшую неделю, ключ — код авиакомпании. */
 export async function listAirlineStats(now: Date = new Date()): Promise<Map<string, AirlineStats>> {
   return summarizeAirlines(await repository.findRouteStats(nextWeek(now)));
+}
+
+/**
+ * Рейс для страницы с выбором мест. Принимает непроверенный id из адреса страницы.
+ * Занятых мест пока нет: они появятся вместе с билетами (T-13).
+ */
+export async function getFlight(
+  id: unknown,
+  now: Date = new Date(),
+): Promise<Result<FlightDetails, FlightError>> {
+  const parsedId = z.uuid().safeParse(id);
+  if (!parsedId.success) return fail('NOT_FOUND');
+
+  const row = await repository.findFlightById(parsedId.data);
+  if (!row) return fail('NOT_FOUND');
+
+  const { priceEconomy, priceBusiness, layout, ...flight } = row;
+  const prices = { economy: priceEconomy, business: priceBusiness };
+  const taken = new Set<string>();
+  const capacity = seatCapacity(layout);
+
+  return ok({
+    ...flight,
+    durationMinutes: Math.round((row.arrivesAt.getTime() - row.departsAt.getTime()) / 60_000),
+    prices,
+    seatsLeft: { economy: capacity.economy, business: capacity.business },
+    seatMap: buildSeatMap(layout, prices, taken),
+    isDeparted: row.departsAt <= now,
+  });
 }

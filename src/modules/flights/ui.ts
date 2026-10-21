@@ -8,3 +8,4 @@ export { FlightListSkeleton } from './ui/FlightListSkeleton';
 export { SearchPhrase } from './ui/SearchPhrase';
 export { SearchProblem } from './ui/SearchProblem';
 export { SortLinks } from './ui/SortLinks';
+export { SeatPicker } from './ui/SeatPicker';

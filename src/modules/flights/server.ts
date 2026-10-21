@@ -4,6 +4,7 @@
 import 'server-only';
 
 export {
+  getFlight,
   listAirlineStats,
   listDestinationStats,
   listRoutes,

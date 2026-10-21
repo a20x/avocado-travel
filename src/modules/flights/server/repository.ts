@@ -19,56 +19,70 @@ type CandidateFilter = {
   to: Date;
 };
 
-/** Рейсы между городами в промежутке времени, вместе с авиакомпанией, самолётом и аэропортами. */
-export function findFlightCandidates(filter: CandidateFilter): Promise<FlightRow[]> {
+// Рейс вместе со справочниками — одинаково для поиска и страницы рейса.
+const flightColumns = {
+  id: flights.id,
+  number: flights.number,
+  departsAt: flights.departsAt,
+  arrivesAt: flights.arrivesAt,
+  priceEconomy: flights.priceEconomy,
+  priceBusiness: flights.priceBusiness,
+  airline: {
+    code: airlines.code,
+    name: airlines.name,
+    logo: airlines.logo,
+    color: airlines.color,
+    baggageIncluded: airlines.baggageIncluded,
+  },
+  aircraft: { manufacturer: aircraftModels.manufacturer, model: aircraftModels.model },
+  layout: {
+    businessRows: aircraftModels.businessRows,
+    businessLayout: aircraftModels.businessLayout,
+    economyRows: aircraftModels.economyRows,
+    economyLayout: aircraftModels.economyLayout,
+  },
+  origin: {
+    iata: origin.iata,
+    name: origin.name,
+    city: origin.city,
+    citySlug: origin.citySlug,
+    timezone: origin.timezone,
+  },
+  destination: {
+    iata: destination.iata,
+    name: destination.name,
+    city: destination.city,
+    citySlug: destination.citySlug,
+    timezone: destination.timezone,
+  },
+};
+
+function selectFlights() {
   return db
-    .select({
-      id: flights.id,
-      number: flights.number,
-      departsAt: flights.departsAt,
-      arrivesAt: flights.arrivesAt,
-      priceEconomy: flights.priceEconomy,
-      priceBusiness: flights.priceBusiness,
-      airline: {
-        code: airlines.code,
-        name: airlines.name,
-        logo: airlines.logo,
-        color: airlines.color,
-        baggageIncluded: airlines.baggageIncluded,
-      },
-      aircraft: { manufacturer: aircraftModels.manufacturer, model: aircraftModels.model },
-      layout: {
-        businessRows: aircraftModels.businessRows,
-        businessLayout: aircraftModels.businessLayout,
-        economyRows: aircraftModels.economyRows,
-        economyLayout: aircraftModels.economyLayout,
-      },
-      origin: {
-        iata: origin.iata,
-        name: origin.name,
-        city: origin.city,
-        timezone: origin.timezone,
-      },
-      destination: {
-        iata: destination.iata,
-        name: destination.name,
-        city: destination.city,
-        timezone: destination.timezone,
-      },
-    })
+    .select(flightColumns)
     .from(flights)
     .innerJoin(airlines, eq(flights.airlineId, airlines.id))
     .innerJoin(aircraftModels, eq(flights.aircraftModelId, aircraftModels.id))
     .innerJoin(origin, eq(flights.originId, origin.id))
-    .innerJoin(destination, eq(flights.destinationId, destination.id))
-    .where(
-      and(
-        eq(origin.citySlug, filter.originCitySlug),
-        eq(destination.citySlug, filter.destinationCitySlug),
-        gte(flights.departsAt, filter.from),
-        lt(flights.departsAt, filter.to),
-      ),
-    );
+    .innerJoin(destination, eq(flights.destinationId, destination.id));
+}
+
+/** Рейсы между городами в промежутке времени, вместе с авиакомпанией, самолётом и аэропортами. */
+export function findFlightCandidates(filter: CandidateFilter): Promise<FlightRow[]> {
+  return selectFlights().where(
+    and(
+      eq(origin.citySlug, filter.originCitySlug),
+      eq(destination.citySlug, filter.destinationCitySlug),
+      gte(flights.departsAt, filter.from),
+      lt(flights.departsAt, filter.to),
+    ),
+  );
+}
+
+/** Рейс по id или undefined. */
+export async function findFlightById(id: string): Promise<FlightRow | undefined> {
+  const [row] = await selectFlights().where(eq(flights.id, id));
+  return row;
 }
 
 type RouteStatFilter = {

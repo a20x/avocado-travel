@@ -39,6 +39,14 @@ describe('салон самолёта', () => {
     expect(rows[3]).toMatchObject({ number: 4, cabinClass: 'economy' });
   });
 
+  it('отмечает ряды с местом для ног: первый в экономе и у выхода посередине', () => {
+    const extra = buildCabin(a320)
+      .filter((row) => row.extraLegroom)
+      .map((row) => row.number);
+    // Эконом — ряды 4–27: первый — 4-й, выход после 12 рядов эконома — 16-й.
+    expect(extra).toEqual([4, 16]);
+  });
+
   it('считает вместимость по классам', () => {
     expect(seatCapacity(a320)).toEqual({ business: 12, economy: 144 });
     expect(seatCapacity(b777)).toEqual({ business: 48, economy: 380 });
