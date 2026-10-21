@@ -154,7 +154,9 @@ erDiagram
 |---|---|
 | `guestbook_entries` | id, author_name, message, ip, user_agent, is_visible, hidden_reason (`stop_word` / `admin`), created_at |
 | `guestbook_stop_words` | id, word (уникальное, в нижнем регистре) |
-| `guestbook_banned_hosts` | id, pattern (IP или подсеть в формате `inet`/`cidr`), comment, created_at |
+| `guestbook_banned_hosts` | id, pattern (IP или подсеть, тип `inet`), comment, created_at |
+
+Запрещённое слово ищется в имени и сообщении целиком, без учёта регистра и разницы «е»/«ё» (`src/modules/guestbook/model.ts`). Новое слово скрывает и уже опубликованные записи с ним (`hidden_reason = stop_word`), удаление слова возвращает их; записи, скрытые администратором вручную, не меняются. Попадание IP в запрещённый хост проверяет PostgreSQL оператором `<<=` («входит в подсеть»).
 
 ### `forum_topics`, `forum_posts`
 

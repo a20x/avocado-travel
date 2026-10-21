@@ -43,6 +43,13 @@
       "when": 1792575752915,
       "tag": "0005_news",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792579334422,
+      "tag": "0006_guestbook",
+      "breakpoints": true
     }
   ]
 }
