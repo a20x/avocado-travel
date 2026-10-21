@@ -1,0 +1,47 @@
+import type { Metadata } from 'next';
+import { requireAdmin } from '@/modules/auth/server';
+import { SignOutButton } from '@/modules/auth/ui';
+import { Card } from '@/shared/ui/Card';
+
+export const metadata: Metadata = { title: 'Админка', robots: { index: false } };
+
+/** Разделы появляются вместе с модулями (docs/08-roadmap.md). */
+const SECTIONS = [
+  { title: 'Новости', task: 'T-16' },
+  { title: 'Гостевая книга', task: 'T-17' },
+  { title: 'Форум', task: 'T-18' },
+  { title: 'Статистика посещений', task: 'T-19' },
+  { title: 'Каталог ресурсов', task: 'T-23' },
+  { title: 'Реклама', task: 'T-24' },
+];
+
+export default async function AdminPage() {
+  const admin = await requireAdmin();
+
+  return (
+    <div className="container-site grid gap-6 py-8">
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl">Админка</h1>
+          <p className="text-slate">Вы вошли как {admin.email}</p>
+        </div>
+        <SignOutButton />
+      </header>
+      <section aria-labelledby="sections-title" className="grid gap-4">
+        <h2 id="sections-title" className="text-xl">
+          Разделы
+        </h2>
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {SECTIONS.map((section) => (
+            <li key={section.title}>
+              <Card className="grid gap-1 p-5">
+                <span className="font-semibold">{section.title}</span>
+                <span className="text-sm text-slate">Появится в задаче {section.task}</span>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+}

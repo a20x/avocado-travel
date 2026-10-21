@@ -32,8 +32,12 @@ jobs:
           --health-timeout 5s
           --health-retries 15
 
+    # Значения только для проверок в CI, настоящих секретов здесь нет.
     env:
       DATABASE_URL: postgresql://avocado:avocado@localhost:5432/avocado
+      BETTER_AUTH_SECRET: ci-only-secret-not-used-anywhere-else-0123456789
+      ADMIN_EMAIL: admin@avocado.local
+      ADMIN_PASSWORD: avocado-admin
 
     steps:
       - uses: actions/checkout@v7

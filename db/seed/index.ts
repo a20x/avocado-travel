@@ -3,12 +3,14 @@
  *
  * Скрипты в db/seed — инструмент разработчика, а не код сайта, поэтому пишут в базу через
  * Drizzle напрямую (так принято в проектах на Drizzle). Таблицы берутся из index.ts модулей.
- * Каждый запуск даёт одинаковый результат: таблицы очищаются и заполняются заново.
+ * Каждый запуск даёт одинаковый результат: справочники и рейсы очищаются и заполняются заново.
+ * Пользователи не удаляются: зарегистрированные аккаунты сохраняются, админ создаётся или обновляется.
  * Даты рейсов отсчитываются от сегодняшнего дня по Москве.
  */
 import { sql } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { dateInZone } from '@/shared/lib/time';
+import { seedAdmin } from './admin';
 import { seedCatalogData } from './catalog-data';
 import { seedFlights } from './flights';
 
@@ -28,6 +30,7 @@ async function main() {
       airlines: catalog.airlines.length,
       aircraftModels: catalog.aircraftModels.length,
       flights: flightCount,
+      admin: await seedAdmin(tx),
     };
   });
 

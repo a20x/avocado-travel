@@ -3,6 +3,13 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
+  /** Адрес сайта — для ссылок и настроек авторизации. */
+  NEXT_PUBLIC_SITE_URL: z.url().default('http://localhost:3000'),
+  /** Ключ подписи сессий Better Auth. Сгенерировать: openssl rand -base64 32. */
+  BETTER_AUTH_SECRET: z.string().min(32, 'Нужно не меньше 32 символов'),
+  /** Администратор сайта: создаётся скриптом демо-данных (pnpm db:seed). */
+  ADMIN_EMAIL: z.email(),
+  ADMIN_PASSWORD: z.string().min(8, 'Нужно не меньше 8 символов'),
 });
 
 const parsed = envSchema.safeParse(process.env);

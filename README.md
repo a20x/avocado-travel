@@ -15,12 +15,13 @@ pnpm install          # зависимости
 cp .env.example .env  # переменные окружения
 pnpm db:up            # PostgreSQL в Docker
 pnpm db:migrate       # структура базы
+pnpm db:seed          # демо-данные и администратор из .env
 pnpm dev              # http://localhost:3000
 ```
 
 Для тестов один раз скачайте браузер: `pnpm exec playwright install chromium`. Полная проверка проекта — `pnpm check`.
 
-Демо-данные (`pnpm db:seed`) появятся в задаче T-07.
+Вход администратора — `ADMIN_EMAIL` и `ADMIN_PASSWORD` из `.env` (по умолчанию `admin@avocado.local` / `avocado-admin`), админка — `/admin`.
 
 ## Документация
 

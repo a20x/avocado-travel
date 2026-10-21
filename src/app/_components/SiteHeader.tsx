@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { getCurrentUser } from '@/modules/auth/server';
 import { buttonClasses } from '@/shared/ui/Button';
 import { MainNav, MobileNavList } from './MainNav';
 
@@ -36,7 +37,31 @@ function SiteSearch({ id, name, className }: { id: string; name: string; classNa
   );
 }
 
-export function SiteHeader() {
+/** Вход или, если пользователь уже вошёл, — его раздел: кабинет покупателя или админка. */
+function AccountLink({
+  href,
+  label,
+  fullWidth = false,
+}: {
+  href: string;
+  label: string;
+  fullWidth?: boolean;
+}) {
+  return (
+    <Link href={href} className={buttonClasses({ variant: 'secondary', fullWidth })}>
+      {label}
+    </Link>
+  );
+}
+
+export async function SiteHeader() {
+  const user = await getCurrentUser();
+  const account = !user
+    ? { href: '/login', label: 'Войти' }
+    : user.role === 'admin'
+      ? { href: '/admin', label: 'Админка' }
+      : { href: '/account', label: 'Кабинет' };
+
   return (
     <header className="relative border-b border-line bg-white">
       <div className="container-site flex h-16 items-center gap-6 lg:h-18">
@@ -53,9 +78,7 @@ export function SiteHeader() {
         <MainNav />
         <SiteSearch id="site-search" name="Поиск по сайту" className="hidden w-56 lg:block" />
         <div className="hidden lg:block">
-          <Link href="/login" className={buttonClasses({ variant: 'secondary' })}>
-            Войти
-          </Link>
+          <AccountLink {...account} />
         </div>
 
         {/* Меню для телефона и планшета: раскрывается без JavaScript. */}
@@ -84,12 +107,7 @@ export function SiteHeader() {
           <div className="absolute inset-x-0 top-16 z-20 grid gap-4 border-b border-line bg-white p-4 shadow-card">
             <SiteSearch id="site-search-mobile" name="Поиск по сайту (мобильное меню)" />
             <MobileNavList />
-            <Link
-              href="/login"
-              className={buttonClasses({ variant: 'secondary', fullWidth: true })}
-            >
-              Войти
-            </Link>
+            <AccountLink {...account} fullWidth />
           </div>
         </details>
       </div>
