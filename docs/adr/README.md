@@ -13,4 +13,4 @@ ADR — короткая запись о важном решении: в как�
 | [0005](0005-better-auth.md) | Авторизация через Better Auth | Принято |
 | [0006](0006-hosting-deferred.md) | Выбор хостинга откладывается до деплоя | Принято |
 | [0007](0007-db-schema-without-aggregator.md) | Схемы базы без общего сборщика | Принято |
-| [0008](0008-module-server-entry.md) | Два входа модуля: index.ts и server.ts | Принято |
+| [0008](0008-module-server-entry.md) | Входы модуля: index.ts, ui.ts и server.ts | Принято |

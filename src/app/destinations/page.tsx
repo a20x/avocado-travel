@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { connection } from 'next/server';
-import { CityCard, type City } from '@/modules/catalog-data';
+import type { City } from '@/modules/catalog-data';
+import { CityCard } from '@/modules/catalog-data/ui';
 import { listCities } from '@/modules/catalog-data/server';
 import type { DestinationStats } from '@/modules/flights';
 import { listDestinationStats } from '@/modules/flights/server';

@@ -16,7 +16,3 @@ export type { CabinClass, CabinRow } from './cabin';
 /** Города, собранные из аэропортов, с описаниями для страниц направлений. */
 export { groupCities } from './cities';
 export type { City } from './cities';
-
-/** Компоненты: серверные, без обращения к базе — данные передаются в пропсах. */
-export { AirlineLogo } from './ui/AirlineLogo';
-export { CityCard } from './ui/CityCard';

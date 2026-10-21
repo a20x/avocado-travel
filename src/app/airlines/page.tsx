@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { connection } from 'next/server';
-import { AirlineLogo, seatCapacity } from '@/modules/catalog-data';
+import { seatCapacity } from '@/modules/catalog-data';
+import { AirlineLogo } from '@/modules/catalog-data/ui';
 import { listAircraftModels, listAirlines } from '@/modules/catalog-data/server';
 import { listAirlineStats } from '@/modules/flights/server';
 import { Badge } from '@/shared/ui/Badge';
