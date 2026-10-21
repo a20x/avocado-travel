@@ -6,6 +6,7 @@ import { fail, ok, type Result } from '@/shared/lib/result';
 import {
   ORDER_HOLD_MINUTES,
   bookingRequestSchema,
+  canCancel,
   type BookingError,
   type BookingRequest,
   type CreateOrderInput,
@@ -113,4 +114,32 @@ export async function payOrder(
   const order = await repository.findOrderForUser(userId, orderId);
   if (!order) return fail('ORDER_NOT_FOUND');
   return fail(order.status === 'cancelled' ? 'ORDER_EXPIRED' : 'ORDER_NOT_PENDING');
+}
+
+/** Заказы покупателя для личного кабинета, новые сверху. */
+export async function listOrders(userId: string, now: Date = new Date()): Promise<OrderDetails[]> {
+  await repository.expireOrders(now);
+  return repository.findOrdersForUser(userId);
+}
+
+/** Отмена брони покупателем: места освобождаются. Оплата демонстрационная — возвращать нечего. */
+export async function cancelOrder(
+  userId: string,
+  orderId: unknown,
+  now: Date = new Date(),
+): Promise<Result<null, OrderError>> {
+  const id = z.uuid().safeParse(orderId);
+  if (!id.success) return fail('ORDER_NOT_FOUND');
+  const order = await repository.findOrderForUser(userId, id.data);
+  if (!order) return fail('ORDER_NOT_FOUND');
+  if (!canCancel(order, now)) return fail('ORDER_NOT_CANCELLABLE');
+  // false — заказ успели отменить или он истёк, пока покупатель подтверждал отмену.
+  return (await repository.cancelOrder(userId, id.data, now))
+    ? ok(null)
+    : fail('ORDER_NOT_CANCELLABLE');
+}
+
+/** Автоотмена просроченных неоплаченных заказов — для задания по расписанию. Возвращает их число. */
+export function expireStaleOrders(now: Date = new Date()): Promise<number> {
+  return repository.expireOrders(now);
 }

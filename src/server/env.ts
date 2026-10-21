@@ -10,6 +10,8 @@ const envSchema = z.object({
   /** Администратор сайта: создаётся скриптом демо-данных (pnpm db:seed). */
   ADMIN_EMAIL: z.email(),
   ADMIN_PASSWORD: z.string().min(8, 'Нужно не меньше 8 символов'),
+  /** Пароль заданий по расписанию: планировщик хостинга присылает его в заголовке Authorization. */
+  CRON_SECRET: z.string().min(16, 'Нужно не меньше 16 символов'),
 });
 
 const parsed = envSchema.safeParse(process.env);

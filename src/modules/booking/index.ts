@@ -11,6 +11,7 @@ export { ticketHoldsSeat } from './held';
 export {
   ORDER_HOLD_MINUTES,
   bookingRequestSchema,
+  canCancel,
   cardSchema,
   createOrderSchema,
   passengerSchema,

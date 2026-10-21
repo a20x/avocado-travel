@@ -12,6 +12,7 @@ import { Select } from '@/shared/ui/Select';
 import { Skeleton, SkeletonGroup } from '@/shared/ui/Skeleton';
 import { Table } from '@/shared/ui/Table';
 import { Tabs } from '@/shared/ui/Tabs';
+import { DialogDemo } from './DialogDemo';
 import { ToastDemo } from './ToastDemo';
 
 export const metadata: Metadata = {
@@ -152,8 +153,11 @@ export default function UiShowcasePage() {
         </Card>
       </Section>
 
-      <Section title="Уведомление">
-        <ToastDemo />
+      <Section title="Уведомление и окно">
+        <div className="flex flex-wrap gap-3">
+          <ToastDemo />
+          <DialogDemo />
+        </div>
       </Section>
 
       <Section title="Вкладки">

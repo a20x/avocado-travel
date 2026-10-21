@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildSeatMap } from '@/modules/flights';
 import { isExpiryValid, normalizeCardNumber, passesLuhn } from './card';
-import { bookingRequestSchema, cardSchema, createOrderSchema } from './model';
+import { bookingRequestSchema, canCancel, cardSchema, createOrderSchema } from './model';
 import { PNR_ALPHABET, generatePnr, isPnr } from './pnr';
 import { priceSeats, totalOf } from './pricing';
 
@@ -106,5 +106,21 @@ describe('цена мест', () => {
     expect(priceSeats(map, 'economy', ['8A'])).toEqual({ ok: false, error: 'SEAT_UNAVAILABLE' });
     expect(priceSeats(map, 'economy', ['99A'])).toEqual({ ok: false, error: 'SEAT_UNAVAILABLE' });
     expect(priceSeats(map, 'economy', ['1A'])).toEqual({ ok: false, error: 'SEAT_UNAVAILABLE' });
+  });
+});
+
+describe('отмена заказа', () => {
+  const now = new Date('2026-11-14T08:00:00Z');
+  const later = { departsAt: new Date('2026-11-14T12:00:00Z') };
+  const earlier = { departsAt: new Date('2026-11-14T07:00:00Z') };
+
+  it('неоплаченный и оплаченный — до вылета', () => {
+    expect(canCancel({ status: 'pending', flight: later }, now)).toBe(true);
+    expect(canCancel({ status: 'paid', flight: later }, now)).toBe(true);
+  });
+
+  it('нельзя после вылета и нельзя отменить отменённый', () => {
+    expect(canCancel({ status: 'paid', flight: earlier }, now)).toBe(false);
+    expect(canCancel({ status: 'cancelled', flight: later }, now)).toBe(false);
   });
 });
