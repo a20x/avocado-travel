@@ -52,6 +52,19 @@ export async function registerCustomer(page: Page, name: string, tag: string) {
   await expect(page).toHaveURL('/account');
 }
 
+// Те же значения, что в .env.example и CI; скрипт демо-данных создаёт этого администратора.
+export const ADMIN = {
+  email: process.env.ADMIN_EMAIL ?? 'admin@avocado.local',
+  password: process.env.ADMIN_PASSWORD ?? 'avocado-admin',
+};
+
+/** Открывает закрытую страницу админки, входя по дороге как администратор. */
+export async function openAsAdmin(page: Page, path: string) {
+  await page.goto(path);
+  await signIn(page, ADMIN.email, ADMIN.password);
+  await expect(page).toHaveURL(path);
+}
+
 export async function signIn(page: Page, email: string, password: string) {
   await page.getByLabel('Почта').fill(email);
   await page.getByLabel('Пароль').fill(password);

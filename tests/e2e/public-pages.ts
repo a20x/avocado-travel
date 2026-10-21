@@ -11,6 +11,9 @@ export const PUBLIC_PAGES = [
   '/destinations',
   '/destinations/kaliningrad',
   '/airlines',
+  '/news',
+  '/news?page=2',
+  '/news/avocado-travel-otkrylsya',
   '/login',
   '/register',
 ];
