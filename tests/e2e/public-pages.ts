@@ -11,4 +11,6 @@ export const PUBLIC_PAGES = [
   '/destinations',
   '/destinations/kaliningrad',
   '/airlines',
+  '/login',
+  '/register',
 ];
