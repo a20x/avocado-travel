@@ -51,7 +51,7 @@ export function departurePeriod(time: string): DeparturePeriod | null {
 /**
  * Превращает строки из базы в предложения: цена и места в выбранном классе,
  * только рейсы, где мест хватает на всех пассажиров.
- * `takenSeats` — сколько мест уже продано в этом классе по id рейса (появится с бронированием, T-13).
+ * `takenSeats` — сколько мест уже занято в этом классе, по id рейса.
  */
 export function buildOffers(
   rows: FlightRow[],

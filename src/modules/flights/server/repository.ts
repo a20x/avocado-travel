@@ -1,7 +1,8 @@
 import 'server-only';
-import { and, count, eq, gte, lt, sql } from 'drizzle-orm';
+import { and, count, eq, gte, inArray, lt, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
-import { aircraftModels, airlines, airports } from '@/modules/catalog-data';
+import { orders, ticketHoldsSeat, tickets } from '@/modules/booking';
+import { aircraftModels, airlines, airports, type CabinClass } from '@/modules/catalog-data';
 import { db } from '@/server/db';
 import { flights } from '../schema';
 import type { RouteStatRow } from '../routes';
@@ -137,4 +138,41 @@ export function findRouteStats(filter: RouteStatFilter): Promise<RouteStatRow[]>
       aircraftModels.manufacturer,
       aircraftModels.model,
     );
+}
+
+/*
+ * Занятость мест. Билеты — таблицы модуля booking: здесь их только читают (ADR-0007),
+ * а условие «билет держит место» берут у владельца, чтобы правило было одно на весь сайт.
+ */
+
+/** Занятые места рейса. */
+export async function findTakenSeats(flightId: string, now: Date): Promise<string[]> {
+  const rows = await db
+    .select({ seat: tickets.seat })
+    .from(tickets)
+    .innerJoin(orders, eq(tickets.orderId, orders.id))
+    .where(and(eq(tickets.flightId, flightId), ticketHoldsSeat(now)));
+  return rows.map((row) => row.seat);
+}
+
+/** Сколько мест занято в классе на каждом из рейсов: id рейса → число. */
+export async function countTakenSeats(
+  flightIds: string[],
+  cabinClass: CabinClass,
+  now: Date,
+): Promise<Map<string, number>> {
+  if (flightIds.length === 0) return new Map();
+  const rows = await db
+    .select({ flightId: tickets.flightId, taken: count() })
+    .from(tickets)
+    .innerJoin(orders, eq(tickets.orderId, orders.id))
+    .where(
+      and(
+        inArray(tickets.flightId, flightIds),
+        eq(tickets.cabinClass, cabinClass),
+        ticketHoldsSeat(now),
+      ),
+    )
+    .groupBy(tickets.flightId);
+  return new Map(rows.map((row) => [row.flightId, row.taken]));
 }

@@ -3,7 +3,7 @@
  *
  * Скрипты в db/seed — инструмент разработчика, а не код сайта, поэтому пишут в базу через
  * Drizzle напрямую (так принято в проектах на Drizzle). Таблицы берутся из index.ts модулей.
- * Каждый запуск даёт одинаковый результат: справочники и рейсы очищаются и заполняются заново.
+ * Каждый запуск даёт одинаковый результат: справочники, рейсы и заказы очищаются и заполняются заново.
  * Пользователи не удаляются: зарегистрированные аккаунты сохраняются, админ создаётся или обновляется.
  * Даты рейсов отсчитываются от сегодняшнего дня по Москве.
  */
@@ -21,7 +21,7 @@ async function main() {
   // Всё или ничего: если что-то упадёт, база останется как была.
   const counts = await db.transaction(async (tx) => {
     await tx.execute(
-      sql`TRUNCATE TABLE flights, airports, airlines, aircraft_models RESTART IDENTITY CASCADE`,
+      sql`TRUNCATE TABLE orders, flights, airports, airlines, aircraft_models RESTART IDENTITY CASCADE`,
     );
     const catalog = await seedCatalogData(tx);
     const flightCount = await seedFlights(tx, catalog, today);
