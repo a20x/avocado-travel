@@ -14,6 +14,7 @@ export const PUBLIC_PAGES = [
   '/news',
   '/news?page=2',
   '/news/avocado-travel-otkrylsya',
+  '/guestbook',
   '/login',
   '/register',
 ];

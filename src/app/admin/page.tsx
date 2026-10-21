@@ -11,7 +11,11 @@ type Section = { title: string; href?: string; description?: string; task?: stri
 
 const SECTIONS: Section[] = [
   { title: 'Новости', href: '/admin/news', description: 'Написать, изменить, удалить' },
-  { title: 'Гостевая книга', task: 'T-17' },
+  {
+    title: 'Гостевая книга',
+    href: '/admin/guestbook',
+    description: 'Модерация, запрещённые слова и хосты',
+  },
   { title: 'Форум', task: 'T-18' },
   { title: 'Статистика посещений', task: 'T-19' },
   { title: 'Каталог ресурсов', task: 'T-23' },
