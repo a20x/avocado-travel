@@ -12,3 +12,7 @@ export type { AircraftModel, Airline, Airport } from './model';
 /** Схема салона и вместимость самолёта. */
 export { buildCabin, listSeats, parseLayout, seatCapacity, seatClass } from './cabin';
 export type { CabinClass, CabinRow } from './cabin';
+
+/** Города, собранные из аэропортов, с описаниями для страниц направлений. */
+export { groupCities } from './cities';
+export type { City } from './cities';

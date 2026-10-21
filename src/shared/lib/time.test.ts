@@ -4,6 +4,7 @@ import {
   dateInZone,
   daysBetween,
   timeInZone,
+  utcOffsetLabel,
   zonedDayRange,
   zonedTimeToUtc,
 } from './time';
@@ -54,5 +55,14 @@ describe('местное время городов', () => {
   it('отвергает неверный формат', () => {
     expect(() => addDays('14.11.2026', 1)).toThrow();
     expect(() => zonedTimeToUtc('2026-11-14', '8:40', 'Europe/Moscow')).toThrow();
+  });
+
+  it('подписывает смещение пояса от UTC', () => {
+    const winter = new Date('2026-12-01T12:00:00Z');
+    expect(utcOffsetLabel('Europe/Moscow', winter)).toBe('UTC+3');
+    expect(utcOffsetLabel('Asia/Vladivostok', winter)).toBe('UTC+10');
+    expect(utcOffsetLabel('Asia/Kolkata', winter)).toBe('UTC+5:30');
+    expect(utcOffsetLabel('UTC', winter)).toBe('UTC');
+    expect(utcOffsetLabel('America/New_York', winter)).toBe('UTC−5');
   });
 });

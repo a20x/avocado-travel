@@ -5,8 +5,10 @@
 import 'server-only';
 
 export {
+  getCity,
   listAircraftModels,
   listAirlines,
   listAirports,
   listAirportsInCity,
+  listCities,
 } from './server/service';

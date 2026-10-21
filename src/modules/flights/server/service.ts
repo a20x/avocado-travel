@@ -3,6 +3,14 @@ import { listAirportsInCity } from '@/modules/catalog-data/server';
 import { fail, ok, type Result } from '@/shared/lib/result';
 import { dateInZone, zonedDayRange } from '@/shared/lib/time';
 import { searchQuerySchema, type FlightOffer, type SearchError } from '../model';
+import {
+  summarizeAirlines,
+  summarizeDestinations,
+  summarizeRoutes,
+  type AirlineStats,
+  type DestinationStats,
+  type RouteSummary,
+} from '../routes';
 import { isSearchDateAllowed, toOffers } from '../search';
 import * as repository from './repository';
 
@@ -43,4 +51,35 @@ export async function searchFlights(
   });
 
   return ok(toOffers(rows, query));
+}
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Ближайшие семь дней — по ним считаются «рейсов в неделю» и «цена от». */
+function nextWeek(now: Date) {
+  return { from: now, to: new Date(now.getTime() + WEEK_MS) };
+}
+
+/** Маршруты на ближайшую неделю; с `to` — только маршруты в этот город. */
+export async function listRoutes(
+  filter: { to?: string } = {},
+  now: Date = new Date(),
+): Promise<RouteSummary[]> {
+  const rows = await repository.findRouteStats({
+    destinationCitySlug: filter.to,
+    ...nextWeek(now),
+  });
+  return summarizeRoutes(rows);
+}
+
+/** Сводка по городам прилёта на ближайшую неделю, ключ — `citySlug`. */
+export async function listDestinationStats(
+  now: Date = new Date(),
+): Promise<Map<string, DestinationStats>> {
+  return summarizeDestinations(await listRoutes({}, now));
+}
+
+/** Маршруты, города и флот авиакомпаний на ближайшую неделю, ключ — код авиакомпании. */
+export async function listAirlineStats(now: Date = new Date()): Promise<Map<string, AirlineStats>> {
+  return summarizeAirlines(await repository.findRouteStats(nextWeek(now)));
 }
