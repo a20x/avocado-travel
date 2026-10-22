@@ -50,6 +50,13 @@
       "when": 1792579334422,
       "tag": "0006_guestbook",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792586441976,
+      "tag": "0007_forum",
+      "breakpoints": true
     }
   ]
 }

@@ -163,7 +163,9 @@ erDiagram
 | Таблица | Поля |
 |---|---|
 | `forum_topics` | id, title, author_id → users, created_at, last_post_at, posts_count |
-| `forum_posts` | id, topic_id → forum_topics, author_id → users, body, created_at, updated_at |
+| `forum_posts` | id, topic_id → forum_topics, author_id → users, body, created_at, updated_at (null — не изменялось) |
+
+`posts_count` и `last_post_at` хранятся в теме, чтобы список тем не пересчитывал сообщения; они обновляются в одной транзакции с добавлением и удалением сообщения. Первое сообщение темы — её текст. Удаление темы каскадом удаляет её сообщения. Демо-авторы форума — пользователи `forum-…@demo.avocado.local` без пароля: войти под ними нельзя.
 
 ### `page_views` — статистика
 

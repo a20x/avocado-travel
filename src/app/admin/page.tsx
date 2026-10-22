@@ -16,7 +16,11 @@ const SECTIONS: Section[] = [
     href: '/admin/guestbook',
     description: 'Модерация, запрещённые слова и хосты',
   },
-  { title: 'Форум', task: 'T-18' },
+  {
+    title: 'Форум',
+    href: '/forum',
+    description: 'Удаление тем и сообщений — прямо на страницах форума',
+  },
   { title: 'Статистика посещений', task: 'T-19' },
   { title: 'Каталог ресурсов', task: 'T-23' },
   { title: 'Реклама', task: 'T-24' },
