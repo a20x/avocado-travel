@@ -39,6 +39,7 @@ jobs:
       ADMIN_EMAIL: admin@avocado.local
       ADMIN_PASSWORD: avocado-admin
       CRON_SECRET: ci-only-cron-secret
+      IP_HASH_SALT: ci-only-stats-salt
 
     steps:
       - uses: actions/checkout@v7
