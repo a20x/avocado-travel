@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { getMetrikaId } from '@/modules/stats/server';
+import { YandexMetrika } from '@/modules/stats/ui';
 import { SiteFooter } from './_components/SiteFooter';
 import { SiteHeader } from './_components/SiteHeader';
 import './globals.css';
@@ -12,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const metrikaId = getMetrikaId();
   return (
     <html lang="ru">
       <body className="flex min-h-screen flex-col">
@@ -27,6 +30,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           {children}
         </main>
         <SiteFooter />
+        {metrikaId ? <YandexMetrika id={metrikaId} /> : null}
       </body>
     </html>
   );

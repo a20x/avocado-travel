@@ -1,17 +1,19 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { getMetrikaId } from '@/modules/stats/server';
+import { SiteCounter } from '@/modules/stats/ui';
 import { MAIN_NAV, MORE_NAV } from '@/shared/config/navigation';
 
 /**
- * Подвал: о сайте, карта сайта, автор и технологии.
- * Курсы ЦБ (T-21) и счётчик посещений (T-19) добавятся сюда из своих модулей.
+ * Подвал: о сайте, счётчик посещений, карта сайта, автор и технологии.
+ * Курсы ЦБ (T-21) добавятся сюда из своего модуля.
  */
 export function SiteFooter() {
   return (
     <footer className="mt-16 bg-graphite py-12 text-sm text-mist">
       <div className="container-site">
         <div className="grid gap-8 md:grid-cols-[1.2fr_2fr]">
-          <div className="grid content-start gap-3">
+          <div className="grid content-start gap-4">
             <Image
               src="/images/brand/logo-light.svg"
               alt="Avocado Travel"
@@ -22,6 +24,7 @@ export function SiteFooter() {
               Авиабилеты по России и за рубеж. Учебный проект: авиакомпании выдуманные, оплата
               демонстрационная.
             </p>
+            <SiteCounter metrikaId={getMetrikaId()} />
           </div>
           <nav aria-label="Карта сайта">
             <h2 className="mb-3 text-sm text-white">Карта сайта</h2>
