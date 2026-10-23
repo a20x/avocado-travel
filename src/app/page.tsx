@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { getAdsFor } from '@/modules/ads/server';
+import { PromoBlocks } from '@/modules/ads/ui';
 import { listCities } from '@/modules/catalog-data/server';
 import { CityCard } from '@/modules/catalog-data/ui';
 import { SEARCH_DAYS_AHEAD, defaultSearchDate, searchQuerySchema } from '@/modules/flights';
@@ -22,12 +24,13 @@ const WEATHER_CITIES = ['kaliningrad', 'sochi', 'kazan', 'vladivostok'];
 
 export default async function HomePage(props: PageProps<'/'>) {
   const now = new Date();
-  const [cities, routes, params, poll, rating] = await Promise.all([
+  const [cities, routes, params, poll, rating, ads] = await Promise.all([
     listCities(),
     listRoutes({ from: HUB }, now),
     props.searchParams,
     getActivePoll(),
     getRating(),
+    getAdsFor('home', now),
   ]);
 
   // «Изменить запрос» со страницы результатов возвращает сюда с прошлым запросом в адресе.
@@ -84,6 +87,8 @@ export default async function HomePage(props: PageProps<'/'>) {
             })}
           </div>
         </section>
+
+        <PromoBlocks ads={ads} />
 
         {/* Погода, опрос, рейтинг — в одном ряду (docs/06-design.md). */}
         <div className="grid items-start gap-6 md:grid-cols-2 lg:grid-cols-3">

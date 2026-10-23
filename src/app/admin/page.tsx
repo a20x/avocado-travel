@@ -31,7 +31,11 @@ const SECTIONS: Section[] = [
     href: '/admin/catalog',
     description: 'Разделы и ссылки: добавить, скрыть, показать',
   },
-  { title: 'Реклама', task: 'T-24' },
+  {
+    title: 'Реклама',
+    href: '/admin/ads',
+    description: 'Кампании, период показа, показы, клики и CTR',
+  },
 ];
 
 export default async function AdminPage() {

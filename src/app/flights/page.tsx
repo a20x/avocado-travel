@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Suspense } from 'react';
+import { Fragment, Suspense } from 'react';
+import { getAdsFor } from '@/modules/ads/server';
+import { AdCard } from '@/modules/ads/ui';
 import { listCities } from '@/modules/catalog-data/server';
 import { searchQuerySchema } from '@/modules/flights';
 import { searchFlights } from '@/modules/flights/server';
@@ -41,6 +43,10 @@ async function Results({ params }: { params: Params }) {
     return <SearchProblem problem="NO_FLIGHTS" editHref={editHref(params)} />;
 
   // «Выгодно» — только если самая низкая цена у одного рейса, иначе плашка ничего не выделяет.
+  // Нет рейсов — нет и рекламы: показ не засчитывается впустую.
+  const [ad] = offers.length > 0 ? await getAdsFor('search') : [];
+  // Реклама — после третьего рейса (или после последнего, если рейсов меньше).
+  const adAfter = Math.min(3, offers.length) - 1;
   const prices = offers.map((offer) => offer.price);
   const bestPrice = Math.min(...prices);
   const bestIsUnique = prices.filter((price) => price === bestPrice).length === 1;
@@ -62,13 +68,15 @@ async function Results({ params }: { params: Params }) {
         {offers.length === 0 ? (
           <SearchProblem problem="NO_MATCHES" editHref={editHref(params)} />
         ) : (
-          offers.map((offer) => (
-            <FlightCard
-              key={offer.id}
-              offer={offer}
-              href={flightHref(offer.id)}
-              isBestPrice={offers.length > 1 && bestIsUnique && offer.price === bestPrice}
-            />
+          offers.map((offer, i) => (
+            <Fragment key={offer.id}>
+              <FlightCard
+                offer={offer}
+                href={flightHref(offer.id)}
+                isBestPrice={offers.length > 1 && bestIsUnique && offer.price === bestPrice}
+              />
+              {ad && i === adAfter ? <AdCard ad={ad} layout="horizontal" /> : null}
+            </Fragment>
           ))
         )}
       </section>
