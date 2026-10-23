@@ -50,6 +50,9 @@ export default async function ApiDocsPage() {
             <a href="#rules" className="font-semibold">
               Как устроен API
             </a>
+            <a href="#downloads" className="font-semibold">
+              Выгрузки и лента
+            </a>
             {TAGS.map((tag) => (
               <div key={tag} className="grid gap-1">
                 <p className="text-sm font-semibold text-slate">{tag}</p>
@@ -101,6 +104,46 @@ export default async function ApiDocsPage() {
                 Данные учебные: авиакомпании выдуманные, продажи сгенерированы. Персональных данных
                 API не отдаёт. Те же отчёты с графиками — на странице{' '}
                 <Link href="/analytics">«Аналитика»</Link>.
+              </li>
+            </ul>
+          </Card>
+
+          <Card
+            as="section"
+            id="downloads"
+            aria-labelledby="downloads-title"
+            className="grid scroll-mt-4 gap-3 p-5 md:p-6"
+          >
+            <h2 id="downloads-title" className="text-xl">
+              Выгрузки и лента
+            </h2>
+            <p className="text-slate">
+              Таблицы для Excel и других программ: CSV в UTF-8, разделитель — точка с запятой,
+              первая строка — названия столбцов. Тот же файл в JSON — с параметром{' '}
+              <code>format=json</code>.
+            </p>
+            <ul className="grid gap-2">
+              <li>
+                <a href={`/api/v1/export/flights?format=csv&date=${today}`} download>
+                  Расписание на сегодня (CSV)
+                </a>{' '}
+                — все рейсы сети с местным временем вылета и прилёта
+              </li>
+              <li>
+                <a href="/api/v1/export/news?format=csv" download>
+                  Новости (CSV)
+                </a>
+              </li>
+              <li>
+                <a href="/api/v1/export/analytics/revenue?format=csv" download>
+                  Выручка по месяцам (CSV)
+                </a>{' '}
+                — остальные отчёты скачиваются на странице{' '}
+                <Link href="/analytics">«Аналитика»</Link>
+              </li>
+              <li>
+                <a href="/feed.json">Лента новостей /feed.json</a> — формат JSON Feed 1.1,
+                JSON-аналог RSS: её можно добавить в программу-читалку новостей
               </li>
             </ul>
           </Card>

@@ -30,6 +30,13 @@ export const metadata = pageMetadata({
 const number = new Intl.NumberFormat('ru-RU');
 const pct = (value: number) => `${value.toLocaleString('ru-RU')}%`;
 
+/** Выгрузка отчёта в CSV с теми же фильтрами, что на странице (docs/05-api.md). */
+function exportHref(report: string, filter: Record<string, string | undefined>): string {
+  const params = new URLSearchParams({ format: 'csv' });
+  for (const [key, value] of Object.entries(filter)) if (value) params.set(key, value);
+  return `/api/v1/export/analytics/${report}?${params}`;
+}
+
 export default async function AnalyticsPage(props: PageProps<'/analytics'>) {
   const now = new Date();
   const today = dateInZone(now, 'Europe/Moscow');
@@ -78,6 +85,7 @@ export default async function AnalyticsPage(props: PageProps<'/analytics'>) {
           <div className="grid gap-6 lg:grid-cols-2">
             <ReportSection
               id="revenue"
+              download={exportHref('revenue', filter)}
               className="lg:col-span-2"
               title="1. Выручка по месяцам"
               description="Сумма оплаченных заказов по месяцу оформления. Отменённые заказы не учитываются. Первый и последний месяц периода могут быть неполными."
@@ -96,6 +104,7 @@ export default async function AnalyticsPage(props: PageProps<'/analytics'>) {
 
             <ReportSection
               id="destinations"
+              download={exportHref('destinations', filter)}
               title="2. Топ-10 направлений"
               description="Города прилёта по числу проданных билетов."
             >
@@ -115,6 +124,7 @@ export default async function AnalyticsPage(props: PageProps<'/analytics'>) {
 
             <ReportSection
               id="structure"
+              download={exportHref('structure', filter)}
               title="4. Структура продаж"
               description="Доли классов обслуживания среди проданных билетов и доля отменённых заказов."
             >
@@ -143,6 +153,7 @@ export default async function AnalyticsPage(props: PageProps<'/analytics'>) {
 
             <ReportSection
               id="occupancy"
+              download={exportHref('occupancy', filter)}
               className="lg:col-span-2"
               title="3. Заполняемость рейсов"
               description="Доля мест улетевших рейсов периода (по дате вылета), проданных через Avocado Travel. Остальные места авиакомпании продают сами, поэтому проценты небольшие — сравниваются авиакомпании и самолёты между собой."
@@ -184,6 +195,7 @@ export default async function AnalyticsPage(props: PageProps<'/analytics'>) {
 
             <ReportSection
               id="routes"
+              download={exportHref('routes', filter)}
               className="lg:col-span-2"
               title="5. Продажи по маршрутам"
               description={`Оплаченные заказы с учётом фильтров: количество, сумма, средний и максимальный чек. Выручка за период — ${formatRubCompact(totals.revenue)}.`}

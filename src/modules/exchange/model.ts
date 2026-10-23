@@ -140,6 +140,26 @@ export const analyticsParamsSchema = periodParamsSchema.extend({
     .meta({ description: 'Город прилёта', example: 'sochi' }),
 });
 
+/** Формат выгрузки: CSV для таблиц (Excel), JSON для программ. */
+const formatParam = z
+  .enum(['csv', 'json'], { error: 'csv или json' })
+  .default('csv')
+  .meta({ description: 'Формат файла: csv (для Excel) или json' });
+
+export const scheduleExportParamsSchema = z.object({
+  format: formatParam,
+  date: date('Дата вылета по Москве'),
+  from: place('Только рейсы из этого аэропорта или города', 'moscow').optional(),
+  to: place('Только рейсы в этот аэропорт или город', 'sochi').optional(),
+});
+
+export const newsExportParamsSchema = z.object({
+  format: formatParam,
+  source: newsParamsSchema.shape.source,
+});
+
+export const analyticsExportParamsSchema = analyticsParamsSchema.extend({ format: formatParam });
+
 /* Ответы */
 
 const kopecks = (description: string) =>
@@ -346,6 +366,42 @@ export const analyticsResponseSchema = z
     }),
   ])
   .meta({ id: 'AnalyticsReport' });
+
+/** Строки JSON-выгрузок: те же столбцы, что в CSV, деньги — копейки. */
+export const scheduleRowSchema = z
+  .object({
+    number: z.string(),
+    airline: z.string(),
+    origin: z.string(),
+    originCity: z.string(),
+    destination: z.string(),
+    destinationCity: z.string(),
+    departsLocal: z.string().meta({ description: 'Вылет по местному времени города вылета' }),
+    arrivesLocal: z.string().meta({ description: 'Прилёт по местному времени города прилёта' }),
+    departsAt: z.iso.datetime(),
+    arrivesAt: z.iso.datetime(),
+    durationMinutes: z.number().int(),
+    aircraft: z.string(),
+    priceEconomy: kopecks('Эконом'),
+    priceBusiness: kopecks('Бизнес'),
+  })
+  .meta({ id: 'ScheduleRow' });
+
+export const newsRowSchema = z
+  .object({
+    publishedAt: z.string().meta({ description: 'ГГГГ-ММ-ДД ЧЧ:ММ по Москве' }),
+    title: z.string(),
+    summary: z.string(),
+    category: z.string(),
+    source: z.string(),
+    tags: z.string(),
+    url: z.string(),
+  })
+  .meta({ id: 'NewsRow' });
+
+export const reportRowSchema = z
+  .record(z.string(), z.union([z.string(), z.number(), z.null()]))
+  .meta({ id: 'ReportRow', description: 'Строка отчёта: столбцы — как в CSV-выгрузке' });
 
 /** Обёртки ответов: список с `meta` и один объект. */
 export const listOf = <T extends z.ZodType>(item: T) =>

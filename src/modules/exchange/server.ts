@@ -3,4 +3,4 @@
  */
 import 'server-only';
 
-export { apiRoute, handleOpenApi, handleUnknownEndpoint } from './server/route';
+export { apiRoute, handleFeed, handleOpenApi, handleUnknownEndpoint } from './server/route';

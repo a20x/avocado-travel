@@ -61,6 +61,14 @@ export function listPublishedNews(
   });
 }
 
+/** Последние опубликованные новости с текстом — для ленты `/feed.json` и выгрузки. */
+export function listLatestNews(
+  params: { source?: 'site' | 'external'; limit: number },
+  now: Date = new Date(),
+): Promise<News[]> {
+  return repository.findLatestPublished({ now, ...params });
+}
+
 /** Новость по адресу или null — несуществующая и ещё не опубликованная одинаково не видны. */
 export async function getNews(slug: string, now: Date = new Date()): Promise<News | null> {
   return (await repository.findPublishedBySlug(slug, now)) ?? null;

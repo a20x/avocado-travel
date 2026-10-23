@@ -6,6 +6,8 @@ import { SITE_URL } from '@/shared/config/site';
 import { API_ENDPOINTS, endpointById, type ApiEndpointId } from '../endpoints';
 import { API_RATE_LIMIT, validationMessage, type ApiErrorCode } from '../model';
 import { buildOpenApi } from '../openapi';
+import { FEED_SIZE, buildFeed } from '../feed';
+import { listLatestNews } from '@/modules/news/server';
 import { HANDLERS } from './handlers';
 
 const STATUS: Record<ApiErrorCode, number> = {
@@ -71,9 +73,19 @@ export function apiRoute(id: ApiEndpointId) {
 
     try {
       const result = await handler({ path: path.data, query: query.data }, new Date());
-      return result.ok
-        ? json(result.body, 200, endpoint.cacheSeconds)
-        : apiError(result.code, result.message);
+      if (!result.ok) return apiError(result.code, result.message);
+      if ('file' in result) {
+        return new Response(result.file.content, {
+          headers: {
+            'Content-Type': result.file.contentType,
+            'Content-Disposition': `attachment; filename="${result.file.filename}"`,
+            'Access-Control-Allow-Origin': '*',
+            'Cache-Control':
+              endpoint.cacheSeconds > 0 ? `public, max-age=${endpoint.cacheSeconds}` : 'no-store',
+          },
+        });
+      }
+      return json(result.body, 200, endpoint.cacheSeconds);
     } catch (error) {
       console.error(`API ${endpoint.path}:`, error);
       return apiError('INTERNAL_ERROR', 'Ошибка сервера. Попробуйте позже.');
@@ -84,6 +96,18 @@ export function apiRoute(id: ApiEndpointId) {
 /** `GET /api/v1/openapi.json` — спецификация API. */
 export function handleOpenApi(): Response {
   return json(buildOpenApi(API_ENDPOINTS, SITE_URL), 200, 600);
+}
+
+/** `GET /feed.json` — лента новостей сайта (JSON Feed 1.1). */
+export async function handleFeed(): Promise<Response> {
+  const items = await listLatestNews({ source: 'site', limit: FEED_SIZE });
+  return new Response(JSON.stringify(buildFeed(items, SITE_URL), null, 2), {
+    headers: {
+      'Content-Type': 'application/feed+json; charset=utf-8',
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'public, max-age=600',
+    },
+  });
 }
 
 /** Неизвестный адрес под `/api/v1` — ошибка в формате API, а не HTML-страница 404. */

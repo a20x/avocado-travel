@@ -8,5 +8,6 @@ export {
   listAirlineStats,
   listDestinationStats,
   listRoutes,
+  listSchedule,
   searchFlights,
 } from './server/service';

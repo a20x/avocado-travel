@@ -20,6 +20,10 @@ export const metadata: Metadata = {
   authors: [{ name: 'Ермаков Александр' }],
   // Страницы без своих метаданных (вход, кабинет, админка) получают общий Open Graph.
   openGraph: { ...OPEN_GRAPH_DEFAULTS, title: SITE_NAME, description: SITE_DESCRIPTION },
+  // Лента новостей: программы-читалки находят её по этой ссылке в <head> любой страницы.
+  alternates: {
+    types: { 'application/feed+json': [{ url: '/feed.json', title: 'Новости Avocado Travel' }] },
+  },
   icons: {
     icon: { url: '/images/brand/favicon.svg', type: 'image/svg+xml' },
     apple: '/images/brand/apple-touch-icon.png',

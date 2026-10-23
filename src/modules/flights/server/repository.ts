@@ -80,6 +80,13 @@ export function findFlightCandidates(filter: CandidateFilter): Promise<FlightRow
   );
 }
 
+/** Все рейсы с вылетом в промежутке [from, to) — по времени вылета, для выгрузки расписания. */
+export function findFlightsDeparting(from: Date, to: Date): Promise<FlightRow[]> {
+  return selectFlights()
+    .where(and(gte(flights.departsAt, from), lt(flights.departsAt, to)))
+    .orderBy(flights.departsAt, flights.number);
+}
+
 /** Рейс по id или undefined. */
 export async function findFlightById(id: string): Promise<FlightRow | undefined> {
   const [row] = await selectFlights().where(eq(flights.id, id));

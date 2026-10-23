@@ -31,8 +31,11 @@ test.describe('публичный API', () => {
     expect(flightId).not.toBe('');
 
     for (const endpoint of API_ENDPOINTS) {
-      const example =
+      const base: { path?: Record<string, string>; query?: Record<string, string> } =
         endpoint.id === 'getFlight' ? { path: { id: flightId } } : endpoint.example(today);
+      // Выгрузки по умолчанию — CSV; схема описывает их JSON-вариант.
+      const example =
+        'isExport' in endpoint ? { ...base, query: { ...base.query, format: 'json' } } : base;
       const url = endpointUrl(endpoint, example);
       const parsed = endpoint.response.safeParse(await getJson(request, url));
       expect(parsed.success, `${url}: ${parsed.error?.message}`).toBe(true);

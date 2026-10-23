@@ -26,6 +26,7 @@ import {
   filterOffers,
   isSearchDateAllowed,
   sortOffers,
+  type FlightRow,
 } from '../search';
 import * as repository from './repository';
 
@@ -77,6 +78,15 @@ export async function searchFlights(
     offers: sortOffers(filterOffers(offers, query), query.sort),
     airlines: airlineFacets(offers),
   });
+}
+
+/** Часовой пояс расписания: дата выгрузки — московская, как у всего сайта. */
+const SCHEDULE_TIMEZONE = 'Europe/Moscow';
+
+/** Расписание сети на дату по Москве: все рейсы, вылетающие в этот день, по времени вылета. */
+export function listSchedule(date: string): Promise<FlightRow[]> {
+  const day = zonedDayRange(date, SCHEDULE_TIMEZONE);
+  return repository.findFlightsDeparting(day.start, day.end);
 }
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
