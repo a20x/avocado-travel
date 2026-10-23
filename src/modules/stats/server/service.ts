@@ -2,6 +2,7 @@ import 'server-only';
 import { env } from '@/server/env';
 import { takeRateLimit } from '@/server/rate-limit';
 import { getClientIp, getUserAgent } from '@/server/request';
+import { getVisitor } from '@/server/visitor';
 import { addDays, dateInZone, daysBetween, zonedDayRange } from '@/shared/lib/time';
 import {
   isBot,
@@ -14,7 +15,6 @@ import {
   type StatsReport,
 } from '../model';
 import * as repository from './repository';
-import { visitorHash } from './visitor-hash';
 
 const ZONE = 'Europe/Moscow';
 
@@ -49,7 +49,7 @@ export async function recordHit(
     await repository.insertView({
       path: input.path,
       section: sectionOf(input.path),
-      visitorHash: visitorHash(ip, dateInZone(now, ZONE), env.IP_HASH_SALT),
+      visitorHash: (await getVisitor(now)).dailyHash,
       referrerHost: referrerHost(input.referrer, siteHost),
     });
   }

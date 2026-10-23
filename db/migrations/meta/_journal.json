@@ -64,6 +64,13 @@
       "when": 1792681123664,
       "tag": "0008_stats",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792682364503,
+      "tag": "0009_rating_poll",
+      "breakpoints": true
     }
   ]
 }

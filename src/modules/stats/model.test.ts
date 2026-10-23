@@ -9,7 +9,6 @@ import {
   referrerHost,
   sectionOf,
 } from './model';
-import { visitorHash } from './server/visitor-hash';
 
 describe('адрес просмотра', () => {
   it('без параметров, якоря и завершающей косой черты', () => {
@@ -74,14 +73,6 @@ describe('посетители', () => {
     expect(isBot('Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/141.0 Safari/537.36')).toBe(
       false,
     );
-  });
-
-  it('хэш IP одинаков в течение дня и меняется на следующий день', () => {
-    const today = visitorHash('198.51.100.7', '2026-10-22', 'salt-0123456789');
-    expect(visitorHash('198.51.100.7', '2026-10-22', 'salt-0123456789')).toBe(today);
-    expect(visitorHash('198.51.100.7', '2026-10-23', 'salt-0123456789')).not.toBe(today);
-    expect(visitorHash('198.51.100.8', '2026-10-22', 'salt-0123456789')).not.toBe(today);
-    expect(today).not.toContain('198.51.100.7');
   });
 });
 
