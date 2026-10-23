@@ -77,6 +77,11 @@ export default async function OrderPage(props: PageProps<'/booking/[id]'>) {
           Места держатся за вами ещё {minutesLeft}{' '}
           {plural(minutesLeft, ['минуту', 'минуты', 'минут'])}. Не успеете — бронь отменится сама.
         </p>
+        <p className="text-sm">
+          <Link href={`/services?amount=${Math.round(order.total / 100)}#converter`}>
+            Сколько это в другой валюте?
+          </Link>
+        </p>
       </header>
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <PaymentForm orderId={order.id} total={order.total} />

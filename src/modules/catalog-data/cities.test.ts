@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { groupCities } from './cities';
 import type { Airport } from './model';
 
-function airport(id: number, iata: string, city: string, citySlug: string): Airport {
+function airport(id: number, iata: string, city: string, citySlug: string, lat = 0): Airport {
   return {
     id,
     iata,
@@ -10,7 +10,7 @@ function airport(id: number, iata: string, city: string, citySlug: string): Airp
     city,
     citySlug,
     country: 'Россия',
-    lat: 0,
+    lat,
     lon: 0,
     timezone: 'Europe/Moscow',
   };
@@ -19,13 +19,15 @@ function airport(id: number, iata: string, city: string, citySlug: string): Airp
 describe('города', () => {
   it('собирает аэропорты одного города вместе', () => {
     const cities = groupCities([
-      airport(1, 'DME', 'Москва', 'moscow'),
-      airport(2, 'KZN', 'Казань', 'kazan'),
-      airport(3, 'SVO', 'Москва', 'moscow'),
+      airport(1, 'DME', 'Москва', 'moscow', 55.4),
+      airport(2, 'KZN', 'Казань', 'kazan', 55.6),
+      airport(3, 'SVO', 'Москва', 'moscow', 55.9),
     ]);
 
     expect(cities.map((city) => city.slug)).toEqual(['moscow', 'kazan']);
     expect(cities[0]?.airports.map((a) => a.iata)).toEqual(['DME', 'SVO']);
+    // Координаты города — первого аэропорта.
+    expect(cities[0]?.lat).toBe(55.4);
   });
 
   it('берёт описание, падежи и иллюстрацию города, для неизвестного — общую картинку', () => {

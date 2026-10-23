@@ -1,14 +1,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { getRates } from '@/modules/currency/server';
+import { CurrencyBanner } from '@/modules/currency/ui';
 import { getMetrikaId } from '@/modules/stats/server';
 import { SiteCounter } from '@/modules/stats/ui';
 import { MAIN_NAV, MORE_NAV } from '@/shared/config/navigation';
 
 /**
- * Подвал: о сайте, счётчик посещений, карта сайта, автор и технологии.
- * Курсы ЦБ (T-21) добавятся сюда из своего модуля.
+ * Подвал: о сайте, счётчик посещений, курсы ЦБ, карта сайта, автор и технологии.
  */
-export function SiteFooter() {
+export async function SiteFooter() {
+  const rates = await getRates();
   return (
     <footer className="mt-16 bg-graphite py-12 text-sm text-mist">
       <div className="container-site">
@@ -25,6 +27,7 @@ export function SiteFooter() {
               демонстрационная.
             </p>
             <SiteCounter metrikaId={getMetrikaId()} />
+            <CurrencyBanner rates={rates} />
           </div>
           <nav aria-label="Карта сайта">
             <h2 className="mb-3 text-sm text-white">Карта сайта</h2>

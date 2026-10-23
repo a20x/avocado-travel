@@ -16,6 +16,8 @@ export const PUBLIC_PAGES = [
   '/news/avocado-travel-otkrylsya',
   '/guestbook',
   '/forum',
+  '/services',
+  '/services?amount=12500',
   '/login',
   '/register',
 ];

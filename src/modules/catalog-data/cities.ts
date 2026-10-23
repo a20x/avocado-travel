@@ -12,6 +12,9 @@ export type City = {
   country: string;
   timezone: string;
   airports: Array<Pick<Airport, 'iata' | 'name'>>;
+  /** Координаты первого аэропорта города — для погоды и карты. */
+  lat: number;
+  lon: number;
   /** Название после «из»: «из Москвы». */
   nameFrom: string;
   /** Название после «в»: «в Москву». */
@@ -84,6 +87,8 @@ export function groupCities(airports: Airport[]): City[] {
       country: airport.country,
       timezone: airport.timezone,
       airports: [{ iata: airport.iata, name: airport.name }],
+      lat: airport.lat,
+      lon: airport.lon,
       // Для города без записанных форм лучше несклоняемое название, чем ошибка.
       nameFrom: FORMS[airport.citySlug]?.from ?? airport.city,
       nameTo: FORMS[airport.citySlug]?.to ?? airport.city,

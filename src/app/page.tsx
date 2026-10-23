@@ -8,6 +8,8 @@ import { getActivePoll } from '@/modules/poll/server';
 import { PollWidget } from '@/modules/poll/ui';
 import { getRating } from '@/modules/rating/server';
 import { RatingWidget } from '@/modules/rating/ui';
+import { getWeather } from '@/modules/weather/server';
+import { WeatherWidget } from '@/modules/weather/ui';
 import { formatDuration, formatPrice, plural } from '@/shared/lib/format';
 import { addDays, dateInZone } from '@/shared/lib/time';
 import { Badge } from '@/shared/ui/Badge';
@@ -15,6 +17,8 @@ import { Badge } from '@/shared/ui/Badge';
 /** Популярные направления считаются от главного узла сети. */
 const HUB = 'moscow';
 const POPULAR_COUNT = 6;
+/** Погода на главной — в городах с разным климатом. */
+const WEATHER_CITIES = ['kaliningrad', 'sochi', 'kazan', 'vladivostok'];
 
 export default async function HomePage(props: PageProps<'/'>) {
   const now = new Date();
@@ -40,6 +44,7 @@ export default async function HomePage(props: PageProps<'/'>) {
   const today = dateInZone(now, 'Europe/Moscow');
 
   const citiesBySlug = new Map(cities.map((city) => [city.slug, city]));
+  const weather = await getWeather(WEATHER_CITIES.flatMap((slug) => citiesBySlug.get(slug) ?? []));
   const popular = [...routes]
     .sort((a, b) => b.flightsPerWeek - a.flightsPerWeek)
     .slice(0, POPULAR_COUNT);
@@ -80,8 +85,9 @@ export default async function HomePage(props: PageProps<'/'>) {
           </div>
         </section>
 
-        {/* Погода (T-21) встанет в этот ряд рядом с опросом и рейтингом (docs/06-design.md). */}
-        <div className="grid items-start gap-6 md:grid-cols-2">
+        {/* Погода, опрос, рейтинг — в одном ряду (docs/06-design.md). */}
+        <div className="grid items-start gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <WeatherWidget weather={weather} />
           {poll ? <PollWidget poll={poll} /> : null}
           <RatingWidget rating={rating} />
         </div>
