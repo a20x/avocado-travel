@@ -3,7 +3,7 @@
  *
  * Скрипты в db/seed — инструмент разработчика, а не код сайта, поэтому пишут в базу через
  * Drizzle напрямую (так принято в проектах на Drizzle). Таблицы берутся из index.ts модулей.
- * Каждый запуск даёт одинаковый результат: справочники, рейсы, заказы, новости, гостевая книга, форум, статистика посещений, рейтинг, опрос, каталог ресурсов и реклама очищаются и заполняются заново.
+ * Каждый запуск даёт одинаковый результат: справочники, рейсы, заказы, новости, гостевая книга, форум, статистика посещений, рейтинг, опрос, каталог ресурсов, реклама и поисковый индекс очищаются и заполняются заново.
  * Пользователи не удаляются: зарегистрированные аккаунты сохраняются, админ и демо-авторы форума создаются или обновляются.
  * Даты рейсов отсчитываются от сегодняшнего дня по Москве.
  */
@@ -20,6 +20,7 @@ import { seedGuestbook } from './guestbook';
 import { seedNews } from './news';
 import { seedPoll } from './poll';
 import { seedRatings } from './rating';
+import { seedSearch } from './search';
 import { seedStats } from './stats';
 
 async function main() {
@@ -29,7 +30,7 @@ async function main() {
   // Всё или ничего: если что-то упадёт, база останется как была.
   const counts = await db.transaction(async (tx) => {
     await tx.execute(
-      sql`TRUNCATE TABLE ad_campaigns, ad_events, catalog_sections, catalog_links, site_ratings, polls, poll_options, poll_votes, page_views, forum_topics, forum_posts, guestbook_entries, guestbook_stop_words, guestbook_banned_hosts, news, orders, flights, airports, airlines, aircraft_models RESTART IDENTITY CASCADE`,
+      sql`TRUNCATE TABLE search_documents, ad_campaigns, ad_events, catalog_sections, catalog_links, site_ratings, polls, poll_options, poll_votes, page_views, forum_topics, forum_posts, guestbook_entries, guestbook_stop_words, guestbook_banned_hosts, news, orders, flights, airports, airlines, aircraft_models RESTART IDENTITY CASCADE`,
     );
     const catalog = await seedCatalogData(tx);
     const flightCount = await seedFlights(tx, catalog, today);
@@ -49,6 +50,8 @@ async function main() {
       pollVotes: await seedPoll(tx),
       catalogLinks: await seedCatalog(tx),
       ads: await seedAds(tx, today),
+      // Индекс — последним: в него попадают уже загруженные новости и форум.
+      searchDocuments: await seedSearch(tx),
     };
   });
 

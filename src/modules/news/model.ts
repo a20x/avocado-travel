@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { SearchDocumentInput } from '@/modules/search';
 import { SLUG_PATTERN } from '@/shared/lib/slug';
 import type { news } from './schema';
 
@@ -70,4 +71,21 @@ export function splitParagraphs(body: string): string[] {
     .split(/\n\s*\n/)
     .map((paragraph) => paragraph.replace(/\s*\n\s*/g, ' ').trim())
     .filter(Boolean);
+}
+
+/**
+ * Документ поискового индекса для новости: краткое описание и текст. До даты публикации
+ * новость не ищется — как и не видна в ленте.
+ */
+export function newsSearchDocument(
+  item: Pick<News, 'id' | 'slug' | 'title' | 'summary' | 'body' | 'publishedAt'>,
+): SearchDocumentInput {
+  return {
+    kind: 'news',
+    refId: item.id,
+    url: `/news/${item.slug}`,
+    title: item.title,
+    body: `${item.summary}\n\n${item.body}`,
+    visibleFrom: item.publishedAt,
+  };
 }

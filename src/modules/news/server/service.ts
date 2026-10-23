@@ -1,11 +1,13 @@
 import 'server-only';
 import { z } from 'zod';
+import { indexDocument, removeDocument } from '@/modules/search/server';
 import { fail, ok, type Result } from '@/shared/lib/result';
 import { slugify } from '@/shared/lib/slug';
 import { dateInZone, timeInZone, zonedTimeToUtc } from '@/shared/lib/time';
 import {
   NEWS_PAGE_SIZE,
   isNewsCategory,
+  newsSearchDocument,
   type News,
   type NewsError,
   type NewsInput,
@@ -93,6 +95,7 @@ export async function createNews(
   const values = toValues(input);
   if (await repository.isSlugTaken(values.slug)) return fail('SLUG_TAKEN');
   const id = await repository.insertNews(values);
+  await indexDocument(newsSearchDocument({ id, ...values }));
   return ok({ id, slug: values.slug });
 }
 
@@ -103,13 +106,15 @@ export async function updateNews(
 ): Promise<Result<{ slug: string }, NewsError>> {
   const values = toValues(input);
   if (await repository.isSlugTaken(values.slug, id)) return fail('SLUG_TAKEN');
-  return (await repository.updateNews(id, values, now))
-    ? ok({ slug: values.slug })
-    : fail('NOT_FOUND');
+  if (!(await repository.updateNews(id, values, now))) return fail('NOT_FOUND');
+  await indexDocument(newsSearchDocument({ id, ...values }));
+  return ok({ slug: values.slug });
 }
 
 export async function deleteNews(id: unknown): Promise<Result<null, NewsError>> {
   const parsed = z.uuid().safeParse(id);
   if (!parsed.success) return fail('NOT_FOUND');
-  return (await repository.deleteNews(parsed.data)) ? ok(null) : fail('NOT_FOUND');
+  if (!(await repository.deleteNews(parsed.data))) return fail('NOT_FOUND');
+  await removeDocument('news', parsed.data);
+  return ok(null);
 }

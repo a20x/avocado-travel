@@ -12,6 +12,7 @@ export {
   NEWS_PAGE_SIZE,
   isNewsCategory,
   newsInputSchema,
+  newsSearchDocument,
   splitParagraphs,
 } from './model';
 export type { News, NewsCategory, NewsError, NewsInput, NewsListItem, NewsPage } from './model';
