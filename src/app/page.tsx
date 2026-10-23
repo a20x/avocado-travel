@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getAdsFor } from '@/modules/ads/server';
 import { PromoBlocks } from '@/modules/ads/ui';
@@ -12,9 +13,23 @@ import { getRating } from '@/modules/rating/server';
 import { RatingWidget } from '@/modules/rating/ui';
 import { getWeather } from '@/modules/weather/server';
 import { WeatherWidget } from '@/modules/weather/ui';
+import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME } from '@/shared/config/site';
 import { formatDuration, formatPrice, plural } from '@/shared/lib/format';
+import { pageMetadata } from '@/shared/lib/metadata';
 import { addDays, dateInZone } from '@/shared/lib/time';
 import { Badge } from '@/shared/ui/Badge';
+import { SiteContents } from './_components/SiteContents';
+
+export const metadata: Metadata = {
+  ...pageMetadata({
+    title: `${SITE_NAME} — авиабилеты по России и за рубеж`,
+    description: SITE_DESCRIPTION,
+    path: '/',
+    keywords: SITE_KEYWORDS,
+  }),
+  // У главной заголовок без шаблона «… — Avocado Travel»: название сайта уже в начале.
+  title: { absolute: `${SITE_NAME} — авиабилеты по России и за рубеж` },
+};
 
 /** Популярные направления считаются от главного узла сети. */
 const HUB = 'moscow';
@@ -96,6 +111,8 @@ export default async function HomePage(props: PageProps<'/'>) {
           {poll ? <PollWidget poll={poll} /> : null}
           <RatingWidget rating={rating} />
         </div>
+
+        <SiteContents />
       </div>
     </>
   );

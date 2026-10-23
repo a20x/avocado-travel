@@ -1,15 +1,16 @@
-import type { Metadata } from 'next';
 import { listEntries } from '@/modules/guestbook/server';
 import { EntryList, GuestbookForm } from '@/modules/guestbook/ui';
 import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Pagination } from '@/shared/ui/Pagination';
 import { Toast } from '@/shared/ui/Toast';
+import { pageMetadata } from '@/shared/lib/metadata';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Гостевая книга',
   description: 'Отзывы и пожелания посетителей Avocado Travel.',
-};
+  path: '/guestbook',
+});
 
 export default async function GuestbookPage(props: PageProps<'/guestbook'>) {
   const params = await props.searchParams;

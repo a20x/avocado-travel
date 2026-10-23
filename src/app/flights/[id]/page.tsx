@@ -11,6 +11,7 @@ import { dateInZone, daysBetween, timeInZone } from '@/shared/lib/time';
 import { buttonClasses } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
+import { pageMetadata } from '@/shared/lib/metadata';
 
 // Рейс нужен и для заголовка вкладки, и для страницы — cache не даёт сходить в базу дважды.
 const loadFlight = cache(async (id: string) => getFlight(id));
@@ -22,7 +23,12 @@ export async function generateMetadata(props: PageProps<'/flights/[id]'>): Promi
   const result = await loadFlight((await props.params).id);
   if (!result.ok) return {};
   const flight = result.data;
-  return { title: `${flight.number}: ${flight.origin.city} → ${flight.destination.city}` };
+  const date = formatDate(dateInZone(flight.departsAt, flight.origin.timezone));
+  return pageMetadata({
+    title: `${flight.number}: ${flight.origin.city} → ${flight.destination.city}`,
+    description: `Рейс ${flight.number} ${flight.airline.name} ${date}: ${flight.origin.city} → ${flight.destination.city}, в пути ${formatDuration(flight.durationMinutes)}. Схема салона и выбор мест.`,
+    path: `/flights/${flight.id}`,
+  });
 }
 
 export default async function FlightPage(props: PageProps<'/flights/[id]'>) {

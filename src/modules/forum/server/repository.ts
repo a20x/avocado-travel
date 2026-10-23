@@ -188,3 +188,11 @@ export async function findTopicText(
     .orderBy(asc(forumPosts.createdAt), asc(forumPosts.id));
   return { id: topic.id, title: topic.title, posts: posts.map((post) => post.body) };
 }
+
+/** Все темы — адрес и время последнего сообщения, для sitemap.xml. */
+export function findTopicLinks(): Promise<Array<{ id: string; lastPostAt: Date }>> {
+  return db
+    .select({ id: forumTopics.id, lastPostAt: forumTopics.lastPostAt })
+    .from(forumTopics)
+    .orderBy(desc(forumTopics.lastPostAt));
+}

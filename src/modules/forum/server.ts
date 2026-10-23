@@ -3,4 +3,4 @@
  */
 import 'server-only';
 
-export { getTopic, listPosts, listTopics } from './server/service';
+export { getTopic, listPosts, listTopicLinks, listTopics } from './server/service';

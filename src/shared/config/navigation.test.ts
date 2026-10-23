@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isNavItemActive, MAIN_NAV, MORE_NAV } from './navigation';
+import { isNavItemActive, MAIN_NAV, MORE_NAV, SITE_CONTENTS } from './navigation';
 
 const flights = MAIN_NAV[0]!;
 const news = MAIN_NAV.find((item) => item.href === '/news')!;
@@ -26,6 +26,20 @@ describe('isNavItemActive', () => {
 
   it('адреса в меню не повторяются', () => {
     const hrefs = [...MAIN_NAV, ...MORE_NAV].map((item) => item.href);
+    expect(new Set(hrefs).size).toBe(hrefs.length);
+  });
+});
+
+describe('SITE_CONTENTS', () => {
+  const hrefs = SITE_CONTENTS.flatMap((group) => group.items.map((item) => item.href));
+
+  it('содержит каждый раздел меню, кроме главной', () => {
+    for (const item of [...MAIN_NAV, ...MORE_NAV]) {
+      if (item.href !== '/') expect(hrefs).toContain(item.href);
+    }
+  });
+
+  it('адреса не повторяются', () => {
     expect(new Set(hrefs).size).toBe(hrefs.length);
   });
 });

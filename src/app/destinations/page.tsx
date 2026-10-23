@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import { connection } from 'next/server';
 import type { City } from '@/modules/catalog-data';
 import { CityCard } from '@/modules/catalog-data/ui';
@@ -7,11 +6,13 @@ import type { DestinationStats } from '@/modules/flights';
 import { listDestinationStats } from '@/modules/flights/server';
 import { formatPrice, plural } from '@/shared/lib/format';
 import { Badge } from '@/shared/ui/Badge';
+import { pageMetadata } from '@/shared/lib/metadata';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Направления',
   description: 'Города России и зарубежья, куда летают авиакомпании Avocado Travel.',
-};
+  path: '/destinations',
+});
 
 const HOME_COUNTRY = 'Россия';
 

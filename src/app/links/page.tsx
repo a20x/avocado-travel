@@ -1,16 +1,17 @@
-import type { Metadata } from 'next';
 import { countLinks } from '@/modules/catalog';
 import { getPublicCatalog } from '@/modules/catalog/server';
 import { LinksCatalog } from '@/modules/catalog/ui';
 import { plural } from '@/shared/lib/format';
 import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
+import { pageMetadata } from '@/shared/lib/metadata';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Полезные ссылки',
   description:
     'Каталог полезных ресурсов для путешественника: документы и визы, аэропорты, погода, деньги.',
-};
+  path: '/links',
+});
 
 export default async function LinksPage() {
   const tree = await getPublicCatalog();

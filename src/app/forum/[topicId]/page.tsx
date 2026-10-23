@@ -10,13 +10,20 @@ import { plural } from '@/shared/lib/format';
 import { buttonClasses } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { Pagination } from '@/shared/ui/Pagination';
+import { pageMetadata } from '@/shared/lib/metadata';
 
 // Тема нужна и для заголовка вкладки, и для страницы — cache не даёт сходить в базу дважды.
 const loadTopic = cache(async (id: string) => getTopic(id));
 
 export async function generateMetadata(props: PageProps<'/forum/[topicId]'>): Promise<Metadata> {
   const result = await loadTopic((await props.params).topicId);
-  return result.ok ? { title: `${result.data.title} — форум` } : {};
+  if (!result.ok) return {};
+  const topic = result.data;
+  return pageMetadata({
+    title: `${topic.title} — форум`,
+    description: `Обсуждение на форуме Avocado Travel: «${topic.title}», ${topic.postsCount} ${plural(topic.postsCount, ['сообщение', 'сообщения', 'сообщений'])}.`,
+    path: topicHref(topic.id),
+  });
 }
 
 export default async function TopicPage(props: PageProps<'/forum/[topicId]'>) {

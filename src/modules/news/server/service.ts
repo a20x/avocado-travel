@@ -52,6 +52,13 @@ export async function getNews(slug: string, now: Date = new Date()): Promise<New
   return (await repository.findPublishedBySlug(slug, now)) ?? null;
 }
 
+/** Все опубликованные новости сайта — адрес и время правки, для sitemap.xml. */
+export function listNewsLinks(
+  now: Date = new Date(),
+): Promise<Array<{ slug: string; updatedAt: Date }>> {
+  return repository.findPublishedLinks(now);
+}
+
 /* Админка. Права проверяет action, который вызывает эти функции. */
 
 /** Все новости сайта, включая запланированные. */

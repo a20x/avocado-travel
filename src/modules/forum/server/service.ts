@@ -58,6 +58,11 @@ export async function listTopics(params: { page?: unknown }): Promise<Page<Topic
   return { items, page, totalPages: totalPages(total, TOPICS_PAGE_SIZE) };
 }
 
+/** Все темы — для sitemap.xml: адрес темы и время последнего сообщения. */
+export function listTopicLinks(): Promise<Array<{ id: string; lastPostAt: Date }>> {
+  return repository.findTopicLinks();
+}
+
 export async function getTopic(id: unknown): Promise<Result<TopicDetails, 'NOT_FOUND'>> {
   const parsed = parseId(id);
   const topic = parsed.success ? await repository.findTopic(parsed.data) : null;
