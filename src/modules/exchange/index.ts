@@ -20,6 +20,9 @@ export {
   listOf,
   newsItemSchema,
   newsListItemSchema,
+  newsRowSchema,
+  reportRowSchema,
+  scheduleRowSchema,
   paginate,
   statsSummarySchema,
   validationMessage,
@@ -28,4 +31,8 @@ export type { AnalyticsReportName, ApiErrorCode } from './model';
 export { API_ENDPOINTS, endpointById, endpointUrl } from './endpoints';
 export type { ApiEndpoint, ApiEndpointId } from './endpoints';
 export { buildOpenApi, parametersOf } from './openapi';
+export { FEED_SIZE, buildFeed } from './feed';
+export { csvCell, toCsv, toJsonRows } from './csv';
+export type { ExportColumn, ExportTable, ExportValue } from './csv';
+export { analyticsTable, exportFilename, newsTable, scheduleTable } from './exports';
 export type { ApiParameter } from './openapi';

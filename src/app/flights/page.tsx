@@ -64,7 +64,13 @@ async function Results({ params }: { params: Params }) {
         <SortLinks query={query} />
         <p className="text-sm text-slate">
           Найдено {offers.length} {plural(offers.length, ['рейс', 'рейса', 'рейсов'])} · время
-          местное
+          местное ·{' '}
+          <a
+            href={`/api/v1/export/flights?format=csv&date=${query.date}&from=${query.from}&to=${query.to}`}
+            download
+          >
+            Скачать расписание маршрута (CSV)
+          </a>
         </p>
         {offers.length === 0 ? (
           <SearchProblem problem="NO_MATCHES" editHref={editHref(params)} />

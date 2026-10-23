@@ -8,12 +8,15 @@ export function ReportSection({
   description,
   children,
   className,
+  download,
 }: {
   id: string;
   title: string;
   description: string;
   children: ReactNode;
   className?: string;
+  /** Адрес выгрузки отчёта в CSV с текущими фильтрами. */
+  download?: string;
 }) {
   return (
     <Card
@@ -21,11 +24,18 @@ export function ReportSection({
       aria-labelledby={`${id}-title`}
       className={`grid content-start gap-4 p-5 md:p-6 ${className ?? ''}`}
     >
-      <div className="grid gap-1">
-        <h2 id={`${id}-title`} className="text-xl">
-          {title}
-        </h2>
-        <p className="text-sm text-slate">{description}</p>
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
+        <div className="grid gap-1">
+          <h2 id={`${id}-title`} className="text-xl">
+            {title}
+          </h2>
+          <p className="text-sm text-slate">{description}</p>
+        </div>
+        {download ? (
+          <a href={download} download className="text-sm font-semibold whitespace-nowrap">
+            Скачать CSV
+          </a>
+        ) : null}
       </div>
       {children}
     </Card>

@@ -4,14 +4,20 @@ import { getAnalytics } from '@/modules/analytics/server';
 import { seatCapacity } from '@/modules/catalog-data';
 import { listAircraftModels, listAirlines, listAirports } from '@/modules/catalog-data/server';
 import type { FlightOffer } from '@/modules/flights';
-import { getFlight, searchFlights } from '@/modules/flights/server';
-import { getNews, listPublishedNews } from '@/modules/news/server';
+import { getFlight, listSchedule, searchFlights } from '@/modules/flights/server';
+import { getNews, listLatestNews, listPublishedNews } from '@/modules/news/server';
 import { getReport } from '@/modules/stats/server';
+import { SITE_URL } from '@/shared/config/site';
+import { toCsv, toJsonRows, type ExportTable } from '../csv';
 import type { API_ENDPOINTS, ApiEndpointId } from '../endpoints';
+import { analyticsTable, exportFilename, newsTable, scheduleTable } from '../exports';
 import { paginate, type ApiErrorCode } from '../model';
 
+export type ApiFile = { content: string; contentType: string; filename: string };
 export type ApiResult =
-  { ok: true; body: unknown } | { ok: false; code: ApiErrorCode; message: string };
+  | { ok: true; body: unknown }
+  | { ok: true; file: ApiFile }
+  | { ok: false; code: ApiErrorCode; message: string };
 
 type EndpointOf<K extends ApiEndpointId> = Extract<(typeof API_ENDPOINTS)[number], { id: K }>;
 type Parsed<T> = T extends z.ZodType ? z.infer<T> : Record<string, never>;
@@ -23,6 +29,33 @@ type Input<K extends ApiEndpointId> = {
 const ok = (body: unknown): ApiResult => ({ ok: true, body });
 const fail = (code: ApiErrorCode, message: string): ApiResult => ({ ok: false, code, message });
 const list = <T>(items: T[]) => ok({ data: items, meta: { total: items.length } });
+
+/** Выгрузка файлом: CSV для Excel или JSON-массив строк. */
+function file(
+  table: ExportTable,
+  format: 'csv' | 'json',
+  name: Array<string | undefined>,
+): ApiResult {
+  return {
+    ok: true,
+    file:
+      format === 'csv'
+        ? {
+            content: toCsv(table),
+            contentType: 'text/csv; charset=utf-8',
+            filename: exportFilename(name, 'csv'),
+          }
+        : {
+            content: `${JSON.stringify(toJsonRows(table), null, 2)}\n`,
+            contentType: 'application/json; charset=utf-8',
+            filename: exportFilename(name, 'json'),
+          },
+  };
+}
+
+/** Подходит ли место рейса под фильтр: код аэропорта — точное совпадение, иначе — город. */
+const matchesPlace = (filter: string | undefined, info: { iata: string; citySlug: string }) =>
+  !filter || info.iata === filter || info.citySlug === filter;
 
 /** Место из параметра: IATA-код аэропорта → его город и сам аэропорт, иначе — код города. */
 async function resolvePlace(value: string): Promise<{ city: string; iata?: string } | null> {
@@ -221,5 +254,35 @@ export const HANDLERS: {
       },
     }[path.report]();
     return ok({ data });
+  },
+
+  exportFlights: async ({ query }) => {
+    const flights = (await listSchedule(query.date))
+      .filter((flight) => matchesPlace(query.from, flight.origin))
+      .filter((flight) => matchesPlace(query.to, flight.destination));
+    return file(scheduleTable(flights), query.format, [
+      'flights',
+      query.date,
+      query.from,
+      query.to,
+    ]);
+  },
+
+  exportNews: async ({ query }, now) => {
+    const items = await listLatestNews({ source: query.source, limit: 1000 }, now);
+    return file(newsTable(items, SITE_URL), query.format, ['news', query.source]);
+  },
+
+  exportAnalytics: async ({ path, query }, now) => {
+    const report = await getAnalytics(query, now);
+    const { from, to, airline, destination } = report.filter;
+    return file(analyticsTable(path.report, report), query.format, [
+      'analytics',
+      path.report,
+      from,
+      to,
+      airline,
+      destination,
+    ]);
   },
 };

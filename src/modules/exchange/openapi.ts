@@ -71,9 +71,11 @@ export function buildOpenApi(endpoints: readonly ApiEndpoint[], siteUrl: string)
         parameters,
         responses: {
           200: {
-            description: 'Успех',
+            description: endpoint.isExport ? 'Файл выгрузки' : 'Успех',
             content: {
               'application/json': { schema: responseSchema(endpoint.response, components) },
+              // CSV: строка подписей и строки данных, разделитель «;», UTF-8 с BOM.
+              ...(endpoint.isExport ? { 'text/csv': { schema: { type: 'string' } } } : {}),
             },
           },
           ...(parameters.length > 0 ? { 400: errorResponse('Неверные параметры') } : {}),

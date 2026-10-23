@@ -8,6 +8,7 @@ export {
   getNewsForEdit,
   listNews,
   listNewsForAdmin,
+  listLatestNews,
   listNewsLinks,
   listPublishedNews,
 } from './server/service';

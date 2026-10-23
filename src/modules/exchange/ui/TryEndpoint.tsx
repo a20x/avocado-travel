@@ -38,7 +38,11 @@ export function TryEndpoint({ path, params }: { path: string; params: Param[] })
     setPending(true);
     try {
       const result = await fetch(url);
-      const text = JSON.stringify(await result.json(), null, 2);
+      // Выгрузка CSV — текст, остальное — JSON с отступами.
+      const isJson = result.headers.get('content-type')?.includes('json') ?? false;
+      const text = isJson
+        ? JSON.stringify(await result.json(), null, 2)
+        : (await result.text()).replace(/^\uFEFF/, '');
       setResponse({
         status: result.status,
         text: text.length > MAX_SHOWN ? `${text.slice(0, MAX_SHOWN)}\n… (ответ обрезан)` : text,

@@ -126,3 +126,22 @@ export async function findPublishedNews(filter: {
   ]);
   return { items, total: totals?.total ?? 0 };
 }
+
+/** Последние опубликованные новости целиком, свежие сверху — для ленты и выгрузки. */
+export function findLatestPublished(filter: {
+  now: Date;
+  source?: 'site' | 'external';
+  limit: number;
+}): Promise<News[]> {
+  return db
+    .select()
+    .from(news)
+    .where(
+      and(
+        lte(news.publishedAt, filter.now),
+        filter.source ? eq(news.source, filter.source) : undefined,
+      ),
+    )
+    .orderBy(desc(news.publishedAt), desc(news.id))
+    .limit(filter.limit);
+}

@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import { z } from 'zod';
 import { addDays } from '@/shared/lib/time';
 import {
   aircraftModelSchema,
@@ -6,6 +6,7 @@ import {
   airportSchema,
   analyticsParamsSchema,
   analyticsReportSchema,
+  analyticsExportParamsSchema,
   analyticsResponseSchema,
   flightDetailsSchema,
   flightIdSchema,
@@ -16,8 +17,13 @@ import {
   newsItemSchema,
   newsListItemSchema,
   newsParamsSchema,
+  newsExportParamsSchema,
+  newsRowSchema,
   newsSlugSchema,
   periodParamsSchema,
+  reportRowSchema,
+  scheduleExportParamsSchema,
+  scheduleRowSchema,
   statsSummarySchema,
 } from './model';
 
@@ -35,6 +41,8 @@ export type ApiEndpoint = {
   pathParams?: z.ZodObject;
   query?: z.ZodObject;
   response: z.ZodType;
+  /** Выгрузка: отдаёт файл, CSV или JSON — по параметру `format`. */
+  isExport?: boolean;
   /** Сколько секунд ответ можно кэшировать; 0 — не кэшировать. */
   cacheSeconds: number;
   /** Пример параметров для документации и проверок; `today` — сегодняшняя дата по Москве. */
@@ -145,6 +153,44 @@ export const API_ENDPOINTS = [
     response: itemOf(analyticsResponseSchema),
     cacheSeconds: 0,
     example: () => ({ path: { report: 'destinations' }, query: { airline: 'KRR' } }),
+  },
+  {
+    id: 'exportFlights',
+    path: '/export/flights',
+    tag: 'Выгрузки',
+    summary: 'Расписание на дату',
+    description:
+      'Все рейсы с вылетом в этот день (по Москве) — файлом CSV или JSON. Время — местное и в UTC, цены — базовые цены классов.',
+    query: scheduleExportParamsSchema,
+    response: z.array(scheduleRowSchema),
+    isExport: true,
+    cacheSeconds: 0,
+    example: (today) => ({ query: { format: 'csv', date: today } }),
+  },
+  {
+    id: 'exportNews',
+    path: '/export/news',
+    tag: 'Выгрузки',
+    summary: 'Новости',
+    description: 'Все опубликованные новости, свежие сверху — файлом CSV или JSON.',
+    query: newsExportParamsSchema,
+    response: z.array(newsRowSchema),
+    isExport: true,
+    cacheSeconds: 300,
+    example: () => ({ query: { format: 'csv' } }),
+  },
+  {
+    id: 'exportAnalytics',
+    path: '/export/analytics/{report}',
+    tag: 'Выгрузки',
+    summary: 'Отчёт аналитики',
+    description: 'Отчёт со страницы «Аналитика» с теми же фильтрами — файлом CSV или JSON.',
+    pathParams: analyticsReportSchema,
+    query: analyticsExportParamsSchema,
+    response: z.array(reportRowSchema),
+    isExport: true,
+    cacheSeconds: 0,
+    example: () => ({ path: { report: 'revenue' }, query: { format: 'csv' } }),
   },
 ] as const satisfies readonly ApiEndpoint[];
 
