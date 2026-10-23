@@ -21,7 +21,8 @@ export async function voteAction(_: VoteFormState, formData: FormData): Promise<
 
   const result = await service.vote(parsed.data);
   if (!result.ok) return { error: MESSAGES[result.error] };
-  // Главная перерисуется: вместо формы — результаты.
+  // Опрос есть на главной и на странице сервисов: обе перерисуются с результатами.
   revalidatePath('/');
+  revalidatePath('/services');
   return {};
 }

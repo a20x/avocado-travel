@@ -9,11 +9,17 @@ type PollFormProps = {
   question: string;
   /** Только тексты: число голосов до голосования в браузер не отправляется. */
   options: Array<{ id: number; text: string }>;
+  /** Адрес страницы с опросом — для работы формы без JavaScript. */
+  permalink: string;
 };
 
 /** Варианты ответа — обычные переключатели: форма работает и без JavaScript. */
-export function PollForm({ pollId, question, options }: PollFormProps) {
-  const [state, formAction, pending] = useActionState<VoteFormState, FormData>(voteAction, {}, '/');
+export function PollForm({ pollId, question, options, permalink }: PollFormProps) {
+  const [state, formAction, pending] = useActionState<VoteFormState, FormData>(
+    voteAction,
+    {},
+    permalink,
+  );
 
   return (
     <form action={formAction} className="grid gap-4">
