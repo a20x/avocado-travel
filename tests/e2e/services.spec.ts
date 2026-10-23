@@ -46,3 +46,39 @@ test('погода на главной и на странице направле
       .first(),
   ).toBeVisible();
 });
+
+test('карта маршрутов: щелчок по городу ведёт на поиск', async ({ page }) => {
+  // Картинки карты тестам не нужны — не нагружаем серверы OpenStreetMap.
+  await page.route('https://tile.openstreetmap.org/**', (route) => route.abort());
+  await page.goto('/services');
+  const map = page.getByRole('region', { name: 'Карта маршрутов' });
+  const moscow = map.getByRole('button', { name: 'Москва' });
+  await expect(moscow).toBeVisible();
+
+  await moscow.click();
+  await map.getByRole('link', { name: 'Калининград' }).click();
+  await expect(page).toHaveURL(/\/flights\?from=moscow&to=kaliningrad&date=\d{4}-\d{2}-\d{2}/);
+});
+
+test('маршруты списком работают и без карты', async ({ page }) => {
+  await page.goto('/services');
+  await page.getByText('Маршруты списком').click();
+  const list = page.getByRole('group').filter({ hasText: 'Маршруты списком' });
+  await expect(list.getByRole('term').filter({ hasText: /^Сочи$/ })).toBeVisible();
+});
+
+test('мировые часы: разница поясов между городами', async ({ page }) => {
+  await page.goto('/services');
+  const clock = page.getByRole('region', { name: 'Мировые часы и календарь' });
+  await expect(clock.getByText('Разница поясов: +7 ч')).toBeVisible();
+
+  await clock.getByLabel('Город прилёта').selectOption({ label: 'Калининград' });
+  await expect(clock.getByText('Разница поясов: −1 ч')).toBeVisible();
+  // Сегодняшний день отмечен в календаре.
+  await expect(clock.locator('[aria-current="date"]')).toHaveCount(1);
+});
+
+test('на странице направления — местное время', async ({ page }) => {
+  await page.goto('/destinations/vladivostok');
+  await expect(page.getByText('+7 ч к Москве')).toBeVisible();
+});

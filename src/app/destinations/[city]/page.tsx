@@ -9,6 +9,7 @@ import { defaultSearchDate, searchUrl } from '@/modules/flights';
 import { listRoutes } from '@/modules/flights/server';
 import { getWeather } from '@/modules/weather/server';
 import { CityWeatherCard } from '@/modules/weather/ui';
+import { LocalTime } from '@/modules/world-clock/ui';
 import { formatDuration, formatPrice, plural } from '@/shared/lib/format';
 import { utcOffsetLabel } from '@/shared/lib/time';
 import { EmptyState } from '@/shared/ui/EmptyState';
@@ -66,6 +67,10 @@ export default async function CityPage(props: PageProps<'/destinations/[city]'>)
             <dd>{city.airports.map((a) => `${a.name} (${a.iata})`).join(', ')}</dd>
             <dt className="text-slate">Часовой пояс</dt>
             <dd>{utcOffsetLabel(city.timezone)}</dd>
+            <dt className="text-slate">Местное время</dt>
+            <dd>
+              <LocalTime timezone={city.timezone} initialNow={now.getTime()} />
+            </dd>
             <dt className="text-slate">Рейсов в неделю</dt>
             <dd>{flightsPerWeek}</dd>
           </dl>

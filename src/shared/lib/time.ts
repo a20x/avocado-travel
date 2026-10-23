@@ -104,9 +104,14 @@ export function daysBetween(from: string, to: string): number {
   return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86_400_000);
 }
 
+/** Смещение пояса от UTC в минутах в данный момент: Москва — 180. */
+export function utcOffsetMinutes(timeZone: string, at: Date = new Date()): number {
+  return Math.round(offsetMs(at, timeZone) / 60_000);
+}
+
 /** Смещение пояса от UTC для подписи: «UTC+3», «UTC+5:30», «UTC» (в данный момент). */
 export function utcOffsetLabel(timeZone: string, at: Date = new Date()): string {
-  const minutes = Math.round(offsetMs(at, timeZone) / 60_000);
+  const minutes = utcOffsetMinutes(timeZone, at);
   if (minutes === 0) return 'UTC';
   const sign = minutes > 0 ? '+' : '−';
   const abs = Math.abs(minutes);
