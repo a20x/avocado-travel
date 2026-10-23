@@ -47,6 +47,20 @@ export function listNews(
   });
 }
 
+/** Страница опубликованных новостей для публичного API: источник, рубрика, размер страницы. */
+export function listPublishedNews(
+  params: { source?: 'site' | 'external'; category?: string; page: number; pageSize: number },
+  now: Date = new Date(),
+) {
+  return repository.findPublishedNews({
+    now,
+    source: params.source,
+    category: params.category,
+    limit: params.pageSize,
+    offset: (params.page - 1) * params.pageSize,
+  });
+}
+
 /** Новость по адресу или null — несуществующая и ещё не опубликованная одинаково не видны. */
 export async function getNews(slug: string, now: Date = new Date()): Promise<News | null> {
   return (await repository.findPublishedBySlug(slug, now)) ?? null;

@@ -100,3 +100,29 @@ export function findPublishedLinks(now: Date): Promise<Array<{ slug: string; upd
     .where(and(eq(news.source, 'site'), lte(news.publishedAt, now)))
     .orderBy(desc(news.publishedAt));
 }
+
+/** Опубликованные новости любого источника для публичного API, свежие сверху, и их число. */
+export async function findPublishedNews(filter: {
+  now: Date;
+  source?: 'site' | 'external';
+  category?: string;
+  limit: number;
+  offset: number;
+}): Promise<{ items: Array<NewsListItem & { source: 'site' | 'external' }>; total: number }> {
+  const where = and(
+    lte(news.publishedAt, filter.now),
+    filter.source ? eq(news.source, filter.source) : undefined,
+    filter.category ? eq(news.category, filter.category) : undefined,
+  );
+  const [items, [totals]] = await Promise.all([
+    db
+      .select({ ...listColumns, source: news.source })
+      .from(news)
+      .where(where)
+      .orderBy(desc(news.publishedAt), desc(news.id))
+      .limit(filter.limit)
+      .offset(filter.offset),
+    db.select({ total: count() }).from(news).where(where),
+  ]);
+  return { items, total: totals?.total ?? 0 };
+}

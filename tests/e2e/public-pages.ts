@@ -18,6 +18,7 @@ export const PUBLIC_PAGES = [
   '/press?sort=title&category=routes',
   '/analytics',
   '/analytics?from=2026-07-01&to=2026-07-31&airline=KRR&destination=sochi',
+  '/api/docs',
   '/guestbook',
   '/forum',
   '/services',
