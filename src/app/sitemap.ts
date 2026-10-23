@@ -17,6 +17,7 @@ const SECTIONS = [
   '/news',
   '/press',
   '/analytics',
+  '/api/docs',
   '/services',
   '/forum',
   '/guestbook',

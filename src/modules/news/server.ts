@@ -9,4 +9,5 @@ export {
   listNews,
   listNewsForAdmin,
   listNewsLinks,
+  listPublishedNews,
 } from './server/service';
