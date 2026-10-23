@@ -3,7 +3,7 @@
  *
  * Скрипты в db/seed — инструмент разработчика, а не код сайта, поэтому пишут в базу через
  * Drizzle напрямую (так принято в проектах на Drizzle). Таблицы берутся из index.ts модулей.
- * Каждый запуск даёт одинаковый результат: справочники, рейсы, заказы, новости, гостевая книга, форум, статистика посещений, рейтинг, опрос и каталог ресурсов очищаются и заполняются заново.
+ * Каждый запуск даёт одинаковый результат: справочники, рейсы, заказы, новости, гостевая книга, форум, статистика посещений, рейтинг, опрос, каталог ресурсов и реклама очищаются и заполняются заново.
  * Пользователи не удаляются: зарегистрированные аккаунты сохраняются, админ и демо-авторы форума создаются или обновляются.
  * Даты рейсов отсчитываются от сегодняшнего дня по Москве.
  */
@@ -11,6 +11,7 @@ import { sql } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { dateInZone } from '@/shared/lib/time';
 import { seedAdmin } from './admin';
+import { seedAds } from './ads';
 import { seedCatalog } from './catalog';
 import { seedCatalogData } from './catalog-data';
 import { seedFlights } from './flights';
@@ -28,7 +29,7 @@ async function main() {
   // Всё или ничего: если что-то упадёт, база останется как была.
   const counts = await db.transaction(async (tx) => {
     await tx.execute(
-      sql`TRUNCATE TABLE catalog_sections, catalog_links, site_ratings, polls, poll_options, poll_votes, page_views, forum_topics, forum_posts, guestbook_entries, guestbook_stop_words, guestbook_banned_hosts, news, orders, flights, airports, airlines, aircraft_models RESTART IDENTITY CASCADE`,
+      sql`TRUNCATE TABLE ad_campaigns, ad_events, catalog_sections, catalog_links, site_ratings, polls, poll_options, poll_votes, page_views, forum_topics, forum_posts, guestbook_entries, guestbook_stop_words, guestbook_banned_hosts, news, orders, flights, airports, airlines, aircraft_models RESTART IDENTITY CASCADE`,
     );
     const catalog = await seedCatalogData(tx);
     const flightCount = await seedFlights(tx, catalog, today);
@@ -47,6 +48,7 @@ async function main() {
       ratings: await seedRatings(tx, today),
       pollVotes: await seedPoll(tx),
       catalogLinks: await seedCatalog(tx),
+      ads: await seedAds(tx, today),
     };
   });
 
