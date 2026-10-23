@@ -14,6 +14,7 @@ export {
   postInputSchema,
   topicHref,
   topicInputSchema,
+  topicSearchDocument,
 } from './model';
 export type {
   ForumError,

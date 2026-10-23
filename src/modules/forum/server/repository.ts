@@ -174,3 +174,17 @@ export async function deleteTopic(id: string): Promise<boolean> {
     .returning({ id: forumTopics.id });
   return deleted.length > 0;
 }
+
+/** Заголовок и тексты сообщений темы — для поискового индекса. null — темы нет. */
+export async function findTopicText(
+  topicId: string,
+): Promise<{ id: string; title: string; posts: string[] } | null> {
+  const topic = await findTopic(topicId);
+  if (!topic) return null;
+  const posts = await db
+    .select({ body: forumPosts.body })
+    .from(forumPosts)
+    .where(eq(forumPosts.topicId, topicId))
+    .orderBy(asc(forumPosts.createdAt), asc(forumPosts.id));
+  return { id: topic.id, title: topic.title, posts: posts.map((post) => post.body) };
+}

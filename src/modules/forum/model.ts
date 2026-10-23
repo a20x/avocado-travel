@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { SearchDocumentInput } from '@/modules/search';
 
 export const TOPICS_PAGE_SIZE = 20;
 export const POSTS_PAGE_SIZE = 10;
@@ -79,4 +80,19 @@ export function pageOfPosition(position: number, pageSize = POSTS_PAGE_SIZE): nu
 /** Адрес страницы темы: первая страница — без параметра. */
 export function topicHref(topicId: string, page = 1): string {
   return page > 1 ? `/forum/${topicId}?page=${page}` : `/forum/${topicId}`;
+}
+
+/** Документ поискового индекса для темы: заголовок и все сообщения — тема ищется целиком. */
+export function topicSearchDocument(
+  topic: { id: string; title: string },
+  posts: string[],
+): SearchDocumentInput {
+  return {
+    kind: 'forum',
+    refId: topic.id,
+    url: topicHref(topic.id),
+    title: topic.title,
+    body: posts.join('\n\n'),
+    visibleFrom: null,
+  };
 }

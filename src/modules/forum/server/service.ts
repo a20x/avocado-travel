@@ -1,6 +1,7 @@
 import 'server-only';
 import { z } from 'zod';
 import type { SessionUser } from '@/modules/auth';
+import { indexDocument, removeDocument } from '@/modules/search/server';
 import { env } from '@/server/env';
 import { takeRateLimit } from '@/server/rate-limit';
 import { getClientIp } from '@/server/request';
@@ -10,6 +11,7 @@ import {
   TOPICS_PAGE_SIZE,
   canEditPost,
   pageOfPosition,
+  topicSearchDocument,
   type ForumError,
   type ForumPost,
   type PostInput,
@@ -18,6 +20,13 @@ import {
   type TopicSummary,
 } from '../model';
 import * as repository from './repository';
+
+/** Тема в поисковом индексе — после каждого изменения её сообщений. */
+async function reindexTopic(topicId: string): Promise<void> {
+  const topic = await repository.findTopicText(topicId);
+  if (topic) await indexDocument(topicSearchDocument(topic, topic.posts));
+  else await removeDocument('forum', topicId);
+}
 
 /** Новых тем и ответов с одного IP — не больше 5 в минуту: защита от спама. */
 const POST_LIMIT = { limit: 5, windowMs: 60_000 };
@@ -80,6 +89,7 @@ export async function createTopic(
 ): Promise<Result<{ topicId: string }, ForumError>> {
   if (!(await withinLimit())) return fail('TOO_MANY_REQUESTS');
   const topicId = await repository.insertTopic({ ...input, authorId: user.id });
+  await reindexTopic(topicId);
   return ok({ topicId });
 }
 
@@ -97,6 +107,7 @@ export async function reply(
     body: input.body,
   });
   if (!saved) return fail('NOT_FOUND');
+  await reindexTopic(parsed.data);
   return ok({ topicId: parsed.data, postId: saved.postId, page: pageOfPosition(saved.position) });
 }
 
@@ -114,6 +125,7 @@ export async function editPost(
   if (!canEditPost(post, user.id, now)) return fail('EDIT_EXPIRED');
 
   await repository.updatePostBody(post.id, input.body);
+  await reindexTopic(post.topicId);
   const position = await repository.countPostsUpTo(post.topicId, post.createdAt);
   return ok({ topicId: post.topicId, postId: post.id, page: pageOfPosition(position) });
 }
@@ -127,12 +139,15 @@ export async function deletePost(
   const post = parsed.success ? await repository.findPost(parsed.data) : null;
   if (!post) return fail('NOT_FOUND');
   if ((await repository.findFirstPostId(post.topicId)) === post.id) return fail('FIRST_POST');
-  const deleted = await repository.deletePost(post.id, post.topicId);
-  return deleted ? ok({ topicId: post.topicId }) : fail('NOT_FOUND');
+  if (!(await repository.deletePost(post.id, post.topicId))) return fail('NOT_FOUND');
+  await reindexTopic(post.topicId);
+  return ok({ topicId: post.topicId });
 }
 
 export async function deleteTopic(topicId: unknown): Promise<Result<null, ForumError>> {
   const parsed = parseId(topicId);
   if (!parsed.success) return fail('NOT_FOUND');
-  return (await repository.deleteTopic(parsed.data)) ? ok(null) : fail('NOT_FOUND');
+  if (!(await repository.deleteTopic(parsed.data))) return fail('NOT_FOUND');
+  await removeDocument('forum', parsed.data);
+  return ok(null);
 }
