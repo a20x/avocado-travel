@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import {
   expectNoHorizontalScroll,
   expectValidHtml,
+  freeSeats,
   openFirstFlight,
   seatCheckbox,
   selectSeats,
@@ -21,14 +22,16 @@ test('из результатов открывается рейс, выбира�
   // Места бизнес-класса при эконом-билете выбрать нельзя.
   await expect(seatCheckbox(page, '1A')).toBeDisabled();
 
-  await selectSeats(page, ['8A', '8B']);
+  // Свободные места: часть кресел уже раскуплена демо-покупателями.
+  const [first = '', second = '', third = ''] = await freeSeats(page, 3);
+  await selectSeats(page, [first, second]);
   await expect(submit).toHaveText('Перейти к оформлению');
   await expect(submit).toBeEnabled();
   await expect(page.locator('output')).not.toHaveText('0 ₽');
 
   // Третье место заменяет самое раннее: пассажиров двое.
-  await selectSeats(page, ['9C']);
-  await expect(seatCheckbox(page, '8A')).not.toBeChecked();
+  await selectSeats(page, [third]);
+  await expect(seatCheckbox(page, first)).not.toBeChecked();
 });
 
 test('страница рейса отдаёт валидный HTML, неизвестный рейс — 404', async ({
