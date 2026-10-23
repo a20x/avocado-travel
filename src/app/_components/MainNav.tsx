@@ -3,6 +3,7 @@
 // Клиентский компонент: чтобы подсветить текущий пункт, нужен адрес страницы в браузере.
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { isNavItemActive, MAIN_NAV, MORE_NAV, type NavItem } from '@/shared/config/navigation';
 import { cn } from '@/shared/lib/cn';
 
@@ -10,20 +11,115 @@ function NavLink({
   item,
   pathname,
   className,
+  onClick,
 }: {
   item: NavItem;
   pathname: string;
   className: string;
+  onClick?: () => void;
 }) {
   const isActive = isNavItemActive(item, pathname);
   return (
     <Link
       href={item.href}
+      onClick={onClick}
       aria-current={isActive ? 'page' : undefined}
       className={cn(className, isActive && 'bg-mist font-semibold')}
     >
       {item.label}
     </Link>
+  );
+}
+
+/** Сколько ждать, прежде чем закрыть меню, когда мышь ушла: путь до списка не должен его закрывать. */
+const CLOSE_DELAY_MS = 200;
+
+/**
+ * Выпадающее «Ещё». Основа — <details>: без JavaScript раскрывается щелчком и работает
+ * с клавиатуры. С JavaScript — как обычное меню: открывается при наведении мыши,
+ * закрывается, когда мышь ушла, по Escape, щелчку мимо и после выбора пункта.
+ */
+function MoreMenu({ pathname, isActive }: { pathname: string; isActive: boolean }) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDetailsElement>(null);
+  const summary = useRef<HTMLElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Мышь над меню: тогда щелчок по «Ещё» не закрывает уже открытое наведением меню.
+  const hovered = useRef(false);
+
+  const cancelClose = () => clearTimeout(closeTimer.current);
+
+  const onPointerEnter = (event: PointerEvent) => {
+    if (event.pointerType !== 'mouse') return; // на сенсорном экране наведения нет
+    hovered.current = true;
+    cancelClose();
+    setOpen(true);
+  };
+
+  const onPointerLeave = (event: PointerEvent) => {
+    if (event.pointerType !== 'mouse') return;
+    hovered.current = false;
+    cancelClose();
+    closeTimer.current = setTimeout(() => setOpen(false), CLOSE_DELAY_MS);
+  };
+
+  // Щелчок мимо меню закрывает его; таймер закрытия не переживает размонтирование.
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: globalThis.PointerEvent) => {
+      if (!root.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [open]);
+  useEffect(() => cancelClose, []);
+
+  return (
+    <details
+      ref={root}
+      open={open}
+      className="group"
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && open) {
+          setOpen(false);
+          summary.current?.focus();
+        }
+      }}
+    >
+      <summary
+        ref={summary}
+        onClick={(event) => {
+          // Открытием управляет состояние, а не браузер: иначе они разойдутся.
+          event.preventDefault();
+          setOpen((current) => (hovered.current ? true : !current));
+        }}
+        className={cn(
+          linkClasses,
+          'cursor-pointer list-none [&::-webkit-details-marker]:hidden',
+          isActive && 'bg-mist font-semibold',
+        )}
+      >
+        Ещё <span aria-hidden="true">▾</span>
+      </summary>
+      {/* Отступ сверху — внутренний (pt-2), а не внешний: между кнопкой и списком нет
+          «пустоты», где мышь покидала бы меню. */}
+      <div className="absolute top-full right-0 z-20 pt-2">
+        <ul className="grid w-56 gap-1 rounded-md bg-white p-2 shadow-card">
+          {MORE_NAV.map((item) => (
+            <li key={item.href}>
+              <NavLink
+                item={item}
+                pathname={pathname}
+                className={linkClasses}
+                onClick={() => setOpen(false)}
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </details>
   );
 }
 
@@ -44,25 +140,7 @@ export function MainNav() {
           </li>
         ))}
         <li className="relative">
-          {/* <details> раскрывается без JavaScript и управляется с клавиатуры. */}
-          <details className="group">
-            <summary
-              className={cn(
-                linkClasses,
-                'cursor-pointer list-none [&::-webkit-details-marker]:hidden',
-                isMoreActive && 'bg-mist font-semibold',
-              )}
-            >
-              Ещё <span aria-hidden="true">▾</span>
-            </summary>
-            <ul className="absolute top-full right-0 z-20 mt-2 grid w-56 gap-1 rounded-md bg-white p-2 shadow-card">
-              {MORE_NAV.map((item) => (
-                <li key={item.href}>
-                  <NavLink item={item} pathname={pathname} className={linkClasses} />
-                </li>
-              ))}
-            </ul>
-          </details>
+          <MoreMenu pathname={pathname} isActive={isMoreActive} />
         </li>
       </ul>
     </nav>
