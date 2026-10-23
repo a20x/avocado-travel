@@ -14,6 +14,8 @@ export const PUBLIC_PAGES = [
   '/news',
   '/news?page=2',
   '/news/avocado-travel-otkrylsya',
+  '/press',
+  '/press?sort=title&category=routes',
   '/guestbook',
   '/forum',
   '/services',

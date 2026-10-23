@@ -44,8 +44,18 @@ const dayMonthWeekday = new Intl.DateTimeFormat('ru-RU', {
   timeZone: 'UTC',
 });
 
-/** Дата `YYYY-MM-DD` словами: «14 ноября»; с днём недели — «сб, 14 ноября». */
-export function formatDate(date: string, { weekday = false } = {}): string {
+const dayMonthYear = new Intl.DateTimeFormat('ru-RU', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
+/**
+ * Дата `YYYY-MM-DD` словами: «14 ноября»; с днём недели — «сб, 14 ноября»;
+ * с годом — «14 ноября 2026 г.».
+ */
+export function formatDate(date: string, { weekday = false, year = false } = {}): string {
   const at = new Date(`${date}T12:00:00Z`);
-  return (weekday ? dayMonthWeekday : dayMonth).format(at);
+  return (year ? dayMonthYear : weekday ? dayMonthWeekday : dayMonth).format(at);
 }
