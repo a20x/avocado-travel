@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import { listCities } from '@/modules/catalog-data/server';
 import { parseAmount } from '@/modules/currency';
 import { getRates } from '@/modules/currency/server';
@@ -12,12 +11,14 @@ import { MonthCalendar, WorldClock } from '@/modules/world-clock/ui';
 import { formatDate } from '@/shared/lib/format';
 import { dateInZone } from '@/shared/lib/time';
 import { Card } from '@/shared/ui/Card';
+import { pageMetadata } from '@/shared/lib/metadata';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Сервисы',
   description:
     'Сервисы Avocado Travel: карта маршрутов, мировые часы и календарь, конвертер валют по курсу ЦБ, опрос.',
-};
+  path: '/services',
+});
 
 /** Страница сервисов (docs/02-product.md): карта, часы и календарь, конвертер, опрос. */
 export default async function ServicesPage(props: PageProps<'/services'>) {

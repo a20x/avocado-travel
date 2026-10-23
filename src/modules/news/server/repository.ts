@@ -91,3 +91,12 @@ export async function deleteNews(id: string): Promise<boolean> {
   const deleted = await db.delete(news).where(eq(news.id, id)).returning({ id: news.id });
   return deleted.length > 0;
 }
+
+/** Адреса опубликованных новостей сайта и время их правки — для sitemap.xml. */
+export function findPublishedLinks(now: Date): Promise<Array<{ slug: string; updatedAt: Date }>> {
+  return db
+    .select({ slug: news.slug, updatedAt: news.updatedAt })
+    .from(news)
+    .where(and(eq(news.source, 'site'), lte(news.publishedAt, now)))
+    .orderBy(desc(news.publishedAt));
+}

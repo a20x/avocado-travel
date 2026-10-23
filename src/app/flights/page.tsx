@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Fragment, Suspense } from 'react';
 import { getAdsFor } from '@/modules/ads/server';
@@ -15,11 +14,13 @@ import {
 } from '@/modules/flights/ui';
 import { formatDate, plural } from '@/shared/lib/format';
 import { buttonClasses } from '@/shared/ui/Button';
+import { pageMetadata } from '@/shared/lib/metadata';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Поиск рейсов',
   description: 'Рейсы на выбранную дату: сортировка по цене, времени вылета и длительности.',
-};
+  path: '/flights',
+});
 
 type Params = Awaited<PageProps<'/flights'>['searchParams']>;
 

@@ -1,13 +1,15 @@
 import { asc, eq } from 'drizzle-orm';
 import { airlines, airports, groupCities } from '@/modules/catalog-data';
 import { forumPosts, forumTopics, topicSearchDocument } from '@/modules/forum';
+import { HELP_SECTIONS, helpSearchDocuments } from '@/modules/help';
 import { news, newsSearchDocument } from '@/modules/news';
 import { searchDocuments, type SearchDocumentInput } from '@/modules/search';
 import type { Db } from './db';
 
 // Поисковый индекс (docs/04-data-model.md, «Поиск по сайту»). Новости и темы форума
 // на сайте индексируют их сервисы при сохранении; демо-данные пишутся в базу напрямую,
-// поэтому здесь индекс собирается заново теми же функциями модулей — плюс страницы сайта.
+// поэтому здесь индекс собирается заново теми же функциями модулей — плюс страницы сайта
+// и разделы справки (её текст лежит в коде и меняется только вместе с сидом).
 
 const page = (refId: string, url: string, title: string, body: string): SearchDocumentInput => ({
   kind: 'page',
@@ -72,7 +74,13 @@ export async function seedSearch(db: Db): Promise<number> {
     );
   }
 
-  const docs = [...STATIC_PAGES, ...cityPages, ...newsRows.map(newsSearchDocument), ...forumDocs];
+  const docs = [
+    ...STATIC_PAGES,
+    ...helpSearchDocuments(HELP_SECTIONS),
+    ...cityPages,
+    ...newsRows.map(newsSearchDocument),
+    ...forumDocs,
+  ];
   await db.insert(searchDocuments).values(docs);
   return docs.length;
 }

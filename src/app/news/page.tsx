@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import { NEWS_CATEGORIES, isNewsCategory } from '@/modules/news';
 import { listNews } from '@/modules/news/server';
 import { NewsCard } from '@/modules/news/ui';
@@ -6,11 +5,13 @@ import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Pagination } from '@/shared/ui/Pagination';
 import { Tabs } from '@/shared/ui/Tabs';
+import { pageMetadata } from '@/shared/lib/metadata';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Новости',
   description: 'Новости Avocado Travel: новые направления, акции и изменения в сервисе.',
-};
+  path: '/news',
+});
 
 /** Адрес ленты с рубрикой и страницей; первая страница и «все рубрики» в адрес не пишутся. */
 function newsHref(category: string | undefined, page = 1): string {

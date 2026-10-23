@@ -14,6 +14,7 @@ import { formatDuration, formatPrice, plural } from '@/shared/lib/format';
 import { utcOffsetLabel } from '@/shared/lib/time';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Table } from '@/shared/ui/Table';
+import { pageMetadata } from '@/shared/lib/metadata';
 
 // Город нужен и для заголовка вкладки, и для страницы — cache не даёт сходить в базу дважды.
 const loadCity = cache(getCity);
@@ -23,7 +24,11 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const city = await loadCity((await props.params).city);
   if (!city) return {};
-  return { title: `${city.name} — направление`, description: city.description };
+  return pageMetadata({
+    title: `${city.name} — направление`,
+    description: city.description,
+    path: `/destinations/${city.slug}`,
+  });
 }
 
 export default async function CityPage(props: PageProps<'/destinations/[city]'>) {

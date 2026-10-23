@@ -21,6 +21,7 @@ export const PUBLIC_PAGES = [
   '/links',
   '/search',
   '/search?q=багаж ИЛИ море',
+  '/help',
   '/login',
   '/register',
 ];

@@ -3,4 +3,10 @@
  */
 import 'server-only';
 
-export { getNews, getNewsForEdit, listNews, listNewsForAdmin } from './server/service';
+export {
+  getNews,
+  getNewsForEdit,
+  listNews,
+  listNewsForAdmin,
+  listNewsLinks,
+} from './server/service';

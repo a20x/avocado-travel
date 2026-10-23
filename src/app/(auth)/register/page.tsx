@@ -4,9 +4,17 @@ import { redirect } from 'next/navigation';
 import { safeReturnPath } from '@/modules/auth';
 import { getCurrentUser } from '@/modules/auth/server';
 import { AuthForm } from '@/modules/auth/ui';
+import { pageMetadata } from '@/shared/lib/metadata';
 import { AuthCard } from '../AuthCard';
 
-export const metadata: Metadata = { title: 'Регистрация', robots: { index: false } };
+export const metadata: Metadata = {
+  ...pageMetadata({
+    title: 'Регистрация',
+    description: 'Регистрация в Avocado Travel — чтобы бронировать билеты и писать на форуме.',
+    path: '/register',
+  }),
+  robots: { index: false },
+};
 
 export default async function RegisterPage(props: PageProps<'/register'>) {
   const { next } = await props.searchParams;

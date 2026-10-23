@@ -9,10 +9,14 @@ import { EmptyState } from '@/shared/ui/EmptyState';
 import { Input } from '@/shared/ui/Input';
 import { Pagination } from '@/shared/ui/Pagination';
 import { Tabs } from '@/shared/ui/Tabs';
+import { pageMetadata } from '@/shared/lib/metadata';
 
 export const metadata: Metadata = {
-  title: 'Поиск по сайту',
-  description: 'Поиск по страницам, новостям и форуму Avocado Travel с операторами И, ИЛИ, НЕ.',
+  ...pageMetadata({
+    title: 'Поиск по сайту',
+    description: 'Поиск по страницам, новостям и форуму Avocado Travel с операторами И, ИЛИ, НЕ.',
+    path: '/search',
+  }),
   // Страницы результатов поисковикам не нужны — у каждого запроса своя.
   robots: { index: false, follow: true },
 };

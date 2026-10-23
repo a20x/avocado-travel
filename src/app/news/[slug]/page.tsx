@@ -6,13 +6,28 @@ import { NEWS_CATEGORIES, isNewsCategory } from '@/modules/news';
 import { getNews } from '@/modules/news/server';
 import { NewsBody, newsDate } from '@/modules/news/ui';
 import { Badge } from '@/shared/ui/Badge';
+import { pageMetadata } from '@/shared/lib/metadata';
 
 // Новость нужна и для заголовка вкладки, и для страницы — cache не даёт сходить в базу дважды.
 const loadNews = cache((slug: string) => getNews(slug));
 
 export async function generateMetadata(props: PageProps<'/news/[slug]'>): Promise<Metadata> {
   const item = await loadNews((await props.params).slug);
-  return item ? { title: item.title, description: item.summary } : {};
+  if (!item) return {};
+  const metadata = pageMetadata({
+    title: item.title,
+    description: item.summary,
+    path: `/news/${item.slug}`,
+  });
+  // Для новости — тип «статья» с датой публикации.
+  return {
+    ...metadata,
+    openGraph: {
+      ...metadata.openGraph,
+      type: 'article',
+      publishedTime: item.publishedAt.toISOString(),
+    },
+  };
 }
 
 export default async function NewsItemPage(props: PageProps<'/news/[slug]'>) {

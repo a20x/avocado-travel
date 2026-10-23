@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import { connection } from 'next/server';
 import { seatCapacity } from '@/modules/catalog-data';
 import { AirlineLogo } from '@/modules/catalog-data/ui';
@@ -7,11 +6,13 @@ import { listAirlineStats } from '@/modules/flights/server';
 import { Badge } from '@/shared/ui/Badge';
 import { Card } from '@/shared/ui/Card';
 import { Table } from '@/shared/ui/Table';
+import { pageMetadata } from '@/shared/lib/metadata';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Авиакомпании',
   description: 'Авиакомпании Avocado Travel: маршруты, города, багаж и самолёты.',
-};
+  path: '/airlines',
+});
 
 /** Компоновка ряда для людей: `ABC-DEF` → «3–3». */
 const seatsPerSide = (layout: string) =>
