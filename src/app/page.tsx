@@ -4,6 +4,10 @@ import { CityCard } from '@/modules/catalog-data/ui';
 import { SEARCH_DAYS_AHEAD, defaultSearchDate, searchQuerySchema } from '@/modules/flights';
 import { listRoutes } from '@/modules/flights/server';
 import { SearchPhrase } from '@/modules/flights/ui';
+import { getActivePoll } from '@/modules/poll/server';
+import { PollWidget } from '@/modules/poll/ui';
+import { getRating } from '@/modules/rating/server';
+import { RatingWidget } from '@/modules/rating/ui';
 import { formatDuration, formatPrice, plural } from '@/shared/lib/format';
 import { addDays, dateInZone } from '@/shared/lib/time';
 import { Badge } from '@/shared/ui/Badge';
@@ -14,10 +18,12 @@ const POPULAR_COUNT = 6;
 
 export default async function HomePage(props: PageProps<'/'>) {
   const now = new Date();
-  const [cities, routes, params] = await Promise.all([
+  const [cities, routes, params, poll, rating] = await Promise.all([
     listCities(),
     listRoutes({ from: HUB }, now),
     props.searchParams,
+    getActivePoll(),
+    getRating(),
   ]);
 
   // «Изменить запрос» со страницы результатов возвращает сюда с прошлым запросом в адресе.
@@ -51,7 +57,7 @@ export default async function HomePage(props: PageProps<'/'>) {
         </div>
       </div>
 
-      <div className="container-site py-12">
+      <div className="container-site grid gap-12 py-12">
         <section className="grid gap-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-2xl">Популярные направления из Москвы</h2>
@@ -73,6 +79,12 @@ export default async function HomePage(props: PageProps<'/'>) {
             })}
           </div>
         </section>
+
+        {/* Погода (T-21) встанет в этот ряд рядом с опросом и рейтингом (docs/06-design.md). */}
+        <div className="grid items-start gap-6 md:grid-cols-2">
+          {poll ? <PollWidget poll={poll} /> : null}
+          <RatingWidget rating={rating} />
+        </div>
       </div>
     </>
   );
