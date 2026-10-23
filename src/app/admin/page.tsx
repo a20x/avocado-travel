@@ -26,7 +26,11 @@ const SECTIONS: Section[] = [
     href: '/admin/stats',
     description: 'Просмотры и посетители: по дням, разделам, источникам',
   },
-  { title: 'Каталог ресурсов', task: 'T-23' },
+  {
+    title: 'Каталог ресурсов',
+    href: '/admin/catalog',
+    description: 'Разделы и ссылки: добавить, скрыть, показать',
+  },
   { title: 'Реклама', task: 'T-24' },
 ];
 

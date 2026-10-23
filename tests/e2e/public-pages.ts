@@ -18,6 +18,7 @@ export const PUBLIC_PAGES = [
   '/forum',
   '/services',
   '/services?amount=12500',
+  '/links',
   '/login',
   '/register',
 ];
