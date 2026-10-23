@@ -3,8 +3,8 @@
  *
  * Скрипты в db/seed — инструмент разработчика, а не код сайта, поэтому пишут в базу через
  * Drizzle напрямую (так принято в проектах на Drizzle). Таблицы берутся из index.ts модулей.
- * Каждый запуск даёт одинаковый результат: справочники, рейсы, заказы, новости, гостевая книга, форум, статистика посещений, рейтинг, опрос, каталог ресурсов, реклама и поисковый индекс очищаются и заполняются заново.
- * Пользователи не удаляются: зарегистрированные аккаунты сохраняются, админ и демо-авторы форума создаются или обновляются.
+ * Каждый запуск даёт одинаковый результат: справочники, рейсы, демо-продажи за полгода, новости, гостевая книга, форум, статистика посещений, рейтинг, опрос, каталог ресурсов, реклама и поисковый индекс очищаются и заполняются заново.
+ * Пользователи не удаляются: зарегистрированные аккаунты сохраняются, админ, демо-авторы форума и демо-покупатели создаются или обновляются.
  * Даты рейсов отсчитываются от сегодняшнего дня по Москве.
  */
 import { sql } from 'drizzle-orm';
@@ -18,6 +18,7 @@ import { seedFlights } from './flights';
 import { seedForum } from './forum';
 import { seedGuestbook } from './guestbook';
 import { seedNews } from './news';
+import { seedOrders } from './orders';
 import { seedPoll } from './poll';
 import { seedRatings } from './rating';
 import { seedSearch } from './search';
@@ -42,6 +43,7 @@ async function main() {
       airlines: catalog.airlines.length,
       aircraftModels: catalog.aircraftModels.length,
       flights: flightCount,
+      sales: await seedOrders(tx, today),
       news: await seedNews(tx, today),
       guestbook: await seedGuestbook(tx, today),
       forum: await seedForum(tx, today),

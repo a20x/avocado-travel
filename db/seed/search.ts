@@ -37,12 +37,13 @@ const STATIC_PAGES: SearchDocumentInput[] = [
 ];
 
 export async function seedSearch(db: Db): Promise<number> {
-  const [airportRows, airlineRows, newsRows, topics] = await Promise.all([
-    db.select().from(airports),
-    db.select().from(airlines),
-    db.select().from(news).where(eq(news.source, 'site')),
-    db.select({ id: forumTopics.id, title: forumTopics.title }).from(forumTopics),
-  ]);
+  // Запросы по очереди: внутри транзакции у сида одно соединение.
+  const airportRows = await db.select().from(airports);
+  const airlineRows = await db.select().from(airlines);
+  const newsRows = await db.select().from(news).where(eq(news.source, 'site'));
+  const topics = await db
+    .select({ id: forumTopics.id, title: forumTopics.title })
+    .from(forumTopics);
 
   const cityPages = groupCities(airportRows).map((city) =>
     page(
