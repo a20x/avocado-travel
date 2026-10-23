@@ -3,13 +3,15 @@ import { airlines, airports, groupCities } from '@/modules/catalog-data';
 import { forumPosts, forumTopics, topicSearchDocument } from '@/modules/forum';
 import { HELP_SECTIONS, helpSearchDocuments } from '@/modules/help';
 import { news, newsSearchDocument } from '@/modules/news';
+import { parsePressFile, pressSearchDocuments } from '@/modules/press';
 import { searchDocuments, type SearchDocumentInput } from '@/modules/search';
+import pressFile from '../../content/press/press-releases.json';
 import type { Db } from './db';
 
 // Поисковый индекс (docs/04-data-model.md, «Поиск по сайту»). Новости и темы форума
 // на сайте индексируют их сервисы при сохранении; демо-данные пишутся в базу напрямую,
 // поэтому здесь индекс собирается заново теми же функциями модулей — плюс страницы сайта
-// и разделы справки (её текст лежит в коде и меняется только вместе с сидом).
+// с разделами справки и пресс-релизами (их текст лежит в файлах и меняется только вместе с сидом).
 
 const page = (refId: string, url: string, title: string, body: string): SearchDocumentInput => ({
   kind: 'page',
@@ -28,6 +30,7 @@ const STATIC_PAGES: SearchDocumentInput[] = [
   page('services', '/services', 'Сервисы', 'Карта маршрутов с линиями перелётов, мировые часы и разница часовых поясов, календарь, конвертер валют по курсу ЦБ: доллар, евро, юань, лира, дирхам, драм, сум. Опрос посетителей.'),
   page('links', '/links', 'Полезные ссылки', 'Каталог ресурсов для путешественника: загранпаспорт, визы, таможня, сайты аэропортов, погода и время, курсы валют и деньги в поездке.'),
   page('news', '/news', 'Новости', 'Новости Avocado Travel: новые направления, акции, изменения в сервисе.'),
+  page('press', '/press', 'Пресс-центр', 'Пресс-релизы Avocado Travel: новые направления, партнёры, сервис, итоги и цифры. Сортировка по дате, заголовку и категории, выборка по категории и автору. Исходные данные — JSON-файл со схемой.'),
   page('forum', '/forum', 'Форум', 'Обсуждения путешественников: какое место выбрать в самолёте, сколько брать багажа, что посмотреть в городах.'),
   page('guestbook', '/guestbook', 'Гостевая книга', 'Отзывы и пожелания посетителей сайта. Оставить запись может любой, входить не нужно.'),
   page('booking', '/account', 'Личный кабинет', 'Мои заказы и билеты: код брони, статус оплаты, отмена брони. Места держатся 15 минут, оплата демонстрационная.'),
@@ -77,6 +80,7 @@ export async function seedSearch(db: Db): Promise<number> {
   const docs = [
     ...STATIC_PAGES,
     ...helpSearchDocuments(HELP_SECTIONS),
+    ...pressSearchDocuments(parsePressFile(pressFile)),
     ...cityPages,
     ...newsRows.map(newsSearchDocument),
     ...forumDocs,

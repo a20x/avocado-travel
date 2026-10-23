@@ -28,5 +28,6 @@ describe('форматирование', () => {
   it('дата словами', () => {
     expect(formatDate('2026-11-14')).toBe('14 ноября');
     expect(formatDate('2026-11-14', { weekday: true })).toBe('сб, 14 ноября');
+    expect(spaces(formatDate('2026-11-14', { year: true }))).toBe('14 ноября 2026 г.');
   });
 });

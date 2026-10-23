@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "press-releases.schema.json",
+  "title": "Пресс-релизы Avocado Travel",
+  "description": "Данные страницы «Пресс-центр» (/press). Те же правила описаны Zod-схемой в src/modules/press/model.ts — сайт проверяет по ней файл при загрузке.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "Ссылка на эту схему: редактор кода по ней подсвечивает ошибки в данных.",
+      "type": "string"
+    },
+    "releases": {
+      "description": "Пресс-релизы, от 15 до 20 штук. Идентификаторы не повторяются.",
+      "type": "array",
+      "minItems": 15,
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/release" }
+    }
+  },
+  "required": ["releases"],
+  "additionalProperties": false,
+  "$defs": {
+    "release": {
+      "title": "Пресс-релиз",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Идентификатор: «pr-» и три цифры. Он же — якорь релиза на странице: /press#pr-001.",
+          "type": "string",
+          "pattern": "^pr-\\d{3}$"
+        },
+        "title": {
+          "description": "Заголовок.",
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 120
+        },
+        "date": {
+          "description": "Дата публикации, ГГГГ-ММ-ДД.",
+          "type": "string",
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "category": {
+          "description": "Категория: routes — новые направления, service — сервис, partners — партнёры, results — итоги и цифры, company — о компании.",
+          "type": "string",
+          "enum": ["routes", "service", "partners", "results", "company"]
+        },
+        "author": {
+          "description": "Автор — сотрудник пресс-службы.",
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "summary": {
+          "description": "Краткое содержание — показывается в списке.",
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 300
+        },
+        "body": {
+          "description": "Полный текст. Абзацы разделяются пустой строкой (\\n\\n).",
+          "type": "string",
+          "minLength": 50
+        }
+      },
+      "required": ["id", "title", "date", "category", "author", "summary", "body"],
+      "additionalProperties": false
+    }
+  }
+}
