@@ -7,6 +7,8 @@ import { cache } from 'react';
 import { getCity } from '@/modules/catalog-data/server';
 import { defaultSearchDate, searchUrl } from '@/modules/flights';
 import { listRoutes } from '@/modules/flights/server';
+import { getWeather } from '@/modules/weather/server';
+import { CityWeatherCard } from '@/modules/weather/ui';
 import { formatDuration, formatPrice, plural } from '@/shared/lib/format';
 import { utcOffsetLabel } from '@/shared/lib/time';
 import { EmptyState } from '@/shared/ui/EmptyState';
@@ -29,7 +31,10 @@ export default async function CityPage(props: PageProps<'/destinations/[city]'>)
 
   await connection();
   const now = new Date();
-  const routes = await listRoutes({ to: city.slug }, now);
+  const [routes, weather] = await Promise.all([
+    listRoutes({ to: city.slug }, now),
+    getWeather([city]),
+  ]);
   const searchDate = defaultSearchDate(now);
   const flightsPerWeek = routes.reduce((sum, route) => sum + route.flightsPerWeek, 0);
 
@@ -66,6 +71,10 @@ export default async function CityPage(props: PageProps<'/destinations/[city]'>)
           </dl>
         </div>
       </header>
+
+      <div className="max-w-xl">
+        <CityWeatherCard weather={weather?.[0] ?? null} cityName={city.name} />
+      </div>
 
       <section className="grid gap-4">
         <h2 className="text-2xl">Откуда летаем</h2>
