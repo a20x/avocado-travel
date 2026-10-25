@@ -25,14 +25,32 @@ const envSchema = z.object({
    * десятки покупателей с одного адреса. Сам ограничитель проверяют модульные тесты.
    */
   RATE_LIMIT_DISABLED: z.stringbool().default(false),
+  /**
+   * Заголовок с IP посетителя, который выставляет прокси хостинга и который нельзя подделать
+   * (на Render — true-client-ip от Cloudflare). Не задан — последний адрес X-Forwarded-For.
+   */
+  CLIENT_IP_HEADER: z
+    .string()
+    .regex(/^[a-z0-9-]+$/, 'Имя заголовка строчными буквами, например true-client-ip')
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+  /** Применять миграции базы при запуске сервера. Включено в Docker-образе (docs/09-deploy.md). */
+  DB_MIGRATE_ON_START: z.stringbool().default(false),
 });
 
 const parsed = envSchema.safeParse(process.env);
 
+// Сборка (`next build`) загружает модули маршрутов, но страниц с данными не рисует и в базу
+// не ходит, поэтому секреты ей не нужны — в Docker-сборке их и нет (docs/09-deploy.md).
+const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
+
 // Падаем сразу при старте с понятным списком проблем, а не позже с загадочной ошибкой подключения.
-if (!parsed.success) {
+// Сервер проверяет переменные при запуске: их загружает src/instrumentation.ts.
+if (!parsed.success && !isBuild) {
   throw new Error(`Неверные переменные окружения:\n${z.prettifyError(parsed.error)}`);
 }
 
 /** Проверенные переменные окружения сервера. */
-export const env = parsed.data;
+export const env = parsed.success
+  ? parsed.data
+  : (process.env as unknown as z.infer<typeof envSchema>);

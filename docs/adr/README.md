@@ -11,6 +11,7 @@ ADR — короткая запись о важном решении: в как�
 | [0003](0003-claude-code-workflow.md) | Процесс разработки: ветки, PR, Claude Code | Принято |
 | [0004](0004-json-instead-of-xml.md) | JSON вместо XML во второй и четвёртой лабах | Принято, с риском |
 | [0005](0005-better-auth.md) | Авторизация через Better Auth | Принято |
-| [0006](0006-hosting-deferred.md) | Выбор хостинга откладывается до деплоя | Принято |
+| [0006](0006-hosting-deferred.md) | Выбор хостинга откладывается до деплоя | Заменено ADR-0009 |
 | [0007](0007-db-schema-without-aggregator.md) | Схемы базы без общего сборщика | Принято |
 | [0008](0008-module-server-entry.md) | Входы модуля: index.ts, ui.ts и server.ts | Принято |
+| [0009](0009-hosting-render-neon.md) | Хостинг: Render, Neon и cron-job.org | Принято |

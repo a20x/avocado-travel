@@ -31,5 +31,6 @@ pnpm dev              # http://localhost:3000
 2. [Продукт](docs/02-product.md): страницы, роли, бизнес-правила.
 3. [Архитектура](docs/03-architecture.md): как устроен код.
 4. [План реализации](docs/08-roadmap.md): в каком порядке всё делаем.
+5. [Публикация](docs/09-deploy.md): где работает сайт и как его обновлять.
 
 Правила для Claude Code — в [`CLAUDE.md`](CLAUDE.md).
