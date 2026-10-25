@@ -8,6 +8,8 @@ import {
   NEWS_PAGE_SIZE,
   isNewsCategory,
   newsSearchDocument,
+  type ExternalNewsInput,
+  type IndustryNewsPage,
   type News,
   type NewsError,
   type NewsInput,
@@ -67,6 +69,28 @@ export function listLatestNews(
   now: Date = new Date(),
 ): Promise<News[]> {
   return repository.findLatestPublished({ now, ...params });
+}
+
+/* Новости отрасли: их импортирует модуль exchange из внешних лент (docs/05-api.md). */
+
+/** Сохраняет новости отрасли, уже известные пропускает. Возвращает, сколько добавлено. */
+export function saveIndustryNews(items: ExternalNewsInput[]): Promise<number> {
+  return repository.insertExternalNews(items);
+}
+
+/** Удаляет новости отрасли, опубликованные раньше даты. */
+export function pruneIndustryNews(before: Date): Promise<number> {
+  return repository.deleteExternalBefore(before);
+}
+
+/** Раздел «Новости отрасли»: страница списка, свежие сверху. */
+export async function listIndustryNews(params: { page?: unknown }): Promise<IndustryNewsPage> {
+  const page = pageNumber(params.page);
+  const { items, total } = await repository.findIndustryNews({
+    limit: NEWS_PAGE_SIZE,
+    offset: (page - 1) * NEWS_PAGE_SIZE,
+  });
+  return { items, page, totalPages: Math.max(1, Math.ceil(total / NEWS_PAGE_SIZE)) };
 }
 
 /** Новость по адресу или null — несуществующая и ещё не опубликованная одинаково не видны. */

@@ -15,4 +15,14 @@ export {
   newsSearchDocument,
   splitParagraphs,
 } from './model';
-export type { News, NewsCategory, NewsError, NewsInput, NewsListItem, NewsPage } from './model';
+export type {
+  ExternalNewsInput,
+  IndustryNewsItem,
+  IndustryNewsPage,
+  News,
+  NewsCategory,
+  NewsError,
+  NewsInput,
+  NewsListItem,
+  NewsPage,
+} from './model';

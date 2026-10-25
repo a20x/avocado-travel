@@ -36,3 +36,17 @@ export { csvCell, toCsv, toJsonRows } from './csv';
 export type { ExportColumn, ExportTable, ExportValue } from './csv';
 export { analyticsTable, exportFilename, newsTable, scheduleTable } from './exports';
 export type { ApiParameter } from './openapi';
+export { EXTERNAL_FEEDS, INDUSTRY_CATEGORIES, feedById } from './feeds';
+export type { ExternalFeed, IndustryCategory } from './feeds';
+export {
+  INDUSTRY_MAX_AGE_DAYS,
+  autoTags,
+  htmlToText,
+  mentionsRealAirline,
+  normalizeLink,
+  prepareIndustryNews,
+  summarize,
+} from './industry';
+export type { IndustryNewsDraft } from './industry';
+export { decodeFeed, parseFeed } from './rss';
+export type { FeedItem } from './rss';

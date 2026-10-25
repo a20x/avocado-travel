@@ -4,7 +4,7 @@
  * Скрипты в db/seed — инструмент разработчика, а не код сайта, поэтому пишут в базу через
  * Drizzle напрямую (так принято в проектах на Drizzle). Таблицы берутся из index.ts модулей.
  * Каждый запуск даёт одинаковый результат: справочники, рейсы, демо-продажи за полгода, новости, гостевая книга, форум, статистика посещений, рейтинг, опрос, каталог ресурсов, реклама и поисковый индекс очищаются и заполняются заново.
- * Пользователи не удаляются: зарегистрированные аккаунты сохраняются, админ, демо-авторы форума и демо-покупатели создаются или обновляются.
+ * Пользователи и импортированные новости отрасли не удаляются: зарегистрированные аккаунты сохраняются, админ, демо-авторы форума и демо-покупатели создаются или обновляются.
  * Даты рейсов отсчитываются от сегодняшнего дня по Москве.
  */
 import { sql } from 'drizzle-orm';
@@ -31,8 +31,10 @@ async function main() {
   // Всё или ничего: если что-то упадёт, база останется как была.
   const counts = await db.transaction(async (tx) => {
     await tx.execute(
-      sql`TRUNCATE TABLE search_documents, ad_campaigns, ad_events, catalog_sections, catalog_links, site_ratings, polls, poll_options, poll_votes, page_views, forum_topics, forum_posts, guestbook_entries, guestbook_stop_words, guestbook_banned_hosts, news, orders, flights, airports, airlines, aircraft_models RESTART IDENTITY CASCADE`,
+      sql`TRUNCATE TABLE search_documents, ad_campaigns, ad_events, catalog_sections, catalog_links, site_ratings, polls, poll_options, poll_votes, page_views, forum_topics, forum_posts, guestbook_entries, guestbook_stop_words, guestbook_banned_hosts, orders, flights, airports, airlines, aircraft_models RESTART IDENTITY CASCADE`,
     );
+    // Новости отрасли — не демо-данные, а импорт из внешних лент: их сид не трогает.
+    await tx.execute(sql`DELETE FROM news WHERE source = 'site'`);
     const catalog = await seedCatalogData(tx);
     const flightCount = await seedFlights(tx, catalog, today);
     // Админ — до форума: он автор темы с правилами.
