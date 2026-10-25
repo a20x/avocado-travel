@@ -1,0 +1,38 @@
+# Настройки сайта на хостинге Render (Blueprint): Render читает этот файл при создании сервиса.
+# Как развернуть и что заполнить руками — docs/09-deploy.md.
+services:
+  - type: web
+    name: avocado-travel
+    runtime: docker
+    # Бесплатный тариф: 512 МБ памяти, 750 часов работы в месяц — хватает на круглосуточную работу.
+    plan: free
+    # Ближайший к России регион Render; база Neon — тоже во Франкфурте.
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    # Новая версия получает запросы, только когда эта страница ответила 200.
+    healthCheckPath: /api/health
+    # Деплой после слияния в main — только если проверки CI прошли.
+    autoDeployTrigger: checksPass
+    envVars:
+      # Строка подключения к Neon (Connection string, с ?sslmode=verify-full).
+      - key: DATABASE_URL
+        sync: false
+      # Адрес сайта, например https://avocado-travel.onrender.com — без «/» в конце.
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Случайные значения создаёт сам Render.
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: CRON_SECRET
+        generateValue: true
+      - key: IP_HASH_SALT
+        generateValue: true
+      # Перед Render стоит Cloudflare: настоящий IP посетителя — в этом заголовке.
+      - key: CLIENT_IP_HEADER
+        value: true-client-ip
+      - key: NEXT_PUBLIC_YANDEX_METRIKA_ID
+        sync: false

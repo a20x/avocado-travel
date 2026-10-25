@@ -1,0 +1,14 @@
+# Что не попадает в Docker при сборке образа: секреты, локальные сборки, тесты и материалы.
+.env
+.env*.local
+.git
+.github
+.next
+node_modules
+coverage
+playwright-report
+test-results
+docs/source
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store

@@ -15,6 +15,8 @@ const failedAt = new Map<string, number>();
  * Ответ внешнего сервиса (курсы ЦБ, погода) или null, если сервис недоступен.
  * Удачные ответы кэширует Next.js, неудачные не кэшируются — но после сбоя адрес
  * какое-то время не запрашивается вовсе, чтобы страницы не тормозили.
+ * Тело ответа уже прочитано: таймаут действует и на его чтение, и обрыв посреди тела
+ * тоже даёт null, а не ошибку, которая уронила бы страницу.
  */
 export async function fetchExternal(
   url: string,
@@ -29,8 +31,9 @@ export async function fetchExternal(
       signal: AbortSignal.timeout(timeoutMs),
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const body = await response.arrayBuffer();
     failedAt.delete(url);
-    return response;
+    return new Response(body, { status: response.status, headers: response.headers });
   } catch (error) {
     failedAt.set(url, Date.now());
     console.warn(`Внешний сервис недоступен: ${url}`, error);

@@ -25,7 +25,8 @@
     "db:reset": "docker compose down --volumes && pnpm db:up && pnpm db:migrate && pnpm db:seed",
     "db:seed": "tsx --conditions=react-server --env-file-if-exists=.env db/seed/index.ts",
     "job:expire-orders": "tsx --conditions=react-server --env-file-if-exists=.env scripts/jobs/expire-orders.ts",
-    "job:import-feeds": "tsx --conditions=react-server --env-file-if-exists=.env scripts/jobs/import-feeds.ts"
+    "job:import-feeds": "tsx --conditions=react-server --env-file-if-exists=.env scripts/jobs/import-feeds.ts",
+    "check:russia": "tsx scripts/check-russia.ts"
   },
   "dependencies": {
     "better-auth": "1.7.11",
