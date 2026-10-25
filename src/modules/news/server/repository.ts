@@ -1,7 +1,7 @@
 import 'server-only';
-import { and, count, desc, eq, lte, ne, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, isNotNull, lt, lte, ne, sql, type SQL } from 'drizzle-orm';
 import { db } from '@/server/db';
-import type { News, NewsListItem } from '../model';
+import type { ExternalNewsInput, IndustryNewsItem, News, NewsListItem } from '../model';
 import { news } from '../schema';
 
 const listColumns = {
@@ -108,7 +108,10 @@ export async function findPublishedNews(filter: {
   category?: string;
   limit: number;
   offset: number;
-}): Promise<{ items: Array<NewsListItem & { source: 'site' | 'external' }>; total: number }> {
+}): Promise<{
+  items: Array<NewsListItem & Pick<News, 'source' | 'externalUrl'>>;
+  total: number;
+}> {
   const where = and(
     lte(news.publishedAt, filter.now),
     filter.source ? eq(news.source, filter.source) : undefined,
@@ -116,7 +119,7 @@ export async function findPublishedNews(filter: {
   );
   const [items, [totals]] = await Promise.all([
     db
-      .select({ ...listColumns, source: news.source })
+      .select({ ...listColumns, source: news.source, externalUrl: news.externalUrl })
       .from(news)
       .where(where)
       .orderBy(desc(news.publishedAt), desc(news.id))
@@ -144,4 +147,55 @@ export function findLatestPublished(filter: {
     )
     .orderBy(desc(news.publishedAt), desc(news.id))
     .limit(filter.limit);
+}
+
+/**
+ * Новости отрасли. Уже сохранённые (та же ссылка или адрес) пропускаются: уникальность
+ * `external_url` — защита от повторного импорта на уровне базы. Возвращает число новых.
+ */
+export async function insertExternalNews(items: ExternalNewsInput[]): Promise<number> {
+  if (items.length === 0) return 0;
+  const inserted = await db
+    .insert(news)
+    .values(items.map((item) => ({ ...item, body: item.summary, source: 'external' as const })))
+    .onConflictDoNothing()
+    .returning({ id: news.id });
+  return inserted.length;
+}
+
+/** Новости отрасли старше даты — удаляются: раздел про свежие новости, база не разрастается. */
+export async function deleteExternalBefore(date: Date): Promise<number> {
+  const deleted = await db
+    .delete(news)
+    .where(and(eq(news.source, 'external'), lt(news.publishedAt, date)))
+    .returning({ id: news.id });
+  return deleted.length;
+}
+
+/** Страница новостей отрасли, свежие сверху, и их общее число. */
+export async function findIndustryNews(paging: {
+  limit: number;
+  offset: number;
+}): Promise<{ items: IndustryNewsItem[]; total: number }> {
+  const where = and(eq(news.source, 'external'), isNotNull(news.externalUrl));
+  const [items, [totals]] = await Promise.all([
+    db
+      .select({
+        id: news.id,
+        title: news.title,
+        summary: news.summary,
+        category: news.category,
+        tags: news.tags,
+        publishedAt: news.publishedAt,
+        externalFeed: news.externalFeed,
+        externalUrl: sql<string>`${news.externalUrl}`,
+      })
+      .from(news)
+      .where(where)
+      .orderBy(desc(news.publishedAt), desc(news.id))
+      .limit(paging.limit)
+      .offset(paging.offset),
+    db.select({ total: count() }).from(news).where(where),
+  ]);
+  return { items, total: totals?.total ?? 0 };
 }

@@ -24,11 +24,13 @@
     "db:migrate": "drizzle-kit migrate",
     "db:reset": "docker compose down --volumes && pnpm db:up && pnpm db:migrate && pnpm db:seed",
     "db:seed": "tsx --conditions=react-server --env-file-if-exists=.env db/seed/index.ts",
-    "job:expire-orders": "tsx --conditions=react-server --env-file-if-exists=.env scripts/jobs/expire-orders.ts"
+    "job:expire-orders": "tsx --conditions=react-server --env-file-if-exists=.env scripts/jobs/expire-orders.ts",
+    "job:import-feeds": "tsx --conditions=react-server --env-file-if-exists=.env scripts/jobs/import-feeds.ts"
   },
   "dependencies": {
     "better-auth": "1.7.11",
     "drizzle-orm": "0.45.4",
+    "fast-xml-parser": "5.11.2",
     "leaflet": "1.9.4",
     "next": "16.4.2",
     "pg": "8.23.1",

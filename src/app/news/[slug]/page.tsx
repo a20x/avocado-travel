@@ -9,7 +9,11 @@ import { Badge } from '@/shared/ui/Badge';
 import { pageMetadata } from '@/shared/lib/metadata';
 
 // Новость нужна и для заголовка вкладки, и для страницы — cache не даёт сходить в базу дважды.
-const loadNews = cache((slug: string) => getNews(slug));
+// Своя страница — только у новостей сайта: новость отрасли читают на сайте источника.
+const loadNews = cache(async (slug: string) => {
+  const item = await getNews(slug);
+  return item?.source === 'site' ? item : null;
+});
 
 export async function generateMetadata(props: PageProps<'/news/[slug]'>): Promise<Metadata> {
   const item = await loadNews((await props.params).slug);

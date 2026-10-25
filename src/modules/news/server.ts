@@ -8,7 +8,10 @@ export {
   getNewsForEdit,
   listNews,
   listNewsForAdmin,
+  listIndustryNews,
   listLatestNews,
   listNewsLinks,
   listPublishedNews,
+  pruneIndustryNews,
+  saveIndustryNews,
 } from './server/service';

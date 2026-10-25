@@ -193,7 +193,9 @@ export const HANDLERS: {
         category: item.category,
         source: item.source,
         publishedAt: item.publishedAt,
-        url: `/news/${item.slug}`,
+        // У новостей отрасли своей страницы нет — ссылка на оригинал.
+        url:
+          item.source === 'external' && item.externalUrl ? item.externalUrl : `/news/${item.slug}`,
       })),
       meta: { page: query.page, pageSize: query.pageSize, total },
     });
@@ -210,7 +212,9 @@ export const HANDLERS: {
         category: item.category,
         source: item.source,
         publishedAt: item.publishedAt,
-        url: `/news/${item.slug}`,
+        // У новостей отрасли своей страницы нет — ссылка на оригинал.
+        url:
+          item.source === 'external' && item.externalUrl ? item.externalUrl : `/news/${item.slug}`,
         body: item.body,
         tags: item.tags,
         externalUrl: item.externalUrl,
