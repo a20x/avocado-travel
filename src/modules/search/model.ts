@@ -36,6 +36,9 @@ export type SearchSuggestion = { kind: SearchKind; url: string; title: string };
 /** Сколько подсказок показывать: больше в выпадающем списке уже не читают. */
 export const SUGGEST_LIMIT = 7;
 
+/** За сколько последних дней считать посещения, чтобы поднять востребованные подсказки выше. */
+export const SUGGEST_POPULAR_DAYS = 30;
+
 export type SearchResults = {
   hits: SearchHit[];
   counts: Record<SearchKind | 'all', number>;
@@ -119,13 +122,14 @@ export function exactTitleText(parsed: ParsedQuery): string | null {
 
 /**
  * Слова для подсказок: только буквы и цифры, не больше 5 слов. Операторов в подсказках нет —
- * человек ещё печатает. null — подсказывать нечего (меньше двух букв).
+ * человек ещё печатает. Подсказки — уже с первой буквы, как в поисковиках; null — ни одной
+ * буквы или цифры.
  */
 export function suggestTerms(text: string): string[] | null {
   const words = (normalizeText(text).match(/[\p{L}\p{N}]+/gu) ?? [])
     .slice(0, 5)
     .map((word) => word.slice(0, 50));
-  return words.join('').length >= 2 ? words : null;
+  return words.length > 0 ? words : null;
 }
 
 /**

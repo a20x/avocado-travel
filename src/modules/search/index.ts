@@ -9,6 +9,7 @@ export {
   SEARCH_KINDS,
   SEARCH_PAGE_SIZE,
   SUGGEST_LIMIT,
+  SUGGEST_POPULAR_DAYS,
   describeQuery,
   exactTitleText,
   normalizeText,

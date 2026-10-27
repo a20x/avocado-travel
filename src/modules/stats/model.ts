@@ -32,6 +32,7 @@ export const SECTION_LABELS: Record<string, string> = {
   login: 'Вход',
   register: 'Регистрация',
   services: 'Сервисы',
+  weather: 'Погода',
   press: 'Пресс-центр',
   analytics: 'Аналитика',
   links: 'Полезные ссылки',

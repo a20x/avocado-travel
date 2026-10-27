@@ -2,6 +2,7 @@ import 'server-only';
 import {
   SEARCH_PAGE_SIZE,
   SUGGEST_LIMIT,
+  SUGGEST_POPULAR_DAYS,
   exactTitleText,
   parseQuery,
   searchKindSchema,
@@ -61,7 +62,8 @@ export async function searchSite(
 export async function suggestSite(q: unknown, now = new Date()): Promise<SearchSuggestion[]> {
   const words = suggestTerms(typeof q === 'string' ? q.slice(0, 100) : '');
   if (!words) return [];
-  return repository.suggest(toPrefixQuery(words), words.join(' '), SUGGEST_LIMIT, now);
+  const since = new Date(now.getTime() - SUGGEST_POPULAR_DAYS * 24 * 60 * 60 * 1000);
+  return repository.suggest(toPrefixQuery(words), words.join(' '), SUGGEST_LIMIT, now, since);
 }
 
 /**

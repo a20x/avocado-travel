@@ -81,10 +81,10 @@ describe('подсказки поиска', () => {
     expect(toPrefixQuery(['авиа', 'комп'])).toBe('авиа:* & комп:*');
   });
 
-  it('меньше двух букв — подсказывать нечего', () => {
-    expect(suggestTerms('а')).toBeNull();
+  it('подсказки с первой буквы, без букв и цифр — подсказывать нечего', () => {
+    expect(suggestTerms('а')).toEqual(['а']);
     expect(suggestTerms('  !? ')).toBeNull();
-    expect(suggestTerms('мо')).toEqual(['мо']);
+    expect(suggestTerms('')).toBeNull();
   });
 
   it('не больше пяти слов', () => {

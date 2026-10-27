@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { listCities } from '@/modules/catalog-data/server';
 import { parseAmount } from '@/modules/currency';
 import { getRates } from '@/modules/currency/server';
@@ -41,7 +42,7 @@ export default async function ServicesPage(props: PageProps<'/services'>) {
         <h1 className="text-3xl">Сервисы</h1>
         <p className="text-slate">
           Полезное перед поездкой: куда летаем, который час в городе прилёта и сколько стоит билет в
-          валюте страны.
+          валюте страны. Погода в любом городе — на странице <Link href="/weather">«Погода»</Link>.
         </p>
       </header>
 

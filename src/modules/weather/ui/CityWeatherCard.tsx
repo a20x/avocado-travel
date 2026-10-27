@@ -1,22 +1,42 @@
+import type { ReactNode } from 'react';
 import { formatDate } from '@/shared/lib/format';
 import { Card } from '@/shared/ui/Card';
 import { describeWeather, formatTemperature, type CityWeather } from '../model';
 import { WeatherIcon } from './WeatherIcon';
 
-/** Погода на странице направления (L1-12): сейчас и на ближайшие дни, время местное. */
+/**
+ * Погода в городе (L1-12): сейчас и на ближайшие дни, время местное. На странице направления
+ * и на странице «Погода»; там под заголовком — где город (`area`), а справа — кнопка
+ * «В мои города» (`actions`).
+ */
 export function CityWeatherCard({
   weather,
   cityName,
+  area,
+  actions,
 }: {
   weather: CityWeather | null;
   cityName: string;
+  area?: string;
+  actions?: ReactNode;
 }) {
+  // Заголовок, где город и кнопка — и когда прогноза нет: отметить город можно и тогда.
+  const header = (
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="grid gap-0.5">
+        <h2 id="city-weather-title" className="text-xl">
+          {weather || area !== undefined ? `Погода: ${cityName}` : 'Погода'}
+        </h2>
+        {area ? <p className="text-sm text-slate">{area}</p> : null}
+      </div>
+      {actions}
+    </div>
+  );
+
   if (!weather) {
     return (
       <Card as="section" aria-labelledby="city-weather-title" className="grid gap-2 p-5">
-        <h2 id="city-weather-title" className="text-xl">
-          Погода
-        </h2>
+        {header}
         <p className="text-slate">Прогноз сейчас недоступен — загляните позже.</p>
       </Card>
     );
@@ -25,9 +45,7 @@ export function CityWeatherCard({
   const now = describeWeather(weather.code);
   return (
     <Card as="section" aria-labelledby="city-weather-title" className="grid gap-4 p-5 md:p-6">
-      <h2 id="city-weather-title" className="text-xl">
-        Погода: {cityName}
-      </h2>
+      {header}
       <div className="flex flex-wrap items-center gap-4">
         <WeatherIcon kind={now.kind} className="size-14" />
         <div>
@@ -37,6 +55,10 @@ export function CityWeatherCard({
           <p className="text-slate">
             {now.label},{' '}
             {weather.wind < 0.5 ? 'безветренно' : `ветер ${Math.round(weather.wind)} м/с`}
+          </p>
+          <p className="text-sm text-slate">
+            Ощущается как {formatTemperature(weather.feelsLike)}, влажность{' '}
+            {Math.round(weather.humidity)}%
           </p>
         </div>
       </div>

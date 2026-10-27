@@ -16,6 +16,7 @@ export const MAIN_NAV: NavItem[] = [
 
 /** Пункты меню «Ещё». */
 export const MORE_NAV: NavItem[] = [
+  { href: '/weather', label: 'Погода' },
   { href: '/forum', label: 'Форум' },
   { href: '/guestbook', label: 'Гостевая книга' },
   { href: '/press', label: 'Пресс-центр' },
@@ -62,6 +63,11 @@ export const SITE_CONTENTS: ContentsGroup[] = [
         href: '/services',
         label: 'Сервисы',
         description: 'Карта маршрутов, мировые часы, календарь и конвертер валют',
+      },
+      {
+        href: '/weather',
+        label: 'Погода',
+        description: 'Погода в любом городе мира и список «Мои города»',
       },
       {
         href: '/search',
