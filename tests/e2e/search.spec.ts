@@ -1,19 +1,54 @@
 import { expect, test, type Page } from '@playwright/test';
+import { choosePhrase } from './helpers';
 import { SEARCH_DATE } from './public-pages';
 
 const results = (page: Page) => page.getByRole('region', { name: 'Найденные рейсы' });
 
 test('поиск-фраза на главной открывает результаты', async ({ page }) => {
   await page.goto('/');
-  await page.getByLabel('Откуда', { exact: true }).selectOption('moscow');
-  await page.getByLabel('Куда', { exact: true }).selectOption('kazan');
+  await choosePhrase(page, 'from', 'moscow');
+  await choosePhrase(page, 'to', 'kazan');
   await page.getByLabel('Дата вылета').fill(SEARCH_DATE);
-  await page.getByLabel('Сколько пассажиров').selectOption('2');
+  await choosePhrase(page, 'passengers', '2');
   await page.getByRole('button', { name: 'Подобрать рейсы' }).click();
 
   await expect(page).toHaveURL(/\/flights\?from=moscow&to=kazan&date=.+&passengers=2/);
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Москва → Казань');
   await expect(results(page).getByRole('article').first()).toBeVisible();
+});
+
+test('с мышью список фразы — обычного размера и работает с клавиатуры', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'на сенсорном экране список стандартный');
+
+  await page.goto('/');
+  const to = page.getByRole('combobox', { name: 'Куда', exact: true });
+  const list = page.getByRole('listbox', { name: 'Куда', exact: true });
+  await to.click();
+  await expect(list).toBeVisible();
+  // Пункты — обычным шрифтом, а не крупным шрифтом фразы; список прокручивается внутри себя.
+  const option = list.getByRole('option').first();
+  expect(await option.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))).toBeLessThan(20);
+  expect((await list.boundingBox())?.height).toBeLessThan(300);
+  const first = await option.getAttribute('data-value');
+
+  await page.keyboard.press('Escape');
+  await expect(list).toBeHidden();
+
+  // Клавиатура: Home — первый город, Enter — выбрать; набор букв — переход к городу.
+  await to.focus();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Home');
+  await page.keyboard.press('Enter');
+  await expect(list).toBeHidden();
+  await expect(page.locator('input[name="to"]')).toHaveValue(first ?? '');
+
+  // Playwright не нажимает русские клавиши — посылаем само событие нажатия, как браузер.
+  for (const key of 'соч') await to.dispatchEvent('keydown', { key });
+  await page.keyboard.press('Enter');
+  await expect(page.locator('input[name="to"]')).toHaveValue('sochi');
+  await expect(to).toHaveText('Сочи');
 });
 
 test('сортировка и фильтр по авиакомпании меняют список', async ({ page }, testInfo) => {

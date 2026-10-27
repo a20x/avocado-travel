@@ -3,7 +3,7 @@
 // Клиентский компонент: чтобы подсветить текущий пункт, нужен адрес страницы в браузере.
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { isNavItemActive, MAIN_NAV, MORE_NAV, type NavItem } from '@/shared/config/navigation';
 import { cn } from '@/shared/lib/cn';
 
@@ -160,5 +160,70 @@ export function MobileNavList() {
         ))}
       </ul>
     </nav>
+  );
+}
+
+/**
+ * Меню телефона и планшета. Основа — <details>: без JavaScript раскрывается кнопкой.
+ * С JavaScript ещё и закрывается само: после выбора страницы (шапка при переходе
+ * не перерисовывается, и меню оставалось открытым поверх новой страницы), после поиска,
+ * по Escape и щелчку мимо.
+ */
+export function MobileMenu({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const root = useRef<HTMLDetailsElement>(null);
+  const close = () => {
+    if (root.current) root.current.open = false;
+  };
+
+  // Новая страница — меню закрыто, даже если переход начался не из него.
+  useEffect(close, [pathname]);
+
+  useEffect(() => {
+    const onPointerDown = (event: globalThis.PointerEvent) => {
+      if (root.current?.open && !root.current.contains(event.target as Node)) close();
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, []);
+
+  return (
+    <details
+      ref={root}
+      className="group lg:hidden"
+      onClick={(event) => {
+        if ((event.target as Element).closest('a')) close();
+      }}
+      onSubmit={close}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && root.current?.open) {
+          close();
+          root.current.querySelector('summary')?.focus();
+        }
+      }}
+    >
+      <summary
+        className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-sm bg-mist [&::-webkit-details-marker]:hidden"
+        aria-label="Меню"
+      >
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path
+            className="group-open:hidden"
+            d="M4 7h16M4 12h16M4 17h16"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <path
+            className="hidden group-open:block"
+            d="m6 6 12 12M18 6 6 18"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+      </summary>
+      {children}
+    </details>
   );
 }

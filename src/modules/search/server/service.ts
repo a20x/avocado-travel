@@ -1,13 +1,18 @@
 import 'server-only';
 import {
   SEARCH_PAGE_SIZE,
+  SUGGEST_LIMIT,
+  exactTitleText,
   parseQuery,
   searchKindSchema,
+  suggestTerms,
+  toPrefixQuery,
   toWebSearch,
   type ParsedQuery,
   type SearchDocumentInput,
   type SearchKind,
   type SearchResults,
+  type SearchSuggestion,
 } from '../model';
 import * as repository from './repository';
 
@@ -31,6 +36,7 @@ export async function searchSite(
   const page = pageNumber(params.page);
   const { hits, counts } = await repository.search(
     toWebSearch(parsed),
+    exactTitleText(parsed),
     kind,
     { limit: SEARCH_PAGE_SIZE, offset: (page - 1) * SEARCH_PAGE_SIZE },
     now,
@@ -49,6 +55,13 @@ export async function searchSite(
       totalPages: Math.max(1, Math.ceil(shown / SEARCH_PAGE_SIZE)),
     },
   };
+}
+
+/** Подсказки под строкой поиска, пока посетитель печатает. Меньше двух букв — пусто. */
+export async function suggestSite(q: unknown, now = new Date()): Promise<SearchSuggestion[]> {
+  const words = suggestTerms(typeof q === 'string' ? q.slice(0, 100) : '');
+  if (!words) return [];
+  return repository.suggest(toPrefixQuery(words), words.join(' '), SUGGEST_LIMIT, now);
 }
 
 /**

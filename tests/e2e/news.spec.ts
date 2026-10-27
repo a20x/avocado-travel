@@ -43,12 +43,13 @@ test('администратор пишет, правит и удаляет но
   await expect(page).toHaveURL('/admin/news/new');
   await expectValidHtml(page, '/admin/news/new');
 
-  // Пустая форма — ошибки у полей.
+  // Пустая форма — ошибки у полей, а выбранная рубрика не сбрасывается.
+  await page.getByLabel('Рубрика').selectOption('service');
   await page.getByRole('button', { name: 'Опубликовать' }).click();
   await expect(page.getByText('Заголовок — от 5 символов')).toBeVisible();
+  await expect(page.getByLabel('Рубрика')).toHaveValue('service');
 
   await page.getByLabel('Заголовок').fill(title);
-  await page.getByLabel('Рубрика').selectOption('service');
   await page.getByLabel('Кратко').fill('Короткое описание проверочной новости.');
   await page.getByLabel('Текст').fill('Первый абзац проверочной новости.\n\nВторой абзац.');
   await page.getByRole('button', { name: 'Опубликовать' }).click();

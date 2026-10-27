@@ -1,5 +1,5 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test';
-import { HtmlValidate, formatterFactory } from 'html-validate';
+import { HtmlValidate, formatterFactory, type ConfigData } from 'html-validate';
 
 /**
  * Общие шаги сквозных тестов: регистрация, выбор мест, оплата, проверка HTML.
@@ -7,9 +7,15 @@ import { HtmlValidate, formatterFactory } from 'html-validate';
  */
 
 // standard — правила валидности HTML (то, что проверяет валидатор W3C), a11y — базовая доступность.
-const htmlValidate = new HtmlValidate({
+export const HTML_VALIDATE_CONFIG: ConfigData = {
   extends: ['html-validate:standard', 'html-validate:a11y'],
-});
+  rules: {
+    // Свои списки role="listbox": подсказки строки поиска (в родной <select> не ввести текст)
+    // и фраза-поиск на главной (меню родного <select> браузер рисует шрифтом поля — огромным).
+    'prefer-native-element': ['error', { exclude: ['listbox'] }],
+  },
+};
+const htmlValidate = new HtmlValidate(HTML_VALIDATE_CONFIG);
 const formatReport = formatterFactory('stylish');
 
 /**
@@ -108,4 +114,21 @@ export async function payByCard(page: Page, number = '4242 4242 4242 4242') {
   await page.getByLabel('Срок действия').fill('12/30');
   await page.getByLabel('CVC').fill('123');
   await page.getByRole('button', { name: /^Оплатить/ }).click();
+}
+
+/**
+ * Выбор в поле фразы-поиска на главной (`from`, `to`, `passengers`, `cabinClass`). С мышью там
+ * свой список обычного размера, на сенсорном экране — стандартный <select> (PhraseSelect).
+ */
+export async function choosePhrase(page: Page, name: string, value: string) {
+  const finePointer = await page.evaluate(() => window.matchMedia('(pointer: fine)').matches);
+  if (!finePointer) {
+    await page.locator(`select#phrase-${name}`).selectOption(value);
+    return;
+  }
+  const combobox = page.locator(`#phrase-${name}[role="combobox"]`);
+  await combobox.click();
+  const listId = await combobox.getAttribute('aria-controls');
+  await page.locator(`[id="${listId}"] [data-value="${value}"]`).click();
+  await expect(page.locator(`input[name="${name}"]`)).toHaveValue(value);
 }

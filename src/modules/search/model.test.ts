@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { HIGHLIGHT, describeQuery, parseQuery, splitHighlights, toWebSearch } from './model';
+import {
+  HIGHLIGHT,
+  describeQuery,
+  exactTitleText,
+  parseQuery,
+  splitHighlights,
+  suggestTerms,
+  toPrefixQuery,
+  toWebSearch,
+} from './model';
 
 describe('разбор поискового запроса', () => {
   it('слова через пробел и «И» — все сразу', () => {
@@ -50,5 +59,35 @@ describe('подсветка найденного', () => {
       { text: ' каждый день', mark: false },
     ]);
     expect(splitHighlights('без отметок')).toEqual([{ text: 'без отметок', mark: false }]);
+  });
+});
+
+describe('запрос, совпадающий с заголовком', () => {
+  it('одна группа без «НЕ» — её слова', () => {
+    expect(exactTitleText(parseQuery('Направления'))).toBe('направления');
+    expect(exactTitleText(parseQuery('Полезные ссылки'))).toBe('полезные ссылки');
+  });
+
+  it('с «ИЛИ» или «НЕ» заголовок с запросом не сравнивается', () => {
+    expect(exactTitleText(parseQuery('форум ИЛИ новости'))).toBeNull();
+    expect(exactTitleText(parseQuery('форум -правила'))).toBeNull();
+  });
+});
+
+describe('подсказки поиска', () => {
+  it('берут только буквы и цифры, операторы и знаки — просто разделители', () => {
+    expect(suggestTerms('  Авиа, «комп» ')).toEqual(['авиа', 'комп']);
+    expect(suggestTerms('Ёлки & 2026:*')).toEqual(['елки', '2026']);
+    expect(toPrefixQuery(['авиа', 'комп'])).toBe('авиа:* & комп:*');
+  });
+
+  it('меньше двух букв — подсказывать нечего', () => {
+    expect(suggestTerms('а')).toBeNull();
+    expect(suggestTerms('  !? ')).toBeNull();
+    expect(suggestTerms('мо')).toEqual(['мо']);
+  });
+
+  it('не больше пяти слов', () => {
+    expect(suggestTerms('раз два три четыре пять шесть')).toHaveLength(5);
   });
 });

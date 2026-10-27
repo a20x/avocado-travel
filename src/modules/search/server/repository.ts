@@ -1,7 +1,13 @@
 import 'server-only';
-import { and, count, desc, eq, isNull, lte, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, isNull, lte, or, sql, type SQL } from 'drizzle-orm';
 import { db } from '@/server/db';
-import { HIGHLIGHT, type SearchDocumentInput, type SearchHit, type SearchKind } from '../model';
+import {
+  HIGHLIGHT,
+  type SearchDocumentInput,
+  type SearchHit,
+  type SearchKind,
+  type SearchSuggestion,
+} from '../model';
 import { searchDocuments } from '../schema';
 
 type Paging = { limit: number; offset: number };
@@ -33,23 +39,38 @@ export async function deleteDocument(kind: SearchKind, refId: string): Promise<v
 const SNIPPET_OPTIONS = `StartSel=${HIGHLIGHT.start}, StopSel=${HIGHLIGHT.stop}, MinWords=15, MaxWords=35, MaxFragments=2, FragmentDelimiter=" … "`;
 const TITLE_OPTIONS = `StartSel=${HIGHLIGHT.start}, StopSel=${HIGHLIGHT.stop}, HighlightAll=true`;
 
+/** Заголовок с «ё» как «е» — так же, как его разбирает индекс (schema.ts). */
+const title = sql`translate(${searchDocuments.title}, 'Ёё', 'Ее')`;
+
+const isVisible = (now: Date) =>
+  or(isNull(searchDocuments.visibleFrom), lte(searchDocuments.visibleFrom, now)) as SQL;
+
 /**
  * Полнотекстовый поиск. `webQuery` — строка для websearch_to_tsquery (см. toWebSearch):
- * PostgreSQL сам разбирает её безопасно, склейки SQL нет. Сначала самые подходящие
- * (ts_rank_cd учитывает, что слова в заголовке важнее), затем свежие.
+ * PostgreSQL сам разбирает её безопасно, склейки SQL нет. Порядок: сначала страница, чей
+ * заголовок и есть запрос (`titleText`, «направление» → «Направления»), затем страницы
+ * с запросом в заголовке, затем остальные по релевантности (ts_rank_cd учитывает, что слова
+ * в заголовке важнее) и свежести.
  */
 export async function search(
   webQuery: string,
+  titleText: string | null,
   kind: SearchKind | undefined,
   paging: Paging,
   now: Date,
 ): Promise<{ hits: SearchHit[]; counts: Array<{ kind: SearchKind; total: number }> }> {
   const query = sql`websearch_to_tsquery('russian', ${webQuery})`;
-  const matches: SQL[] = [
-    sql`${searchDocuments.tsv} @@ ${query}`,
-    or(isNull(searchDocuments.visibleFrom), lte(searchDocuments.visibleFrom, now)) as SQL,
-  ];
+  const matches: SQL[] = [sql`${searchDocuments.tsv} @@ ${query}`, isVisible(now)];
   const rank = sql`ts_rank_cd(${searchDocuments.tsv}, ${query})`;
+  // Константу (false) PostgreSQL в ORDER BY не принимает — без titleText условия просто нет.
+  const titleIsQuery = titleText
+    ? [
+        desc(
+          sql`strip(to_tsvector('russian', ${title})) = strip(to_tsvector('russian', ${titleText}))`,
+        ),
+      ]
+    : [];
+  const pageTitleMatches = sql`${searchDocuments.kind} = 'page' and to_tsvector('russian', ${title}) @@ ${query}`;
 
   const [hits, counts] = await Promise.all([
     db
@@ -62,7 +83,7 @@ export async function search(
       })
       .from(searchDocuments)
       .where(and(...matches, kind ? eq(searchDocuments.kind, kind) : undefined))
-      .orderBy(desc(rank), desc(searchDocuments.updatedAt))
+      .orderBy(...titleIsQuery, desc(pageTitleMatches), desc(rank), desc(searchDocuments.updatedAt))
       .limit(paging.limit)
       .offset(paging.offset),
     db
@@ -72,4 +93,35 @@ export async function search(
       .groupBy(searchDocuments.kind),
   ]);
   return { hits, counts };
+}
+
+/**
+ * Подсказки: документы, в заголовке которых есть начала набранных слов (словарь simple)
+ * или сами слова в любой форме (русский словарь: «авиакомпания» → «Авиакомпании»).
+ * Сначала заголовки, которые начинаются с набранного, затем страницы, затем короткие.
+ */
+export async function suggest(
+  prefixQuery: string,
+  text: string,
+  limit: number,
+  now: Date,
+): Promise<SearchSuggestion[]> {
+  return db
+    .select({ kind: searchDocuments.kind, url: searchDocuments.url, title: searchDocuments.title })
+    .from(searchDocuments)
+    .where(
+      and(
+        or(
+          sql`to_tsvector('simple', ${title}) @@ to_tsquery('simple', ${prefixQuery})`,
+          sql`to_tsvector('russian', ${title}) @@ plainto_tsquery('russian', ${text})`,
+        ),
+        isVisible(now),
+      ),
+    )
+    .orderBy(
+      desc(sql`starts_with(lower(${title}), ${text})`),
+      sql`${searchDocuments.kind} <> 'page'`,
+      asc(sql`length(${searchDocuments.title})`),
+    )
+    .limit(limit);
 }

@@ -10,7 +10,7 @@ async function search(page: Page, q: string) {
 test('поиск из шапки находит слово в любой форме', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'поле поиска в шапке видно на широком экране');
   await page.goto('/');
-  const field = page.getByRole('banner').getByRole('searchbox', { name: 'Поиск по сайту' });
+  const field = page.getByRole('banner').getByRole('combobox', { name: 'Поиск по сайту' });
   await field.fill('багажа');
   await field.press('Enter');
   await expect(page).toHaveURL('/search?q=%D0%B1%D0%B0%D0%B3%D0%B0%D0%B6%D0%B0');
@@ -21,6 +21,48 @@ test('поиск из шапки находит слово в любой фор�
   await expect(results(page).getByRole('link', { name: /Кирра: багаж 23 кг/ })).toBeVisible();
   await expect(results(page).locator('mark').first()).toBeVisible();
   await expectValidHtml(page, '/search?q=багажа');
+});
+
+test('строка поиска подсказывает разделы и страницы по началу слова', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'поле поиска в шапке видно на широком экране');
+  await page.goto('/airlines');
+  const field = page.getByRole('banner').getByRole('combobox', { name: 'Поиск по сайту' });
+  const list = page.getByRole('listbox', { name: 'Подсказки поиска' });
+
+  await field.pressSequentially('напр');
+  await expect(list.getByRole('option').first()).toContainText('Направления');
+  await expect(field).toHaveAttribute('aria-expanded', 'true');
+
+  // Стрелка вниз и Enter — переход прямо в раздел, без страницы результатов.
+  await field.press('ArrowDown');
+  await field.press('Enter');
+  await expect(page).toHaveURL('/destinations');
+
+  // Слово в другой форме тоже подсказывается; щелчок по подсказке открывает страницу.
+  await field.fill('авиакомпания');
+  await list.getByRole('option', { name: /^Авиакомпании/ }).click();
+  await expect(page).toHaveURL('/airlines');
+
+  // Последний пункт — все результаты на странице поиска; Escape закрывает подсказки.
+  await field.fill('багаж');
+  await expect(list.getByRole('option').last()).toHaveText('Все результаты по «багаж»');
+  await field.press('Escape');
+  await expect(list).toBeHidden();
+});
+
+test('раздел с названием как у запроса — первым в результатах', async ({ page }) => {
+  for (const [q, title] of [
+    ['направления', 'Направления'],
+    ['авиакомпания', 'Авиакомпании'],
+    ['форум', 'Форум'],
+  ]) {
+    await search(page, q!);
+    await expect(results(page).getByRole('article').first().getByRole('link').first()).toHaveText(
+      title!,
+    );
+  }
 });
 
 test('операторы И, ИЛИ, НЕ', async ({ page }) => {

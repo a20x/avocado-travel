@@ -1,8 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { getCurrentUser } from '@/modules/auth/server';
+import { SearchBox } from '@/modules/search/ui';
+import { cn } from '@/shared/lib/cn';
 import { buttonClasses } from '@/shared/ui/Button';
-import { MainNav, MobileNavList } from './MainNav';
+import { MainNav, MobileMenu, MobileNavList } from './MainNav';
 
 function SearchIcon() {
   return (
@@ -13,11 +15,11 @@ function SearchIcon() {
   );
 }
 
-/** Поиск по сайту (страница результатов — задача T-25). */
+/** Поиск по сайту: подсказки при вводе, Enter — страница результатов (/search). */
 function SiteSearch({ id, name, className }: { id: string; name: string; className?: string }) {
   return (
     // У каждой области (landmark) на странице своё название — так их различает экранный диктор.
-    <form action="/search" role="search" aria-label={name} className={className}>
+    <form action="/search" role="search" aria-label={name} className={cn('relative', className)}>
       <label htmlFor={id} className="sr-only">
         Поиск по сайту
       </label>
@@ -25,13 +27,7 @@ function SiteSearch({ id, name, className }: { id: string; name: string; classNa
         <button type="submit" aria-label="Найти" className="shrink-0 hover:text-graphite">
           <SearchIcon />
         </button>
-        <input
-          id={id}
-          name="q"
-          type="search"
-          placeholder="Поиск по сайту"
-          className="w-full min-w-0 bg-transparent text-sm text-graphite placeholder:text-slate focus:outline-none"
-        />
+        <SearchBox id={id} />
       </div>
     </form>
   );
@@ -81,35 +77,14 @@ export async function SiteHeader() {
           <AccountLink {...account} />
         </div>
 
-        {/* Меню для телефона и планшета: раскрывается без JavaScript. */}
-        <details className="group lg:hidden">
-          <summary
-            className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-sm bg-mist [&::-webkit-details-marker]:hidden"
-            aria-label="Меню"
-          >
-            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path
-                className="group-open:hidden"
-                d="M4 7h16M4 12h16M4 17h16"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <path
-                className="hidden group-open:block"
-                d="m6 6 12 12M18 6 6 18"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </summary>
+        {/* Меню для телефона и планшета: раскрывается и без JavaScript. */}
+        <MobileMenu>
           <div className="absolute inset-x-0 top-16 z-20 grid gap-4 border-b border-line bg-white p-4 shadow-card">
             <SiteSearch id="site-search-mobile" name="Поиск по сайту (мобильное меню)" />
             <MobileNavList />
             <AccountLink {...account} fullWidth />
           </div>
-        </details>
+        </MobileMenu>
       </div>
     </header>
   );
