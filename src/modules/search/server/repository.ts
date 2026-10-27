@@ -1,5 +1,6 @@
 import 'server-only';
-import { and, asc, count, desc, eq, isNull, lte, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, isNull, lte, or, sql, type SQL } from 'drizzle-orm';
+import { pageViews } from '@/modules/stats';
 import { db } from '@/server/db';
 import {
   HIGHLIGHT,
@@ -98,17 +99,29 @@ export async function search(
 /**
  * Подсказки: документы, в заголовке которых есть начала набранных слов (словарь simple)
  * или сами слова в любой форме (русский словарь: «авиакомпания» → «Авиакомпании»).
- * Сначала заголовки, которые начинаются с набранного, затем страницы, затем короткие.
+ * Порядок: сначала страницы сайта, затем новости, затем форум (так объявлен enum search_kind);
+ * внутри — заголовки, которые начинаются с набранного, затем самые посещаемые с `since`
+ * (счётчик посещений, таблица page_views модуля stats), затем короткие.
  */
 export async function suggest(
   prefixQuery: string,
   text: string,
   limit: number,
   now: Date,
+  since: Date,
 ): Promise<SearchSuggestion[]> {
+  const views = db.$with('views').as(
+    db
+      .select({ path: pageViews.path, total: count().as('total') })
+      .from(pageViews)
+      .where(gte(pageViews.createdAt, since))
+      .groupBy(pageViews.path),
+  );
   return db
+    .with(views)
     .select({ kind: searchDocuments.kind, url: searchDocuments.url, title: searchDocuments.title })
     .from(searchDocuments)
+    .leftJoin(views, eq(views.path, searchDocuments.url))
     .where(
       and(
         or(
@@ -119,8 +132,9 @@ export async function suggest(
       ),
     )
     .orderBy(
+      asc(searchDocuments.kind),
       desc(sql`starts_with(lower(${title}), ${text})`),
-      sql`${searchDocuments.kind} <> 'page'`,
+      desc(sql`coalesce(${views.total}, 0)`),
       asc(sql`length(${searchDocuments.title})`),
     )
     .limit(limit);

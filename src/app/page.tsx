@@ -11,7 +11,8 @@ import { getActivePoll } from '@/modules/poll/server';
 import { PollWidget } from '@/modules/poll/ui';
 import { getRating } from '@/modules/rating/server';
 import { RatingWidget } from '@/modules/rating/ui';
-import { getWeather } from '@/modules/weather/server';
+import { geoPlace } from '@/modules/weather';
+import { getSavedCities, getWeather } from '@/modules/weather/server';
 import { WeatherWidget } from '@/modules/weather/ui';
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME } from '@/shared/config/site';
 import { formatDuration, formatPrice, plural } from '@/shared/lib/format';
@@ -34,18 +35,20 @@ export const metadata: Metadata = {
 /** Популярные направления считаются от главного узла сети. */
 const HUB = 'moscow';
 const POPULAR_COUNT = 6;
-/** Погода на главной — в городах с разным климатом. */
+/** Погода на главной — в городах с разным климатом, пока посетитель не отметил свои. */
 const WEATHER_CITIES = ['kaliningrad', 'sochi', 'kazan', 'vladivostok'];
+const WEATHER_COUNT = WEATHER_CITIES.length;
 
 export default async function HomePage(props: PageProps<'/'>) {
   const now = new Date();
-  const [cities, routes, params, poll, rating, ads] = await Promise.all([
+  const [cities, routes, params, poll, rating, ads, savedCities] = await Promise.all([
     listCities(),
     listRoutes({ from: HUB }, now),
     props.searchParams,
     getActivePoll(),
     getRating(),
     getAdsFor('home', now),
+    getSavedCities(),
   ]);
 
   // «Изменить запрос» со страницы результатов возвращает сюда с прошлым запросом в адресе.
@@ -62,7 +65,11 @@ export default async function HomePage(props: PageProps<'/'>) {
   const today = dateInZone(now, 'Europe/Moscow');
 
   const citiesBySlug = new Map(cities.map((city) => [city.slug, city]));
-  const weather = await getWeather(WEATHER_CITIES.flatMap((slug) => citiesBySlug.get(slug) ?? []));
+  const weather = await getWeather(
+    savedCities.length > 0
+      ? savedCities.slice(0, WEATHER_COUNT).map(geoPlace)
+      : WEATHER_CITIES.flatMap((slug) => citiesBySlug.get(slug) ?? []),
+  );
   const popular = [...routes]
     .sort((a, b) => b.flightsPerWeek - a.flightsPerWeek)
     .slice(0, POPULAR_COUNT);
@@ -107,7 +114,7 @@ export default async function HomePage(props: PageProps<'/'>) {
 
         {/* Погода, опрос, рейтинг — в одном ряду (docs/06-design.md). */}
         <div className="grid items-start gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <WeatherWidget weather={weather} />
+          <WeatherWidget weather={weather} mine={savedCities.length > 0} />
           {poll ? <PollWidget poll={poll} /> : null}
           <RatingWidget rating={rating} />
         </div>

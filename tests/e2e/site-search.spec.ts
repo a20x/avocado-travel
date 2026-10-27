@@ -31,6 +31,16 @@ test('строка поиска подсказывает разделы и ст�
   const field = page.getByRole('banner').getByRole('combobox', { name: 'Поиск по сайту' });
   const list = page.getByRole('listbox', { name: 'Подсказки поиска' });
 
+  // Уже с одной буквы: сначала страницы сайта, затем новости, затем форум.
+  await field.pressSequentially('а');
+  await expect(list.getByRole('option').first()).toContainText('Страница');
+  const kinds = (await list.getByRole('option').allTextContents())
+    .slice(0, -1) // последний пункт — «Все результаты»
+    .map((text) => ['Страница', 'Новость', 'Форум'].findIndex((kind) => text.endsWith(kind)));
+  expect(kinds).not.toContain(-1);
+  expect(kinds).toEqual([...kinds].sort());
+  await field.fill('');
+
   await field.pressSequentially('напр');
   await expect(list.getByRole('option').first()).toContainText('Направления');
   await expect(field).toHaveAttribute('aria-expanded', 'true');

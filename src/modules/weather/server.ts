@@ -3,4 +3,4 @@
  */
 import 'server-only';
 
-export { getWeather } from './server/service';
+export { findCities, getCity, getSavedCities, getWeather } from './server/service';

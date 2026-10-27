@@ -19,6 +19,7 @@ const SECTIONS = [
   '/analytics',
   '/api/docs',
   '/services',
+  '/weather',
   '/forum',
   '/guestbook',
   '/links',

@@ -1,11 +1,31 @@
 import { describe, expect, it } from 'vitest';
-import { describeWeather, forecastUrl, formatTemperature, parseForecast } from './model';
+import {
+  MAX_SAVED_CITIES,
+  addSavedCity,
+  citySearchUrl,
+  describeWeather,
+  forecastUrl,
+  formatTemperature,
+  geoPlace,
+  parseCity,
+  parseCitySearch,
+  parseForecast,
+  parseSavedCities,
+  removeSavedCity,
+  type GeoCity,
+} from './model';
 
 const KALININGRAD = { slug: 'kaliningrad', name: 'Калининград', lat: 54.89, lon: 20.5926 };
 const SOCHI = { slug: 'sochi', name: 'Сочи', lat: 43.4499, lon: 39.9566 };
 
 const forecast = (temperature: number) => ({
-  current: { temperature_2m: temperature, weather_code: 61, wind_speed_10m: 3.4 },
+  current: {
+    temperature_2m: temperature,
+    apparent_temperature: temperature - 2,
+    relative_humidity_2m: 81,
+    weather_code: 61,
+    wind_speed_10m: 3.4,
+  },
   daily: {
     time: ['2026-10-23', '2026-10-24'],
     weather_code: [61, 0],
@@ -42,11 +62,81 @@ describe('погода', () => {
     ]);
     expect(many?.[0]?.days[1]).toEqual({ date: '2026-10-24', code: 0, max: 11.9, min: 6.1 });
 
-    expect(parseForecast(forecast(5), [SOCHI])?.[0]?.name).toBe('Сочи');
+    expect(parseForecast(forecast(5), [SOCHI])?.[0]).toMatchObject({
+      name: 'Сочи',
+      href: '/destinations/sochi',
+      feelsLike: 3,
+      humidity: 81,
+    });
   });
 
   it('неожиданный ответ — null', () => {
     expect(parseForecast({ error: true, reason: 'Ошибка' }, [SOCHI])).toBeNull();
     expect(parseForecast([forecast(1)], [KALININGRAD, SOCHI])).toBeNull();
+  });
+});
+
+const PARIS: GeoCity = {
+  id: 2988507,
+  name: 'Париж',
+  area: 'Иль-де-Франс, Франция',
+  lat: 48.85,
+  lon: 2.35,
+};
+const city = (id: number): GeoCity => ({ ...PARIS, id, name: `Город ${id}` });
+
+describe('погода в любом городе', () => {
+  it('поиск города — по-русски, не больше десяти', () => {
+    const url = new URL(citySearchUrl('пари'));
+    expect(url.hostname).toBe('geocoding-api.open-meteo.com');
+    expect(url.searchParams.get('name')).toBe('пари');
+    expect(url.searchParams.get('language')).toBe('ru');
+    expect(url.searchParams.get('count')).toBe('10');
+  });
+
+  it('ответ геокодера: город, область и страна без повторов', () => {
+    const moscow = {
+      id: 524901,
+      name: 'Москва',
+      latitude: 55.75,
+      longitude: 37.62,
+      admin1: 'Москва',
+      country: 'Россия',
+    };
+    expect(parseCitySearch({ results: [moscow, { id: 'битый' }] })).toEqual([
+      { id: 524901, name: 'Москва', area: 'Россия', lat: 55.75, lon: 37.62 },
+    ]);
+    expect(parseCity({ ...moscow, admin1: 'Московская область' })?.area).toBe(
+      'Московская область, Россия',
+    );
+  });
+
+  it('ничего не нашлось — пустой список, странный ответ — null', () => {
+    expect(parseCitySearch({ generationtime_ms: 0.1 })).toEqual([]);
+    expect(parseCitySearch('ошибка')).toBeNull();
+    expect(parseCity({ error: true })).toBeNull();
+  });
+
+  it('мои города из cookie: битые записи, повторы и лишние отбрасываются', () => {
+    expect(parseSavedCities('не список')).toEqual([]);
+    expect(parseSavedCities([PARIS, PARIS, { ...PARIS, id: 2, lat: 500 }, { id: 3 }])).toEqual([
+      PARIS,
+    ]);
+    const many = Array.from({ length: MAX_SAVED_CITIES + 3 }, (_, i) => city(i + 1));
+    expect(parseSavedCities(many)).toHaveLength(MAX_SAVED_CITIES);
+  });
+
+  it('добавить: в конец, повтор не дублируется, больше десяти нельзя', () => {
+    const one = addSavedCity([city(1)], PARIS);
+    expect(one.ok && one.data.map((c) => c.id)).toEqual([1, PARIS.id]);
+    expect(addSavedCity([PARIS], PARIS)).toEqual({ ok: true, data: [PARIS] });
+
+    const full = Array.from({ length: MAX_SAVED_CITIES }, (_, i) => city(i + 1));
+    expect(addSavedCity(full, PARIS)).toEqual({ ok: false, error: 'LIMIT' });
+  });
+
+  it('удалить и показать: название ведёт на погоду в городе', () => {
+    expect(removeSavedCity([city(1), PARIS], PARIS.id)).toEqual([city(1)]);
+    expect(geoPlace(PARIS)).toMatchObject({ name: 'Париж', href: '/weather?city=2988507' });
   });
 });
