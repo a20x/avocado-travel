@@ -35,7 +35,7 @@ flowchart LR
 | Окружение | Docker Compose | PostgreSQL на ноутбуке одной командой |
 | Хостинг | Render (Docker) + Neon (PostgreSQL) + cron-job.org | Бесплатно без срока, открывается из России. [ADR-0009](adr/0009-hosting-render-neon.md), [09-deploy.md](09-deploy.md) |
 | Пакетный менеджер | pnpm | Быстрее и строже npm |
-| CI | GitHub Actions | Проверки на каждый PR |
+| CI | GitHub Actions | Проверки на каждый PR; ручной workflow «Боевая база» — миграции и демо-данные на хостинге ([09-deploy.md](09-deploy.md)) |
 
 Версии фиксируются в `package.json` на момент старта проекта (актуальные стабильные). Node.js — текущая LTS.
 
