@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import {
+  choosePhrase,
   expectNoHorizontalScroll,
   expectValidHtml,
   fillRegistration,
@@ -25,11 +26,11 @@ test('поиск → бронь → оплата → кабинет → отме
 
   // 1. Гость на главной заполняет фразу: «Я лечу из Москвы в … , нас 2, класс эконом».
   await page.goto('/');
-  await page.getByLabel('Откуда', { exact: true }).selectOption('moscow');
-  await page.getByLabel('Куда', { exact: true }).selectOption(to.slug);
+  await choosePhrase(page, 'from', 'moscow');
+  await choosePhrase(page, 'to', to.slug);
   await page.getByLabel('Дата вылета').fill(SEARCH_DATE);
-  await page.getByLabel('Сколько пассажиров').selectOption('2');
-  await page.getByLabel('Класс').selectOption('economy');
+  await choosePhrase(page, 'passengers', '2');
+  await choosePhrase(page, 'cabinClass', 'economy');
   await page.getByRole('button', { name: 'Подобрать рейсы' }).click();
 
   // 2. Видит список рейсов на эту дату, может сортировать.

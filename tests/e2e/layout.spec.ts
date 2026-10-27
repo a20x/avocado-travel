@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { HtmlValidate, formatterFactory } from 'html-validate';
+import { HTML_VALIDATE_CONFIG } from './helpers';
 
 test('шапка и подвал есть на странице, главная подсвечена в меню', async ({ page }, testInfo) => {
   await page.goto('/');
@@ -23,6 +24,11 @@ test('на телефоне меню открывается кнопкой', asy
 
   await page.getByRole('banner').locator('summary[aria-label="Меню"]').click();
   await expect(forumLink).toBeVisible();
+
+  // После выбора страницы меню закрывается само — шапка при переходе не перерисовывается.
+  await forumLink.click();
+  await expect(page).toHaveURL('/forum');
+  await expect(forumLink).toBeHidden();
 });
 
 test('меню «Ещё» открывается при наведении и закрывается, когда мышь ушла', async ({
@@ -64,9 +70,7 @@ test('несуществующий адрес — страница 404 в сти
 
   if (testInfo.project.name === 'desktop') {
     const html = await (await request.get('/takoy-stranicy-net')).text();
-    const report = await new HtmlValidate({
-      extends: ['html-validate:standard', 'html-validate:a11y'],
-    }).validateString(html);
+    const report = await new HtmlValidate(HTML_VALIDATE_CONFIG).validateString(html);
     expect(report.valid, formatterFactory('stylish')(report.results)).toBe(true);
   }
 });

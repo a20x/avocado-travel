@@ -8,10 +8,14 @@ export {
   HIGHLIGHT,
   SEARCH_KINDS,
   SEARCH_PAGE_SIZE,
+  SUGGEST_LIMIT,
   describeQuery,
+  exactTitleText,
   normalizeText,
   parseQuery,
   splitHighlights,
+  suggestTerms,
+  toPrefixQuery,
   toWebSearch,
 } from './model';
 export type {
@@ -20,4 +24,5 @@ export type {
   SearchHit,
   SearchKind,
   SearchResults,
+  SearchSuggestion,
 } from './model';

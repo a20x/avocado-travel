@@ -30,6 +30,12 @@ export type SearchHit = {
   snippet: string;
 };
 
+/** Подсказка под строкой поиска: страница, новость или тема форума, куда можно сразу перейти. */
+export type SearchSuggestion = { kind: SearchKind; url: string; title: string };
+
+/** Сколько подсказок показывать: больше в выпадающем списке уже не читают. */
+export const SUGGEST_LIMIT = 7;
+
 export type SearchResults = {
   hits: SearchHit[];
   counts: Record<SearchKind | 'all', number>;
@@ -99,6 +105,36 @@ export function parseQuery(text: string): ParsedQuery {
   }
 
   return groups.filter((group) => group.include.length > 0);
+}
+
+/**
+ * Текст запроса, который можно сравнить с заголовком целиком: одна группа без «НЕ».
+ * По нему раздел «Направления» встаёт первым на запрос «направление» (docs/02-product.md).
+ */
+export function exactTitleText(parsed: ParsedQuery): string | null {
+  const [group, ...rest] = parsed;
+  if (!group || rest.length > 0 || group.exclude.length > 0) return null;
+  return group.include.join(' ');
+}
+
+/**
+ * Слова для подсказок: только буквы и цифры, не больше 5 слов. Операторов в подсказках нет —
+ * человек ещё печатает. null — подсказывать нечего (меньше двух букв).
+ */
+export function suggestTerms(text: string): string[] | null {
+  const words = (normalizeText(text).match(/[\p{L}\p{N}]+/gu) ?? [])
+    .slice(0, 5)
+    .map((word) => word.slice(0, 50));
+  return words.join('').length >= 2 ? words : null;
+}
+
+/**
+ * Запрос по началу слов для `to_tsquery('simple', …)`: «авиа комп» → «авиа:* & комп:*».
+ * Словарь simple не обрезает слова до основы: русский превратил бы «авиа» в «ав».
+ * В словах только буквы и цифры (suggestTerms), поэтому строка безопасна для to_tsquery.
+ */
+export function toPrefixQuery(words: string[]): string {
+  return words.map((word) => `${word}:*`).join(' & ');
 }
 
 const quote = (term: string) => (term.includes(' ') ? `"${term}"` : term);

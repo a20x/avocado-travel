@@ -4,8 +4,8 @@ import { cn } from '@/shared/lib/cn';
 import { buttonClasses } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { DatePicker } from '@/shared/ui/DatePicker';
-import { inlineFieldClasses } from '@/shared/ui/Field';
 import { MAX_PASSENGERS, type SearchQuery } from '../model';
+import { PhraseSelect } from './PhraseSelect';
 
 type SearchPhraseProps = {
   cities: Array<Pick<City, 'slug' | 'nameFrom' | 'nameTo'>>;
@@ -15,53 +15,6 @@ type SearchPhraseProps = {
   minDate: string;
   maxDate: string;
 };
-
-const selectClasses = cn(inlineFieldClasses, 'cursor-pointer appearance-none pr-7');
-
-/** Стрелка списка: рисуется поверх поля, клики проходят насквозь. */
-function Chevron() {
-  return (
-    <span
-      aria-hidden="true"
-      className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[0.5em] text-slate"
-    >
-      ▾
-    </span>
-  );
-}
-
-function PhraseSelect({
-  name,
-  label,
-  defaultValue,
-  options,
-}: {
-  name: string;
-  label: string;
-  defaultValue: string;
-  options: Array<{ value: string; label: string }>;
-}) {
-  return (
-    <span className="relative inline-block max-w-full">
-      <label htmlFor={`phrase-${name}`} className="sr-only">
-        {label}
-      </label>
-      <select
-        id={`phrase-${name}`}
-        name={name}
-        defaultValue={defaultValue}
-        className={selectClasses}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      <Chevron />
-    </span>
-  );
-}
 
 /**
  * Поиск-фраза (docs/06-design.md): «Я лечу из [Москвы] в [Калининград] [14 ноября], нас [2],
