@@ -20,14 +20,24 @@ export function CityWeatherCard({
   area?: string;
   actions?: ReactNode;
 }) {
+  // Заголовок, где город и кнопка — и когда прогноза нет: отметить город можно и тогда.
+  const header = (
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="grid gap-0.5">
+        <h2 id="city-weather-title" className="text-xl">
+          {weather || area !== undefined ? `Погода: ${cityName}` : 'Погода'}
+        </h2>
+        {area ? <p className="text-sm text-slate">{area}</p> : null}
+      </div>
+      {actions}
+    </div>
+  );
+
   if (!weather) {
     return (
       <Card as="section" aria-labelledby="city-weather-title" className="grid gap-2 p-5">
-        <h2 id="city-weather-title" className="text-xl">
-          Погода{area === undefined ? '' : `: ${cityName}`}
-        </h2>
+        {header}
         <p className="text-slate">Прогноз сейчас недоступен — загляните позже.</p>
-        {actions}
       </Card>
     );
   }
@@ -35,15 +45,7 @@ export function CityWeatherCard({
   const now = describeWeather(weather.code);
   return (
     <Card as="section" aria-labelledby="city-weather-title" className="grid gap-4 p-5 md:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="grid gap-0.5">
-          <h2 id="city-weather-title" className="text-xl">
-            Погода: {cityName}
-          </h2>
-          {area ? <p className="text-sm text-slate">{area}</p> : null}
-        </div>
-        {actions}
-      </div>
+      {header}
       <div className="flex flex-wrap items-center gap-4">
         <WeatherIcon kind={now.kind} className="size-14" />
         <div>
