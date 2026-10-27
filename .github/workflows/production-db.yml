@@ -1,0 +1,60 @@
+name: Боевая база
+
+# Запуск вручную: Actions → «Боевая база» → Run workflow (docs/09-deploy.md).
+# Работает на серверах GitHub: из России до базы Neon не достучаться ни напрямую,
+# ни через VPN — провайдер обрывает соединение, а VPN закрывает порт 5432.
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Что сделать
+        type: choice
+        default: migrate
+        options:
+          - migrate
+          - seed
+          - import-feeds
+
+permissions:
+  contents: read
+
+# Два запуска одновременно не пишут в одну базу.
+concurrency:
+  group: production-db
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # Секреты репозитория: Settings → Secrets and variables → Actions.
+      DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+      ADMIN_EMAIL: ${{ secrets.PRODUCTION_ADMIN_EMAIL }}
+      ADMIN_PASSWORD: ${{ secrets.PRODUCTION_ADMIN_PASSWORD }}
+      # Сиду и импорту не нужны, но без них не пройдёт проверка переменных (src/server/env.ts).
+      BETTER_AUTH_SECRET: not-used-by-seed-or-import-0123456789
+      CRON_SECRET: not-used-by-seed-or-import
+      IP_HASH_SALT: not-used-by-seed-or-import
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Структура базы — перед любым действием: уже применённые миграции пропускаются.
+      - run: pnpm db:migrate
+
+      # Стирает заказы, отзывы и сообщения посетителей и загружает демо-данные заново.
+      - if: inputs.action == 'seed'
+        run: pnpm db:seed
+
+      - if: inputs.action == 'seed' || inputs.action == 'import-feeds'
+        run: pnpm job:import-feeds
