@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Схема XML-файла пресс-релизов Avocado Travel (лаба 2). Те же правила, что у JSON Schema
+  press-releases.schema.json и Zod-схемы в src/modules/press/model.ts.
+  Проверка: xmllint -noout -schema press-releases.xsd press-releases.xml
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xml:lang="ru">
+
+  <xs:element name="pressReleases">
+    <xs:annotation>
+      <xs:documentation>Пресс-релизы: от 15 до 20 записей, коды не повторяются.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="release" type="releaseType" minOccurs="15" maxOccurs="20"/>
+      </xs:sequence>
+    </xs:complexType>
+    <xs:unique name="uniqueReleaseId">
+      <xs:selector xpath="release"/>
+      <xs:field xpath="@id"/>
+    </xs:unique>
+  </xs:element>
+
+  <xs:complexType name="releaseType">
+    <xs:annotation>
+      <xs:documentation>Пресс-релиз: семь полей — атрибут id и шесть тегов.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="title">
+        <xs:annotation><xs:documentation>Заголовок.</xs:documentation></xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="10"/>
+            <xs:maxLength value="120"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="date" type="xs:date">
+        <xs:annotation><xs:documentation>Дата публикации, ГГГГ-ММ-ДД.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="category" type="categoryType"/>
+      <xs:element name="author">
+        <xs:annotation><xs:documentation>Автор — сотрудник пресс-службы.</xs:documentation></xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="2"/>
+            <xs:maxLength value="60"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="summary">
+        <xs:annotation><xs:documentation>Короткое описание для списка.</xs:documentation></xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="20"/>
+            <xs:maxLength value="300"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="body">
+        <xs:annotation><xs:documentation>Полный текст, абзацы — через пустую строку.</xs:documentation></xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="50"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:annotation><xs:documentation>Код: «pr-» и три цифры.</xs:documentation></xs:annotation>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="pr-\d{3}"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:simpleType name="categoryType">
+    <xs:annotation>
+      <xs:documentation>
+        Категория: routes — новые направления, service — сервис, partners — партнёры,
+        results — итоги и цифры, company — о компании.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="routes"/>
+      <xs:enumeration value="service"/>
+      <xs:enumeration value="partners"/>
+      <xs:enumeration value="results"/>
+      <xs:enumeration value="company"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

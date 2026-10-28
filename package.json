@@ -26,7 +26,8 @@
     "db:seed": "tsx --conditions=react-server --env-file-if-exists=.env db/seed/index.ts",
     "job:expire-orders": "tsx --conditions=react-server --env-file-if-exists=.env scripts/jobs/expire-orders.ts",
     "job:import-feeds": "tsx --conditions=react-server --env-file-if-exists=.env scripts/jobs/import-feeds.ts",
-    "check:russia": "tsx scripts/check-russia.ts"
+    "check:russia": "tsx scripts/check-russia.ts",
+    "press:xml": "tsx scripts/press-xml.ts"
   },
   "dependencies": {
     "better-auth": "1.7.11",
@@ -39,6 +40,7 @@
     "react-dom": "19.3.1",
     "recharts": "3.10.1",
     "server-only": "0.0.1",
+    "xslt-processor": "5.1.2",
     "zod": "4.6.7"
   },
   "devDependencies": {

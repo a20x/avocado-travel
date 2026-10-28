@@ -140,13 +140,28 @@ erDiagram
 | category | text | |
 | source | enum `site` / `external` | Своя новость или импортированная |
 | external_url | text, null | Ссылка на оригинал для импортированных |
-| external_feed | text, null | Из какой ленты |
+| external_feed | text, null | Из какой ленты — код из `external_feeds` |
 | tags | text[] | Автоматические теги для импортированных |
 | published_at | timestamptz | |
 
 Уникальный индекс по `external_url` — защита от повторного импорта. Адрес новости отрасли — `ext-<лента>-<хэш ссылки>`, рубрика — `aviation` или `travel`. Сид (`pnpm db:seed`) удаляет и пересоздаёт только новости сайта: импортированные новости отрасли — не демо-данные, они сохраняются.
 
 Текст новости — обычный текст, абзацы разделены пустой строкой; HTML не хранится, поэтому санитайзер не нужен. Рубрики своих новостей — `company`, `routes`, `promo`, `service` (список в `src/modules/news/model.ts`). Адрес по умолчанию собирается из заголовка транслитерацией. Новость с `published_at` в будущем посетители не видят, пока дата не наступит.
+
+### `external_feeds` — внешние RSS-ленты
+
+| Поле | Тип | Описание |
+|---|---|---|
+| id | text, первичный ключ | Код ленты: из адреса (`tourdom-ru`), у трёх первых — `aviation21`, `tourdom`, `lenta-travel`. Хранится в `news.external_feed` |
+| name | text | Название источника у новости |
+| url | text, уникальное | Адрес ленты |
+| category | text, `aviation` / `travel` (CHECK) | Рубрика импортированных новостей |
+| created_at | timestamptz | |
+| checked_at | timestamptz, null | Последний импорт |
+| last_error | text, null | Ошибка последнего импорта; null — удачно |
+| last_added | integer | Сколько новостей добавил последний импорт |
+
+Таблица модуля `exchange`. Три ленты, которые раньше были списком в коде, добавляет миграция `0013`, поэтому сид её не трогает. Отключение ленты удаляет её новости через сервис `news`.
 
 ### `guestbook_entries`, `guestbook_stop_words`, `guestbook_banned_hosts`
 

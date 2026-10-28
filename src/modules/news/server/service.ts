@@ -83,6 +83,11 @@ export function pruneIndustryNews(before: Date): Promise<number> {
   return repository.deleteExternalBefore(before);
 }
 
+/** Удаляет новости отключённой внешней ленты (вкладка «RSS», модуль exchange). */
+export function removeIndustryNewsOfFeed(feedId: string): Promise<number> {
+  return repository.deleteExternalByFeed(feedId);
+}
+
 /** Раздел «Новости отрасли»: страница списка, свежие сверху. */
 export async function listIndustryNews(params: { page?: unknown }): Promise<IndustryNewsPage> {
   const page = pageNumber(params.page);

@@ -56,6 +56,9 @@ jobs:
 
       - run: pnpm exec playwright install --with-deps chromium
 
+      # xmllint проверяет XML-файл лабы 2 по схеме XSD (src/modules/press/xml.test.ts).
+      - run: sudo apt-get install -y --no-install-recommends libxml2-utils
+
       - run: pnpm db:migrate
 
       - run: pnpm db:seed

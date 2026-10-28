@@ -1,4 +1,5 @@
-import { INDUSTRY_CATEGORIES, feedById } from '@/modules/exchange';
+import { INDUSTRY_CATEGORIES } from '@/modules/exchange';
+import { getFeedNames } from '@/modules/exchange/server';
 import { NEWS_CATEGORIES, isNewsCategory } from '@/modules/news';
 import { listIndustryNews, listNews } from '@/modules/news/server';
 import { IndustryNewsCard, NewsCard } from '@/modules/news/ui';
@@ -56,7 +57,10 @@ export default async function NewsPage(props: PageProps<'/news'>) {
   );
 
   if (isIndustry) {
-    const { items, page, totalPages } = await listIndustryNews({ page: params.page });
+    const [{ items, page, totalPages }, feedNames] = await Promise.all([
+      listIndustryNews({ page: params.page }),
+      getFeedNames(),
+    ]);
     return (
       <div className="container-site grid gap-6 py-8">
         <h1 className="text-3xl">Новости</h1>
@@ -80,7 +84,9 @@ export default async function NewsPage(props: PageProps<'/news'>) {
               <IndustryNewsCard
                 key={item.id}
                 item={item}
-                sourceName={feedById(item.externalFeed)?.name ?? 'Внешний источник'}
+                sourceName={
+                  (item.externalFeed && feedNames.get(item.externalFeed)) || 'Внешний источник'
+                }
                 categoryLabel={industryLabel(item.category)}
               />
             ))}
