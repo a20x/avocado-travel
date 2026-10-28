@@ -5,3 +5,4 @@ import 'server-only';
 
 export { handlePressData, handlePressSchema } from './server/routes';
 export { getPressView, loadPressReleases } from './server/service';
+export { getXmlTable, handlePressTransform, handlePressXmlFile } from './server/xml';

@@ -172,6 +172,15 @@ export async function deleteExternalBefore(date: Date): Promise<number> {
   return deleted.length;
 }
 
+/** Удаляет все новости одной внешней ленты — когда администратор её отключил. */
+export async function deleteExternalByFeed(feedId: string): Promise<number> {
+  const deleted = await db
+    .delete(news)
+    .where(and(eq(news.source, 'external'), eq(news.externalFeed, feedId)))
+    .returning({ id: news.id });
+  return deleted.length;
+}
+
 /** Страница новостей отрасли, свежие сверху, и их общее число. */
 export async function findIndustryNews(paging: {
   limit: number;

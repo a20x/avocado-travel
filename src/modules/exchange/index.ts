@@ -1,6 +1,7 @@
 /**
  * Модуль exchange: обмен данными с другими приложениями (лаба 4) — публичный REST API,
- * его спецификация OpenAPI и документация. Общий вход: можно импортировать откуда угодно.
+ * его спецификация OpenAPI и документация, ленты JSON Feed и RSS, импорт внешних RSS-лент
+ * (таблица external_feeds) и вкладка «RSS» с общей лентой и выгрузками в CSV, XML и ASCII. Общий вход: можно импортировать откуда угодно.
  * Маршруты — в `@/modules/exchange/server`, компоненты — в `@/modules/exchange/ui` (ADR-0008).
  */
 export {
@@ -36,8 +37,38 @@ export { csvCell, toCsv, toJsonRows } from './csv';
 export type { ExportColumn, ExportTable, ExportValue } from './csv';
 export { analyticsTable, exportFilename, newsTable, scheduleTable } from './exports';
 export type { ApiParameter } from './openapi';
-export { EXTERNAL_FEEDS, INDUSTRY_CATEGORIES, feedById } from './feeds';
-export type { ExternalFeed, IndustryCategory } from './feeds';
+export {
+  INDUSTRY_CATEGORIES,
+  MAX_FEEDS,
+  feedIdFor,
+  feedInputSchema,
+  isPrivateAddress,
+} from './feeds';
+export type { ExternalFeed, ExternalFeedStatus, FeedInput, IndustryCategory } from './feeds';
+export {
+  COMBINED_PAGE_SIZE,
+  COMBINED_SORTS,
+  EXCHANGE_FIELDS,
+  EXCHANGE_FORMATS,
+  EXPORT_LIMIT,
+  asciiValue,
+  combinedAscii,
+  combinedCsv,
+  combinedHref,
+  combinedQuerySchema,
+  combinedWrapped,
+  combinedXml,
+  exportCombined,
+  toRss,
+} from './combined';
+export type {
+  CombinedNewsItem,
+  CombinedQuery,
+  CombinedSort,
+  ExchangeFormat,
+  RssChannel,
+} from './combined';
+export { externalFeeds } from './schema';
 export {
   INDUSTRY_MAX_AGE_DAYS,
   autoTags,

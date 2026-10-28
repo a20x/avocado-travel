@@ -9,13 +9,17 @@ export type NavItem = {
 export const MAIN_NAV: NavItem[] = [
   { href: '/', label: 'Рейсы', alsoActiveOn: ['/flights', '/booking'] },
   { href: '/destinations', label: 'Направления' },
-  { href: '/airlines', label: 'Авиакомпании' },
   { href: '/news', label: 'Новости' },
   { href: '/services', label: 'Сервисы' },
+  // Вкладки лабораторных 2–4 (ADR-0010): преподаватель находит их сразу, без «Ещё».
+  { href: '/xml', label: 'XML' },
+  { href: '/database', label: 'БД' },
+  { href: '/rss', label: 'RSS' },
 ];
 
 /** Пункты меню «Ещё». */
 export const MORE_NAV: NavItem[] = [
+  { href: '/airlines', label: 'Авиакомпании' },
   { href: '/weather', label: 'Погода' },
   { href: '/forum', label: 'Форум' },
   { href: '/guestbook', label: 'Гостевая книга' },
@@ -100,6 +104,21 @@ export const SITE_CONTENTS: ContentsGroup[] = [
   {
     title: 'О проекте',
     items: [
+      {
+        href: '/xml',
+        label: 'XML',
+        description: 'Пресс-релизы из XML-файла: поиск, сортировка, схема XSD и XSL',
+      },
+      {
+        href: '/database',
+        label: 'БД',
+        description: 'Паспорт базы и пять видов запросов с графиками и SQL',
+      },
+      {
+        href: '/rss',
+        label: 'RSS',
+        description: 'RSS-лента, внешние источники и выгрузки в CSV, XML и TXT',
+      },
       {
         href: '/press',
         label: 'Пресс-центр',
