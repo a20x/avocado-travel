@@ -45,7 +45,7 @@ export function DbPassportCard({ passport }: { passport: DbPassport }) {
           О базе данных Avocado Travel
         </h2>
         <p>
-          База сайта продажи авиабилетов: расписание рейсов, заказы и билеты, справочники
+          База сайта продажи авиабилетов: расписание рейсов, заказы и билеты, справочники городов,
           аэропортов, авиакомпаний и самолётов, а также новости, форум, оценки и статистика
           посещений. Данные хранятся на сервере в PostgreSQL; авиакомпании выдуманные, продажи
           демонстрационные.
@@ -68,11 +68,12 @@ export function DbPassportCard({ passport }: { passport: DbPassport }) {
           <strong>Состав:</strong> {passport.tables} таблиц. Рейс — номер, авиакомпания, модель
           самолёта, аэропорты вылета и прилёта, время и цены эконома и бизнеса. Заказ — код брони,
           статус, сумма и время оформления, оплаты или отмены; билет — рейс, класс, место, пассажир
-          и цена. Справочники: {number.format(counts.airports)} аэропортов,{' '}
-          {number.format(counts.airlines)} авиакомпаний. Ещё в базе {number.format(counts.news)}{' '}
-          новостей, {number.format(counts.forumTopics)} тем форума, {number.format(counts.ratings)}{' '}
-          оценок сайта и {number.format(counts.pageViews)} просмотров страниц. Объём относится ко
-          всей базе.
+          и цена. Справочники: {number.format(counts.cities)} городов,{' '}
+          {number.format(counts.airports)} аэропортов, {number.format(counts.airlines)}{' '}
+          авиакомпаний. Ещё в базе {number.format(counts.news)} новостей,{' '}
+          {number.format(counts.forumTopics)} тем форума, {number.format(counts.ratings)} оценок
+          сайта и {number.format(counts.pageViews)} просмотров страниц. Объём относится ко всей
+          базе.
         </p>
         <p>
           <strong>Полнота:</strong> обязательные поля и связи заданы в самой базе (NOT NULL, внешние

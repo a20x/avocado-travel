@@ -2,7 +2,7 @@ import 'server-only';
 import { and, count, countDistinct, desc, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { orders, tickets } from '@/modules/booking';
-import { aircraftModels, airlines, airports } from '@/modules/catalog-data';
+import { aircraftModels, airlines, airports, cities } from '@/modules/catalog-data';
 import { flights } from '@/modules/flights';
 import { db } from '@/server/db';
 import type { RouteSales, SalesTotals } from '../model';
@@ -18,6 +18,9 @@ export type Scope = { range: Range; airline?: string; destination?: string };
 
 const origin = alias(airports, 'origin');
 const destination = alias(airports, 'destination');
+// Названия городов — в таблице cities, аэропорт ссылается на неё по city_slug.
+const originCity = alias(cities, 'origin_city');
+const destinationCity = alias(cities, 'destination_city');
 
 /** Рейс заказа: все билеты заказа — на одном рейсе, берём рейс первого билета и число билетов. */
 const orderFlight = db
@@ -116,16 +119,18 @@ export function findStatusCounts(scope: Scope): Promise<Array<{ status: string; 
 /** Продажи по маршрутам «откуда → куда», самые доходные сверху. */
 export function findRouteSales(scope: Scope): Promise<RouteSales[]> {
   return db
-    .select({ origin: origin.city, destination: destination.city, ...salesColumns })
+    .select({ origin: originCity.name, destination: destinationCity.name, ...salesColumns })
     .from(orders)
     .innerJoin(orderFlight, eq(orderFlight.orderId, orders.id))
     .innerJoin(flights, eq(flights.id, orderFlight.flightId))
     .innerJoin(airlines, eq(airlines.id, flights.airlineId))
     .innerJoin(origin, eq(origin.id, flights.originId))
     .innerJoin(destination, eq(destination.id, flights.destinationId))
+    .innerJoin(originCity, eq(originCity.slug, origin.citySlug))
+    .innerJoin(destinationCity, eq(destinationCity.slug, destination.citySlug))
     .where(ordersWhere(scope, isPaid))
-    .groupBy(origin.city, destination.city)
-    .orderBy(desc(sql`sum(${orders.total})`), origin.city, destination.city);
+    .groupBy(originCity.name, destinationCity.name)
+    .orderBy(desc(sql`sum(${orders.total})`), originCity.name, destinationCity.name);
 }
 
 /** Билеты оплаченных заказов периода — условие к запросам от `tickets` с рейсом. */
@@ -144,15 +149,16 @@ export function findTopDestinations(
   limit: number,
 ): Promise<Array<{ label: string; tickets: number }>> {
   return db
-    .select({ label: destination.city, tickets: count() })
+    .select({ label: destinationCity.name, tickets: count() })
     .from(tickets)
     .innerJoin(orders, eq(orders.id, tickets.orderId))
     .innerJoin(flights, eq(flights.id, tickets.flightId))
     .innerJoin(airlines, eq(airlines.id, flights.airlineId))
     .innerJoin(destination, eq(destination.id, flights.destinationId))
+    .innerJoin(destinationCity, eq(destinationCity.slug, destination.citySlug))
     .where(ticketsWhere(scope))
-    .groupBy(destination.city)
-    .orderBy(desc(count()), destination.city)
+    .groupBy(destinationCity.name)
+    .orderBy(desc(count()), destinationCity.name)
     .limit(limit);
 }
 

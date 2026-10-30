@@ -16,3 +16,4 @@ ADR — короткая запись о важном решении: в как�
 | [0008](0008-module-server-entry.md) | Входы модуля: index.ts, ui.ts и server.ts | Принято |
 | [0009](0009-hosting-render-neon.md) | Хостинг: Render, Neon и cron-job.org | Принято |
 | [0010](0010-lab-tabs-and-xml.md) | Вкладки лабораторных и XML рядом с JSON | Принято |
+| [0011](0011-cities-table.md) | Города — отдельная таблица, справочники правятся в админке | Принято |

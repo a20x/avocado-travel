@@ -99,6 +99,13 @@
       "when": 1793193411203,
       "tag": "0013_external_feeds",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793355676215,
+      "tag": "0014_cities",
+      "breakpoints": true
     }
   ]
 }

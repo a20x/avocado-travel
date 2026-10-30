@@ -17,7 +17,7 @@ import {
 } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { orders, tickets } from '@/modules/booking';
-import { aircraftModels, airlines, airports } from '@/modules/catalog-data';
+import { aircraftModels, airlines, airports, cities } from '@/modules/catalog-data';
 import { flights } from '@/modules/flights';
 import { forumTopics } from '@/modules/forum';
 import { news } from '@/modules/news';
@@ -48,6 +48,9 @@ export type Range = { start?: Date; end?: Date };
 
 const origin = alias(airports, 'origin');
 const destination = alias(airports, 'destination');
+// Названия городов — в таблице cities, аэропорт ссылается на неё по city_slug.
+const originCity = alias(cities, 'origin_city');
+const destinationCity = alias(cities, 'destination_city');
 const num = (query: SQL) => sql`coalesce(${query}, 0)`.mapWith(Number);
 const isPaid = eq(orders.status, 'paid');
 
@@ -102,8 +105,8 @@ export async function searchFlights(
       id: flights.id,
       number: flights.number,
       departsAt: flights.departsAt,
-      origin: origin.city,
-      destination: destination.city,
+      origin: originCity.name,
+      destination: destinationCity.name,
       airline: airlines.name,
       aircraft: sql<string>`${aircraftModels.manufacturer} || ' ' || ${aircraftModels.model}`,
       priceEconomy: flights.priceEconomy,
@@ -115,6 +118,8 @@ export async function searchFlights(
     .innerJoin(aircraftModels, eq(aircraftModels.id, flights.aircraftModelId))
     .innerJoin(origin, eq(origin.id, flights.originId))
     .innerJoin(destination, eq(destination.id, flights.destinationId))
+    .innerJoin(originCity, eq(originCity.slug, origin.citySlug))
+    .innerJoin(destinationCity, eq(destinationCity.slug, destination.citySlug))
     .leftJoin(soldByFlight, eq(soldByFlight.flightId, flights.id))
     .where(where)
     .orderBy(...FLIGHT_ORDER[sort])
@@ -149,8 +154,8 @@ export async function findRoutes(filter: {
   return run(
     db
       .select({
-        origin: origin.city,
-        destination: destination.city,
+        origin: originCity.name,
+        destination: destinationCity.name,
         flights: count(),
         minPrice: num(sql`${min(flights.priceEconomy)}`),
         avgPrice: num(sql`round(${avg(flights.priceEconomy)})`),
@@ -161,6 +166,8 @@ export async function findRoutes(filter: {
       .innerJoin(airlines, eq(airlines.id, flights.airlineId))
       .innerJoin(origin, eq(origin.id, flights.originId))
       .innerJoin(destination, eq(destination.id, flights.destinationId))
+      .innerJoin(originCity, eq(originCity.slug, origin.citySlug))
+      .innerJoin(destinationCity, eq(destinationCity.slug, destination.citySlug))
       .leftJoin(soldByFlight, eq(soldByFlight.flightId, flights.id))
       .where(
         and(
@@ -168,8 +175,8 @@ export async function findRoutes(filter: {
           filter.to ? eq(destination.citySlug, filter.to) : undefined,
         ),
       )
-      .groupBy(origin.city, destination.city)
-      .orderBy(desc(count()), asc(origin.city), asc(destination.city)),
+      .groupBy(originCity.name, destinationCity.name)
+      .orderBy(desc(count()), asc(originCity.name), asc(destinationCity.name)),
   );
 }
 
@@ -269,6 +276,7 @@ export async function readPassport(): Promise<DbPassport> {
     ordersCount,
     ticketsCount,
     airlinesCount,
+    citiesCount,
     airportsCount,
     newsCount,
     topicsCount,
@@ -290,6 +298,7 @@ export async function readPassport(): Promise<DbPassport> {
     countOf(orders),
     countOf(tickets),
     countOf(airlines),
+    countOf(cities),
     countOf(airports),
     countOf(news),
     countOf(forumTopics),
@@ -324,6 +333,7 @@ export async function readPassport(): Promise<DbPassport> {
       orders: ordersCount,
       tickets: ticketsCount,
       airlines: airlinesCount,
+      cities: citiesCount,
       airports: airportsCount,
       news: newsCount,
       forumTopics: topicsCount,

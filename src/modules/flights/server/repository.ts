@@ -1,8 +1,14 @@
 import 'server-only';
-import { and, count, eq, gte, inArray, lt, sql } from 'drizzle-orm';
+import { and, count, countDistinct, eq, gte, inArray, lt, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { orders, ticketHoldsSeat, tickets } from '@/modules/booking';
-import { aircraftModels, airlines, airports, type CabinClass } from '@/modules/catalog-data';
+import {
+  aircraftModels,
+  airlines,
+  airports,
+  cities,
+  type CabinClass,
+} from '@/modules/catalog-data';
 import { db } from '@/server/db';
 import { flights } from '../schema';
 import type { RouteStatRow } from '../routes';
@@ -11,6 +17,9 @@ import type { FlightRow } from '../search';
 // Таблица аэропортов нужна дважды — для вылета и прилёта, поэтому у каждой копии своё имя.
 const origin = alias(airports, 'origin');
 const destination = alias(airports, 'destination');
+// Названия городов — в таблице cities, аэропорт ссылается на неё по city_slug.
+const originCity = alias(cities, 'origin_city');
+const destinationCity = alias(cities, 'destination_city');
 
 type CandidateFilter = {
   originCitySlug: string;
@@ -45,14 +54,14 @@ const flightColumns = {
   origin: {
     iata: origin.iata,
     name: origin.name,
-    city: origin.city,
+    city: originCity.name,
     citySlug: origin.citySlug,
     timezone: origin.timezone,
   },
   destination: {
     iata: destination.iata,
     name: destination.name,
-    city: destination.city,
+    city: destinationCity.name,
     citySlug: destination.citySlug,
     timezone: destination.timezone,
   },
@@ -65,7 +74,9 @@ function selectFlights() {
     .innerJoin(airlines, eq(flights.airlineId, airlines.id))
     .innerJoin(aircraftModels, eq(flights.aircraftModelId, aircraftModels.id))
     .innerJoin(origin, eq(flights.originId, origin.id))
-    .innerJoin(destination, eq(flights.destinationId, destination.id));
+    .innerJoin(destination, eq(flights.destinationId, destination.id))
+    .innerJoin(originCity, eq(originCity.slug, origin.citySlug))
+    .innerJoin(destinationCity, eq(destinationCity.slug, destination.citySlug));
 }
 
 /** Рейсы между городами в промежутке времени, вместе с авиакомпанией, самолётом и аэропортами. */
@@ -106,9 +117,9 @@ export function findRouteStats(filter: RouteStatFilter): Promise<RouteStatRow[]>
   return db
     .select({
       originSlug: origin.citySlug,
-      originCity: origin.city,
+      originCity: originCity.name,
       destinationSlug: destination.citySlug,
-      destinationCity: destination.city,
+      destinationCity: destinationCity.name,
       airlineCode: airlines.code,
       airlineName: airlines.name,
       manufacturer: aircraftModels.manufacturer,
@@ -125,6 +136,8 @@ export function findRouteStats(filter: RouteStatFilter): Promise<RouteStatRow[]>
     .innerJoin(aircraftModels, eq(flights.aircraftModelId, aircraftModels.id))
     .innerJoin(origin, eq(flights.originId, origin.id))
     .innerJoin(destination, eq(flights.destinationId, destination.id))
+    .innerJoin(originCity, eq(originCity.slug, origin.citySlug))
+    .innerJoin(destinationCity, eq(destinationCity.slug, destination.citySlug))
     .where(
       and(
         filter.originCitySlug ? eq(origin.citySlug, filter.originCitySlug) : undefined,
@@ -137,9 +150,9 @@ export function findRouteStats(filter: RouteStatFilter): Promise<RouteStatRow[]>
     )
     .groupBy(
       origin.citySlug,
-      origin.city,
+      originCity.name,
       destination.citySlug,
-      destination.city,
+      destinationCity.name,
       airlines.code,
       airlines.name,
       aircraftModels.manufacturer,
@@ -182,4 +195,106 @@ export async function countTakenSeats(
     )
     .groupBy(tickets.flightId);
   return new Map(rows.map((row) => [row.flightId, row.taken]));
+}
+
+/*
+ * Рейсы, которые администратор заводит в админке, и их маршруты.
+ */
+
+type NewFlight = typeof flights.$inferInsert;
+
+/** Номера рейсов авиакомпании — чтобы выдать следующий свободный. */
+export async function findFlightNumbers(airlineId: number): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ number: flights.number })
+    .from(flights)
+    .where(eq(flights.airlineId, airlineId));
+  return rows.map((row) => row.number);
+}
+
+export async function insertFlights(rows: NewFlight[]): Promise<void> {
+  // Пачками: в одном запросе PostgreSQL принимает не больше 65 535 параметров.
+  await db.transaction(async (tx) => {
+    for (let i = 0; i < rows.length; i += 1000) {
+      await tx.insert(flights).values(rows.slice(i, i + 1000));
+    }
+  });
+}
+
+/** Билетов на каждом рейсе — любых, и отменённых: на них ссылаются заказы. */
+const ticketsByFlight = db
+  .select({ flightId: tickets.flightId, tickets: count().as('tickets') })
+  .from(tickets)
+  .groupBy(tickets.flightId)
+  .as('tickets_by_flight');
+
+export type AdminRouteFilter = { city?: string; airline?: string };
+
+/** Маршруты «авиакомпания: аэропорт → аэропорт»: число рейсов, период, проданные билеты. */
+export function findAdminRoutes(filter: AdminRouteFilter) {
+  return db
+    .select({
+      airlineCode: airlines.code,
+      airlineName: airlines.name,
+      originIata: origin.iata,
+      originCity: originCity.name,
+      destinationIata: destination.iata,
+      destinationCity: destinationCity.name,
+      flights: count(),
+      first: sql<Date>`min(${flights.departsAt})`.mapWith(flights.departsAt),
+      last: sql<Date>`max(${flights.departsAt})`.mapWith(flights.departsAt),
+      tickets: sql<number>`coalesce(sum(${ticketsByFlight.tickets}), 0)`.mapWith(Number),
+    })
+    .from(flights)
+    .innerJoin(airlines, eq(flights.airlineId, airlines.id))
+    .innerJoin(origin, eq(flights.originId, origin.id))
+    .innerJoin(destination, eq(flights.destinationId, destination.id))
+    .innerJoin(originCity, eq(originCity.slug, origin.citySlug))
+    .innerJoin(destinationCity, eq(destinationCity.slug, destination.citySlug))
+    .leftJoin(ticketsByFlight, eq(ticketsByFlight.flightId, flights.id))
+    .where(
+      and(
+        filter.city
+          ? or(eq(origin.citySlug, filter.city), eq(destination.citySlug, filter.city))
+          : undefined,
+        filter.airline ? eq(airlines.code, filter.airline) : undefined,
+      ),
+    )
+    .groupBy(
+      airlines.code,
+      airlines.name,
+      origin.iata,
+      originCity.name,
+      destination.iata,
+      destinationCity.name,
+    );
+}
+
+export type RouteKey = { airlineId: number; originId: number; destinationId: number };
+
+function routeWhere(route: RouteKey) {
+  return and(
+    eq(flights.airlineId, route.airlineId),
+    eq(flights.originId, route.originId),
+    eq(flights.destinationId, route.destinationId),
+  );
+}
+
+/** Рейсов маршрута и билетов на них. */
+export async function countRoute(route: RouteKey): Promise<{ flights: number; tickets: number }> {
+  const [row] = await db
+    .select({
+      flights: countDistinct(flights.id),
+      tickets: count(tickets.id),
+    })
+    .from(flights)
+    .leftJoin(tickets, eq(tickets.flightId, flights.id))
+    .where(routeWhere(route));
+  return row ?? { flights: 0, tickets: 0 };
+}
+
+/** Удаляет все рейсы маршрута; сколько удалено. Билетов на них быть не должно. */
+export async function deleteRoute(route: RouteKey): Promise<number> {
+  const deleted = await db.delete(flights).where(routeWhere(route)).returning({ id: flights.id });
+  return deleted.length;
 }

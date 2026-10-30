@@ -1,36 +1,61 @@
-import { aircraftModels, airlines, airports } from '@/modules/catalog-data';
+import { aircraftModels, airlines, airports, cities } from '@/modules/catalog-data';
 import type { Db } from './db';
 
+type NewCity = typeof cities.$inferInsert;
 type NewAirport = typeof airports.$inferInsert;
 type NewAirline = typeof airlines.$inferInsert;
 type NewAircraftModel = typeof aircraftModels.$inferInsert;
 
 const RU = 'Россия';
 
-// 15 российских и 5 зарубежных аэропортов (docs/04-data-model.md). У каждого города
-// есть иллюстрация public/images/destinations/<city_slug>.svg.
+// Города сети: названия с падежными формами для поиска-фразы («из Москвы в Казань») и описания
+// для страниц направлений. У каждого есть иллюстрация public/images/destinations/<slug>.svg.
+// Новые города администратор заводит в админке (/admin/cities).
+// prettier-ignore
+const CITIES: NewCity[] = [
+  { slug: 'moscow', name: 'Москва', nameFrom: 'Москвы', nameTo: 'Москву', country: RU, image: '/images/destinations/moscow.svg', description: 'Столица и главный узел нашей сети: отсюда есть прямые рейсы во все города. Три аэропорта — Шереметьево, Внуково и Домодедово, поэтому при покупке билета стоит смотреть, из какого именно вылетает рейс.' },
+  { slug: 'saint-petersburg', name: 'Санкт-Петербург', nameFrom: 'Санкт-Петербурга', nameTo: 'Санкт-Петербург', country: RU, image: '/images/destinations/saint-petersburg.svg', description: 'Город белых ночей, разводных мостов и Эрмитажа. Пулково — второй по числу рейсов аэропорт сети: прямые перелёты в крупные города России и за рубеж.' },
+  { slug: 'kaliningrad', name: 'Калининград', nameFrom: 'Калининграда', nameTo: 'Калининград', country: RU, image: '/images/destinations/kaliningrad.svg', description: 'Самый западный регион страны: Балтийское море, Куршская коса и янтарь. Из-за расположения добраться сюда проще всего самолётом.' },
+  { slug: 'sochi', name: 'Сочи', nameFrom: 'Сочи', nameTo: 'Сочи', country: RU, image: '/images/destinations/sochi.svg', description: 'Курорт на два сезона: летом — море, зимой — горнолыжная Красная Поляна. Рейсы в Сочи есть почти из всех городов сети.' },
+  { slug: 'kazan', name: 'Казань', nameFrom: 'Казани', nameTo: 'Казань', country: RU, image: '/images/destinations/kazan.svg', description: 'Столица Татарстана, где рядом стоят мечеть Кул-Шариф и Благовещенский собор. Удобна для поездки на выходные: из Москвы лететь меньше двух часов.' },
+  { slug: 'vladivostok', name: 'Владивосток', nameFrom: 'Владивостока', nameTo: 'Владивосток', country: RU, image: '/images/destinations/vladivostok.svg', description: 'Город на берегу Тихого океана в конце Транссиба. Самый дальний город сети внутри страны — девять часов полёта из Москвы.' },
+  { slug: 'yekaterinburg', name: 'Екатеринбург', nameFrom: 'Екатеринбурга', nameTo: 'Екатеринбург', country: RU, image: '/images/destinations/yekaterinburg.svg', description: 'Столица Урала на границе Европы и Азии. Деловой город с конструктивистской архитектурой и прямыми рейсами в Сочи и Дубай.' },
+  { slug: 'novosibirsk', name: 'Новосибирск', nameFrom: 'Новосибирска', nameTo: 'Новосибирск', country: RU, image: '/images/destinations/novosibirsk.svg', description: 'Крупнейший город Сибири и пересадочный узел на востоке сети. Отсюда летают в Пекин, Ташкент и соседние сибирские города.' },
+  { slug: 'samara', name: 'Самара', nameFrom: 'Самары', nameTo: 'Самару', country: RU, image: '/images/destinations/samara.svg', description: 'Волжский город с самой длинной в стране набережной. Рейсы в Москву каждый день и в Сочи несколько раз в неделю.' },
+  { slug: 'ufa', name: 'Уфа', nameFrom: 'Уфы', nameTo: 'Уфу', country: RU, image: '/images/destinations/ufa.svg', description: 'Столица Башкортостана на высоком берегу реки Белой. Рядом — Уральские горы и десятки озёр.' },
+  { slug: 'krasnoyarsk', name: 'Красноярск', nameFrom: 'Красноярска', nameTo: 'Красноярск', country: RU, image: '/images/destinations/krasnoyarsk.svg', description: 'Город на Енисее рядом с заповедником «Столбы». Прямые рейсы в Москву, Новосибирск и Иркутск.' },
+  { slug: 'irkutsk', name: 'Иркутск', nameFrom: 'Иркутска', nameTo: 'Иркутск', country: RU, image: '/images/destinations/irkutsk.svg', description: 'Ворота к Байкалу: до озера около часа на машине. Связан рейсами с Москвой, Красноярском и Владивостоком.' },
+  { slug: 'mineralnye-vody', name: 'Минеральные Воды', nameFrom: 'Минеральных Вод', nameTo: 'Минеральные Воды', country: RU, image: '/images/destinations/mineralnye-vody.svg', description: 'Воздушные ворота Кавказских Минеральных Вод — Пятигорска, Кисловодска и Ессентуков. Сюда едут на лечение и в горы.' },
+  { slug: 'istanbul', name: 'Стамбул', nameFrom: 'Стамбула', nameTo: 'Стамбул', country: 'Турция', image: '/images/destinations/istanbul.svg', description: 'Город на двух континентах по берегам Босфора. Летаем из Москвы, Санкт-Петербурга и Казани.' },
+  { slug: 'dubai', name: 'Дубай', nameFrom: 'Дубая', nameTo: 'Дубай', country: 'ОАЭ', image: '/images/destinations/dubai.svg', description: 'Небоскрёбы, пустыня и тёплое море круглый год. Самый популярный зарубежный курорт в нашей сети.' },
+  { slug: 'yerevan', name: 'Ереван', nameFrom: 'Еревана', nameTo: 'Ереван', country: 'Армения', image: '/images/destinations/yerevan.svg', description: 'Один из древнейших городов мира с видом на Арарат. Перелёт из Москвы — около трёх часов.' },
+  { slug: 'tashkent', name: 'Ташкент', nameFrom: 'Ташкента', nameTo: 'Ташкент', country: 'Узбекистан', image: '/images/destinations/tashkent.svg', description: 'Столица Узбекистана: восточные базары, голубые купола и плов. Отсюда удобно ехать в Самарканд и Бухару.' },
+  { slug: 'beijing', name: 'Пекин', nameFrom: 'Пекина', nameTo: 'Пекин', country: 'Китай', image: '/images/destinations/beijing.svg', description: 'Столица Китая: Запретный город, храм Неба и Великая стена в часе езды. Летаем из Москвы и Новосибирска.' },
+];
+
+// 15 российских и 5 зарубежных аэропортов (docs/04-data-model.md); город — по citySlug.
 // prettier-ignore
 const AIRPORTS: NewAirport[] = [
-  { iata: 'SVO', name: 'Шереметьево', city: 'Москва', citySlug: 'moscow', country: RU, lat: 55.9726, lon: 37.4146, timezone: 'Europe/Moscow' },
-  { iata: 'VKO', name: 'Внуково', city: 'Москва', citySlug: 'moscow', country: RU, lat: 55.5915, lon: 37.2615, timezone: 'Europe/Moscow' },
-  { iata: 'DME', name: 'Домодедово', city: 'Москва', citySlug: 'moscow', country: RU, lat: 55.4088, lon: 37.9063, timezone: 'Europe/Moscow' },
-  { iata: 'LED', name: 'Пулково', city: 'Санкт-Петербург', citySlug: 'saint-petersburg', country: RU, lat: 59.8003, lon: 30.2625, timezone: 'Europe/Moscow' },
-  { iata: 'KGD', name: 'Храброво', city: 'Калининград', citySlug: 'kaliningrad', country: RU, lat: 54.89, lon: 20.5926, timezone: 'Europe/Kaliningrad' },
-  { iata: 'AER', name: 'Сочи', city: 'Сочи', citySlug: 'sochi', country: RU, lat: 43.4499, lon: 39.9566, timezone: 'Europe/Moscow' },
-  { iata: 'KZN', name: 'Казань', city: 'Казань', citySlug: 'kazan', country: RU, lat: 55.6062, lon: 49.2787, timezone: 'Europe/Moscow' },
-  { iata: 'VVO', name: 'Кневичи', city: 'Владивосток', citySlug: 'vladivostok', country: RU, lat: 43.399, lon: 132.148, timezone: 'Asia/Vladivostok' },
-  { iata: 'SVX', name: 'Кольцово', city: 'Екатеринбург', citySlug: 'yekaterinburg', country: RU, lat: 56.7431, lon: 60.8027, timezone: 'Asia/Yekaterinburg' },
-  { iata: 'OVB', name: 'Толмачёво', city: 'Новосибирск', citySlug: 'novosibirsk', country: RU, lat: 55.0126, lon: 82.6507, timezone: 'Asia/Novosibirsk' },
-  { iata: 'KUF', name: 'Курумоч', city: 'Самара', citySlug: 'samara', country: RU, lat: 53.5049, lon: 50.1643, timezone: 'Europe/Samara' },
-  { iata: 'UFA', name: 'Уфа', city: 'Уфа', citySlug: 'ufa', country: RU, lat: 54.5575, lon: 55.8744, timezone: 'Asia/Yekaterinburg' },
-  { iata: 'KJA', name: 'Емельяново', city: 'Красноярск', citySlug: 'krasnoyarsk', country: RU, lat: 56.1729, lon: 92.4933, timezone: 'Asia/Krasnoyarsk' },
-  { iata: 'IKT', name: 'Иркутск', city: 'Иркутск', citySlug: 'irkutsk', country: RU, lat: 52.268, lon: 104.389, timezone: 'Asia/Irkutsk' },
-  { iata: 'MRV', name: 'Минеральные Воды', city: 'Минеральные Воды', citySlug: 'mineralnye-vody', country: RU, lat: 44.2251, lon: 43.0819, timezone: 'Europe/Moscow' },
-  { iata: 'IST', name: 'Стамбул', city: 'Стамбул', citySlug: 'istanbul', country: 'Турция', lat: 41.2753, lon: 28.7519, timezone: 'Europe/Istanbul' },
-  { iata: 'DXB', name: 'Дубай', city: 'Дубай', citySlug: 'dubai', country: 'ОАЭ', lat: 25.2532, lon: 55.3657, timezone: 'Asia/Dubai' },
-  { iata: 'EVN', name: 'Звартноц', city: 'Ереван', citySlug: 'yerevan', country: 'Армения', lat: 40.1473, lon: 44.3959, timezone: 'Asia/Yerevan' },
-  { iata: 'TAS', name: 'Ташкент', city: 'Ташкент', citySlug: 'tashkent', country: 'Узбекистан', lat: 41.2579, lon: 69.2812, timezone: 'Asia/Tashkent' },
-  { iata: 'PEK', name: 'Шоуду', city: 'Пекин', citySlug: 'beijing', country: 'Китай', lat: 40.0799, lon: 116.6031, timezone: 'Asia/Shanghai' },
+  { iata: 'SVO', name: 'Шереметьево', citySlug: 'moscow', lat: 55.9726, lon: 37.4146, timezone: 'Europe/Moscow' },
+  { iata: 'VKO', name: 'Внуково', citySlug: 'moscow', lat: 55.5915, lon: 37.2615, timezone: 'Europe/Moscow' },
+  { iata: 'DME', name: 'Домодедово', citySlug: 'moscow', lat: 55.4088, lon: 37.9063, timezone: 'Europe/Moscow' },
+  { iata: 'LED', name: 'Пулково', citySlug: 'saint-petersburg', lat: 59.8003, lon: 30.2625, timezone: 'Europe/Moscow' },
+  { iata: 'KGD', name: 'Храброво', citySlug: 'kaliningrad', lat: 54.89, lon: 20.5926, timezone: 'Europe/Kaliningrad' },
+  { iata: 'AER', name: 'Сочи', citySlug: 'sochi', lat: 43.4499, lon: 39.9566, timezone: 'Europe/Moscow' },
+  { iata: 'KZN', name: 'Казань', citySlug: 'kazan', lat: 55.6062, lon: 49.2787, timezone: 'Europe/Moscow' },
+  { iata: 'VVO', name: 'Кневичи', citySlug: 'vladivostok', lat: 43.399, lon: 132.148, timezone: 'Asia/Vladivostok' },
+  { iata: 'SVX', name: 'Кольцово', citySlug: 'yekaterinburg', lat: 56.7431, lon: 60.8027, timezone: 'Asia/Yekaterinburg' },
+  { iata: 'OVB', name: 'Толмачёво', citySlug: 'novosibirsk', lat: 55.0126, lon: 82.6507, timezone: 'Asia/Novosibirsk' },
+  { iata: 'KUF', name: 'Курумоч', citySlug: 'samara', lat: 53.5049, lon: 50.1643, timezone: 'Europe/Samara' },
+  { iata: 'UFA', name: 'Уфа', citySlug: 'ufa', lat: 54.5575, lon: 55.8744, timezone: 'Asia/Yekaterinburg' },
+  { iata: 'KJA', name: 'Емельяново', citySlug: 'krasnoyarsk', lat: 56.1729, lon: 92.4933, timezone: 'Asia/Krasnoyarsk' },
+  { iata: 'IKT', name: 'Иркутск', citySlug: 'irkutsk', lat: 52.268, lon: 104.389, timezone: 'Asia/Irkutsk' },
+  { iata: 'MRV', name: 'Минеральные Воды', citySlug: 'mineralnye-vody', lat: 44.2251, lon: 43.0819, timezone: 'Europe/Moscow' },
+  { iata: 'IST', name: 'Стамбул', citySlug: 'istanbul', lat: 41.2753, lon: 28.7519, timezone: 'Europe/Istanbul' },
+  { iata: 'DXB', name: 'Дубай', citySlug: 'dubai', lat: 25.2532, lon: 55.3657, timezone: 'Asia/Dubai' },
+  { iata: 'EVN', name: 'Звартноц', citySlug: 'yerevan', lat: 40.1473, lon: 44.3959, timezone: 'Asia/Yerevan' },
+  { iata: 'TAS', name: 'Ташкент', citySlug: 'tashkent', lat: 41.2579, lon: 69.2812, timezone: 'Asia/Tashkent' },
+  { iata: 'PEK', name: 'Шоуду', citySlug: 'beijing', lat: 40.0799, lon: 116.6031, timezone: 'Asia/Shanghai' },
 ];
 
 // Авиакомпании выдуманные: названия, коды и цвета — из public/images/README.md.
@@ -56,7 +81,10 @@ const AIRCRAFT_MODELS: NewAircraftModel[] = [
 
 /** Вставляет справочники и возвращает строки с id — на них ссылаются рейсы. */
 export async function seedCatalogData(db: Db) {
+  // Города — первыми: на них ссылаются аэропорты.
+  const cityRows = await db.insert(cities).values(CITIES).returning();
   return {
+    cities: cityRows,
     airports: await db.insert(airports).values(AIRPORTS).returning(),
     airlines: await db.insert(airlines).values(AIRLINES).returning(),
     aircraftModels: await db.insert(aircraftModels).values(AIRCRAFT_MODELS).returning(),

@@ -5,10 +5,20 @@
 import 'server-only';
 
 export {
+  createAirline,
+  createCity,
+  deleteAirline,
+  deleteCity,
+  getAirlineForEdit,
   getCity,
+  getCityForEdit,
   listAircraftModels,
   listAirlines,
+  listAirlinesForAdmin,
   listAirports,
   listAirportsInCity,
   listCities,
+  listCitiesForAdmin,
+  updateAirline,
+  updateCity,
 } from './server/service';

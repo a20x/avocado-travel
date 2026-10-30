@@ -1,17 +1,16 @@
-import type { Airport } from './model';
+import type { SearchDocumentInput } from '@/modules/search';
+import type { AirportRecord, CityRecord } from './model';
 
 /**
- * Города — не отдельная таблица: город собирается из аэропортов с одинаковым `citySlug`.
- * Описания и падежные формы названий — редакционный текст, он меняется вместе с кодом,
- * поэтому хранится здесь, а не в базе (docs/04-data-model.md).
+ * Город для страниц сайта: запись таблицы `cities` вместе с аэропортами города
+ * (docs/04-data-model.md). Названия, падежные формы и описания заводит администратор.
  */
-
 export type City = {
   slug: string;
   name: string;
   country: string;
   timezone: string;
-  airports: Array<Pick<Airport, 'iata' | 'name'>>;
+  airports: Array<Pick<AirportRecord, 'iata' | 'name'>>;
   /** Координаты первого аэропорта города — для погоды и карты. */
   lat: number;
   lon: number;
@@ -24,78 +23,47 @@ export type City = {
   image: string;
 };
 
-// prettier-ignore
-const DESCRIPTIONS: Record<string, string> = {
-  moscow: 'Столица и главный узел нашей сети: отсюда есть прямые рейсы во все города. Три аэропорта — Шереметьево, Внуково и Домодедово, поэтому при покупке билета стоит смотреть, из какого именно вылетает рейс.',
-  'saint-petersburg': 'Город белых ночей, разводных мостов и Эрмитажа. Пулково — второй по числу рейсов аэропорт сети: прямые перелёты в крупные города России и за рубеж.',
-  kaliningrad: 'Самый западный регион страны: Балтийское море, Куршская коса и янтарь. Из-за расположения добраться сюда проще всего самолётом.',
-  sochi: 'Курорт на два сезона: летом — море, зимой — горнолыжная Красная Поляна. Рейсы в Сочи есть почти из всех городов сети.',
-  kazan: 'Столица Татарстана, где рядом стоят мечеть Кул-Шариф и Благовещенский собор. Удобна для поездки на выходные: из Москвы лететь меньше двух часов.',
-  vladivostok: 'Город на берегу Тихого океана в конце Транссиба. Самый дальний город сети внутри страны — девять часов полёта из Москвы.',
-  yekaterinburg: 'Столица Урала на границе Европы и Азии. Деловой город с конструктивистской архитектурой и прямыми рейсами в Сочи и Дубай.',
-  novosibirsk: 'Крупнейший город Сибири и пересадочный узел на востоке сети. Отсюда летают в Пекин, Ташкент и соседние сибирские города.',
-  samara: 'Волжский город с самой длинной в стране набережной. Рейсы в Москву каждый день и в Сочи несколько раз в неделю.',
-  ufa: 'Столица Башкортостана на высоком берегу реки Белой. Рядом — Уральские горы и десятки озёр.',
-  krasnoyarsk: 'Город на Енисее рядом с заповедником «Столбы». Прямые рейсы в Москву, Новосибирск и Иркутск.',
-  irkutsk: 'Ворота к Байкалу: до озера около часа на машине. Связан рейсами с Москвой, Красноярском и Владивостоком.',
-  'mineralnye-vody': 'Воздушные ворота Кавказских Минеральных Вод — Пятигорска, Кисловодска и Ессентуков. Сюда едут на лечение и в горы.',
-  istanbul: 'Город на двух континентах по берегам Босфора. Летаем из Москвы, Санкт-Петербурга и Казани.',
-  dubai: 'Небоскрёбы, пустыня и тёплое море круглый год. Самый популярный зарубежный курорт в нашей сети.',
-  yerevan: 'Один из древнейших городов мира с видом на Арарат. Перелёт из Москвы — около трёх часов.',
-  tashkent: 'Столица Узбекистана: восточные базары, голубые купола и плов. Отсюда удобно ехать в Самарканд и Бухару.',
-  beijing: 'Столица Китая: Запретный город, храм Неба и Великая стена в часе езды. Летаем из Москвы и Новосибирска.',
-};
+/**
+ * Собирает города с их аэропортами; порядок — как у городов на входе. Город без аэропортов
+ * пропускается: у него нет ни координат, ни рейсов.
+ */
+export function groupCities(cities: CityRecord[], airports: AirportRecord[]): City[] {
+  return cities.flatMap((city) => {
+    const own = airports.filter((airport) => airport.citySlug === city.slug);
+    const [first] = own;
+    if (!first) return [];
+    return [
+      {
+        slug: city.slug,
+        name: city.name,
+        country: city.country,
+        timezone: first.timezone,
+        airports: own.map((airport) => ({ iata: airport.iata, name: airport.name })),
+        lat: first.lat,
+        lon: first.lon,
+        nameFrom: city.nameFrom,
+        nameTo: city.nameTo,
+        description: city.description,
+        image: city.image,
+      },
+    ];
+  });
+}
 
-/** Формы названий для поиска-фразы: «Я лечу из Москвы в Казань». */
-// prettier-ignore
-const FORMS: Record<string, { from: string; to: string }> = {
-  moscow: { from: 'Москвы', to: 'Москву' },
-  'saint-petersburg': { from: 'Санкт-Петербурга', to: 'Санкт-Петербург' },
-  kaliningrad: { from: 'Калининграда', to: 'Калининград' },
-  sochi: { from: 'Сочи', to: 'Сочи' },
-  kazan: { from: 'Казани', to: 'Казань' },
-  vladivostok: { from: 'Владивостока', to: 'Владивосток' },
-  yekaterinburg: { from: 'Екатеринбурга', to: 'Екатеринбург' },
-  novosibirsk: { from: 'Новосибирска', to: 'Новосибирск' },
-  samara: { from: 'Самары', to: 'Самару' },
-  ufa: { from: 'Уфы', to: 'Уфу' },
-  krasnoyarsk: { from: 'Красноярска', to: 'Красноярск' },
-  irkutsk: { from: 'Иркутска', to: 'Иркутск' },
-  'mineralnye-vody': { from: 'Минеральных Вод', to: 'Минеральные Воды' },
-  istanbul: { from: 'Стамбула', to: 'Стамбул' },
-  dubai: { from: 'Дубая', to: 'Дубай' },
-  yerevan: { from: 'Еревана', to: 'Ереван' },
-  tashkent: { from: 'Ташкента', to: 'Ташкент' },
-  beijing: { from: 'Пекина', to: 'Пекин' },
-};
-
-const DEFAULT_IMAGE = '/images/destinations/default.svg';
-
-/** Собирает города из аэропортов; порядок городов — как у первых аэропортов в списке. */
-export function groupCities(airports: Airport[]): City[] {
-  const cities = new Map<string, City>();
-  for (const airport of airports) {
-    const city = cities.get(airport.citySlug);
-    if (city) {
-      city.airports.push({ iata: airport.iata, name: airport.name });
-      continue;
-    }
-    const description = DESCRIPTIONS[airport.citySlug];
-    cities.set(airport.citySlug, {
-      slug: airport.citySlug,
-      name: airport.city,
-      country: airport.country,
-      timezone: airport.timezone,
-      airports: [{ iata: airport.iata, name: airport.name }],
-      lat: airport.lat,
-      lon: airport.lon,
-      // Для города без записанных форм лучше несклоняемое название, чем ошибка.
-      nameFrom: FORMS[airport.citySlug]?.from ?? airport.city,
-      nameTo: FORMS[airport.citySlug]?.to ?? airport.city,
-      description: description ?? '',
-      // Иллюстрации нарисованы для городов с описанием, для остальных — общая картинка.
-      image: description ? `/images/destinations/${airport.citySlug}.svg` : DEFAULT_IMAGE,
-    });
-  }
-  return [...cities.values()];
+/** Страница города для поиска по сайту: её индексируют сид и сервис при правке города. */
+export function citySearchDocument(city: City): SearchDocumentInput {
+  return {
+    kind: 'page',
+    refId: `city:${city.slug}`,
+    url: `/destinations/${city.slug}`,
+    title: `${city.name} — направление`,
+    body: [
+      city.description,
+      `${city.country}. Аэропорты: ${city.airports.map((a) => `${a.name} (${a.iata})`).join(', ')}.`,
+      `Авиабилеты в ${city.nameTo} и из ${city.nameFrom}.`,
+    ]
+      .filter(Boolean)
+      .join(' '),
+    visibleFrom: null,
+  };
 }

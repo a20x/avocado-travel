@@ -122,6 +122,7 @@ export type DbPassport = {
     orders: number;
     tickets: number;
     airlines: number;
+    cities: number;
     airports: number;
     news: number;
     forumTopics: number;

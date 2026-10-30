@@ -18,7 +18,10 @@ test('неизвестный город — страница 404', async ({ page
 test('на странице авиакомпаний есть сравнение и флот', async ({ page }) => {
   await page.goto('/airlines');
   const comparison = page.getByRole('table', { name: 'Авиакомпании на ближайшую неделю' });
-  await expect(comparison.getByRole('row')).toHaveCount(7); // заголовок + 6 авиакомпаний
+  // Шесть авиакомпаний демо-данных; администратор может завести и новые (тест справочников).
+  for (const name of ['Альтэйра', 'Аэрелла', 'Кирра', 'Ластавиа', 'Орнавиа', 'Стрива']) {
+    await expect(comparison.getByRole('row').filter({ hasText: name })).toHaveCount(1);
+  }
   await expect(page.getByRole('table', { name: 'Модели самолётов и вместимость' })).toContainText(
     'Boeing 777-300ER',
   );

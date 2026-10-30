@@ -1,5 +1,11 @@
 import { asc, eq } from 'drizzle-orm';
-import { airlines, airports, groupCities } from '@/modules/catalog-data';
+import {
+  airlines,
+  airports,
+  cities,
+  citySearchDocument,
+  groupCities,
+} from '@/modules/catalog-data';
 import { forumPosts, forumTopics, topicSearchDocument } from '@/modules/forum';
 import { HELP_SECTIONS, helpSearchDocuments } from '@/modules/help';
 import { news, newsSearchDocument } from '@/modules/news';
@@ -44,25 +50,15 @@ const STATIC_PAGES: SearchDocumentInput[] = [
 
 export async function seedSearch(db: Db): Promise<number> {
   // Запросы по очереди: внутри транзакции у сида одно соединение.
-  const airportRows = await db.select().from(airports);
+  const cityRows = await db.select().from(cities);
+  const airportRows = await db.select().from(airports).orderBy(asc(airports.name));
   const airlineRows = await db.select().from(airlines);
   const newsRows = await db.select().from(news).where(eq(news.source, 'site'));
   const topics = await db
     .select({ id: forumTopics.id, title: forumTopics.title })
     .from(forumTopics);
 
-  const cityPages = groupCities(airportRows).map((city) =>
-    page(
-      `city:${city.slug}`,
-      `/destinations/${city.slug}`,
-      `${city.name} — направление`,
-      [
-        city.description,
-        `${city.country}. Аэропорты: ${city.airports.map((a) => `${a.name} (${a.iata})`).join(', ')}.`,
-        `Авиабилеты в ${city.nameTo} и из ${city.nameFrom}.`,
-      ].join(' '),
-    ),
-  );
+  const cityPages = groupCities(cityRows, airportRows).map(citySearchDocument);
 
   const airlinesPage = STATIC_PAGES.find((doc) => doc.refId === 'airlines');
   if (airlinesPage) {

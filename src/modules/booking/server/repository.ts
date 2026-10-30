@@ -1,7 +1,7 @@
 import 'server-only';
 import { and, asc, desc, eq, gt, inArray, lte } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
-import { airlines, airports, type CabinClass } from '@/modules/catalog-data';
+import { airlines, airports, cities, type CabinClass } from '@/modules/catalog-data';
 import { flights } from '@/modules/flights';
 import { db } from '@/server/db';
 import type { OrderDetails } from '../model';
@@ -100,6 +100,9 @@ export async function insertOrder(
 
 const origin = alias(airports, 'origin');
 const destination = alias(airports, 'destination');
+// Названия городов — в таблице cities, аэропорт ссылается на неё по city_slug.
+const originCity = alias(cities, 'origin_city');
+const destinationCity = alias(cities, 'destination_city');
 
 /**
  * Заказы пользователя с билетами и рейсом, новые сверху. С `orderId` — только этот заказ.
@@ -137,9 +140,9 @@ export async function findOrdersForUser(userId: string, orderId?: string): Promi
         departsAt: flights.departsAt,
         arrivesAt: flights.arrivesAt,
       },
-      origin: { city: origin.city, iata: origin.iata, timezone: origin.timezone },
+      origin: { city: originCity.name, iata: origin.iata, timezone: origin.timezone },
       destination: {
-        city: destination.city,
+        city: destinationCity.name,
         iata: destination.iata,
         timezone: destination.timezone,
       },
@@ -149,6 +152,8 @@ export async function findOrdersForUser(userId: string, orderId?: string): Promi
     .innerJoin(airlines, eq(flights.airlineId, airlines.id))
     .innerJoin(origin, eq(flights.originId, origin.id))
     .innerJoin(destination, eq(flights.destinationId, destination.id))
+    .innerJoin(originCity, eq(originCity.slug, origin.citySlug))
+    .innerJoin(destinationCity, eq(destinationCity.slug, destination.citySlug))
     .where(
       inArray(
         tickets.orderId,

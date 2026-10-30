@@ -1,5 +1,10 @@
 import 'server-only';
-import { listAirportsInCity } from '@/modules/catalog-data/server';
+import {
+  listAircraftModels,
+  listAirlines,
+  listAirports,
+  listAirportsInCity,
+} from '@/modules/catalog-data/server';
 import { fail, ok, type Result } from '@/shared/lib/result';
 import { dateInZone, zonedDayRange } from '@/shared/lib/time';
 import { z } from 'zod';
@@ -11,6 +16,16 @@ import {
   type SearchError,
   type SearchResult,
 } from '../model';
+import {
+  distanceKm,
+  flightMinutes,
+  nextFlightNumber,
+  planFlights,
+  schedulePrices,
+  type AdminRoute,
+  type FlightScheduleError,
+  type FlightScheduleInput,
+} from '../schedule';
 import { buildSeatMap } from '../seat-map';
 import {
   summarizeAirlines,
@@ -157,4 +172,89 @@ export async function getFlight(
     seatMap,
     isDeparted: row.departsAt <= now,
   });
+}
+
+/*
+ * Рейсы, которые заводит администратор (раздел «Рейсы» админки). Ввод проверяет схема
+ * flightScheduleSchema, права — action; здесь — правила, которым нужны справочники и база.
+ */
+
+/** Даты в форме рейсов — по Москве, как у остальной админки. */
+const ADMIN_TIMEZONE = 'Europe/Moscow';
+
+/** Заводит рейсы по расписанию (и обратные, если отмечено); сколько рейсов создано. */
+export async function createFlights(
+  input: FlightScheduleInput,
+  now: Date = new Date(),
+): Promise<Result<{ flights: number }, FlightScheduleError>> {
+  const [airlines, airports, models] = await Promise.all([
+    listAirlines(),
+    listAirports(),
+    listAircraftModels(),
+  ]);
+  const airline = airlines.find((item) => item.code === input.airline);
+  if (!airline) return fail('UNKNOWN_AIRLINE');
+  const origin = airports.find((item) => item.iata === input.origin);
+  const destination = airports.find((item) => item.iata === input.destination);
+  if (!origin || !destination) return fail('UNKNOWN_AIRPORT');
+  if (origin.citySlug === destination.citySlug) return fail('SAME_CITY');
+  if (!models.some((model) => model.id === input.aircraftModelId)) return fail('UNKNOWN_AIRCRAFT');
+  if (input.dateFrom < dateInZone(now, ADMIN_TIMEZONE)) return fail('DATE_IN_PAST');
+
+  const km = distanceKm(origin, destination);
+  const number = nextFlightNumber(airline.code, await repository.findFlightNumbers(airline.id));
+  const rows = planFlights(input, {
+    airlineId: airline.id,
+    aircraftModelId: input.aircraftModelId,
+    origin,
+    destination,
+    number: `${airline.code} ${number}`,
+    returnNumber: `${airline.code} ${number + 1}`,
+    durationMinutes: input.durationMinutes ?? flightMinutes(km),
+    prices: schedulePrices(input, km),
+  });
+  if (rows.length === 0) return fail('NO_DATES');
+
+  await repository.insertFlights(rows);
+  return ok({ flights: rows.length });
+}
+
+const filterValue = (value: unknown) =>
+  typeof value === 'string' && /^[a-zA-Z0-9-]{1,80}$/.test(value) ? value : undefined;
+
+/** Маршруты для таблицы админки по алфавиту городов; фильтры — из адреса страницы. */
+export async function listRoutesForAdmin(params: {
+  city?: unknown;
+  airline?: unknown;
+}): Promise<AdminRoute[]> {
+  const rows = await repository.findAdminRoutes({
+    city: filterValue(params.city),
+    airline: filterValue(params.airline),
+  });
+  return rows.sort(
+    (a, b) =>
+      a.originCity.localeCompare(b.originCity, 'ru') ||
+      a.destinationCity.localeCompare(b.destinationCity, 'ru') ||
+      a.airlineName.localeCompare(b.airlineName, 'ru') ||
+      a.originIata.localeCompare(b.originIata),
+  );
+}
+
+/** Удаляет все рейсы маршрута, если на них нет ни одного билета; сколько удалено. */
+export async function deleteRoute(route: {
+  airline: string;
+  origin: string;
+  destination: string;
+}): Promise<Result<{ flights: number }, FlightScheduleError>> {
+  const [airlines, airports] = await Promise.all([listAirlines(), listAirports()]);
+  const airline = airlines.find((item) => item.code === route.airline);
+  const origin = airports.find((item) => item.iata === route.origin);
+  const destination = airports.find((item) => item.iata === route.destination);
+  if (!airline || !origin || !destination) return fail('ROUTE_NOT_FOUND');
+
+  const key = { airlineId: airline.id, originId: origin.id, destinationId: destination.id };
+  const counts = await repository.countRoute(key);
+  if (counts.flights === 0) return fail('ROUTE_NOT_FOUND');
+  if (counts.tickets > 0) return fail('HAS_TICKETS');
+  return ok({ flights: await repository.deleteRoute(key) });
 }

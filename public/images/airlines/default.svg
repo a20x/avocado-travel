@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="t">
+  <title id="t">Авиакомпания</title>
+  <rect width="64" height="64" rx="16" fill="#5E6B73"/>
+  <path fill="#FFFFFF" d="M29 14h6l2 14 13 7v5l-13-3-1 9 5 4v4l-9-2-9 2v-4l5-4-1-9-13 3v-5l13-7z"/>
+</svg>
