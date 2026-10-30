@@ -48,12 +48,17 @@ export function countLinks(tree: CatalogNode[]): number {
   return tree.reduce((sum, node) => sum + node.links.length + countLinks(node.children), 0);
 }
 
-/** Разделы списком с отступами по вложенности — для выпадающих списков формы. */
+/**
+ * Разделы списком с отступами по вложенности — для выпадающих списков формы. Внутри каждого
+ * уровня — по алфавиту: подразделы остаются под своим разделом. Порядок на странице /links
+ * задаёт position, а не этот список.
+ */
 export function flattenSections(
   tree: CatalogNode[],
   depth = 1,
 ): Array<{ id: number; title: string; depth: number }> {
-  return tree.flatMap((node) => [
+  const sorted = [...tree].sort((a, b) => a.title.localeCompare(b.title, 'ru'));
+  return sorted.flatMap((node) => [
     { id: node.id, title: node.title, depth },
     ...flattenSections(node.children, depth + 1),
   ]);

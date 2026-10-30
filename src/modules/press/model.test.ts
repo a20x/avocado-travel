@@ -110,6 +110,14 @@ describe('buildPressView', () => {
     expect(result.items[0]?.dateLabel.replace(/\s/g, ' ')).toBe('1 мая 2026 г.');
     expect(result.categories.find((item) => item.value === 'routes')?.count).toBe(2);
     expect(result.categories.find((item) => item.value === 'service')?.count).toBe(0);
+    // Выпадающий список — по алфавиту.
+    expect(result.categories.map((item) => item.label)).toEqual([
+      'Итоги и цифры',
+      'Новые направления',
+      'О компании',
+      'Партнёры',
+      'Сервис',
+    ]);
     expect(result.authors).toEqual([
       { value: 'Анна Белова', label: 'Анна Белова', count: 2 },
       { value: 'Дмитрий Орлов', label: 'Дмитрий Орлов', count: 1 },

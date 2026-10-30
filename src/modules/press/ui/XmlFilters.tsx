@@ -32,10 +32,9 @@ export function XmlFilters({ view }: { view: XmlTableView }) {
           defaultValue={query.category ?? ''}
           options={[
             { value: '', label: 'Все категории' },
-            ...(Object.keys(PRESS_CATEGORIES) as PressCategory[]).map((key) => ({
-              value: key,
-              label: PRESS_CATEGORIES[key],
-            })),
+            ...(Object.keys(PRESS_CATEGORIES) as PressCategory[])
+              .map((key) => ({ value: key, label: PRESS_CATEGORIES[key] }))
+              .sort((a, b) => a.label.localeCompare(b.label, 'ru')),
           ]}
         />
         <Select

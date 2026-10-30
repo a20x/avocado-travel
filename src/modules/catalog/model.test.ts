@@ -64,6 +64,34 @@ describe('дерево каталога', () => {
     expect(depthOf(sections, 1)).toBe(1);
     expect(depthOf(sections, 99)).toBeNull();
   });
+
+  it('в списке разделов — по алфавиту внутри уровня, подразделы под своим разделом', () => {
+    const named = (id: number, parentId: number | null, title: string) => ({
+      ...section(id, parentId),
+      title,
+    });
+    const tree = buildTree(
+      [
+        named(1, null, 'Путешествия'),
+        named(2, null, 'Авиакомпании и аэропорты'),
+        named(3, 1, 'Погода'),
+        named(4, 1, 'Визы'),
+        named(5, 2, 'Аэропорты'),
+        named(6, 2, 'Авиакомпании'),
+      ],
+      [],
+    );
+    expect(flattenSections(tree).map((s) => s.title)).toEqual([
+      'Авиакомпании и аэропорты',
+      'Авиакомпании',
+      'Аэропорты',
+      'Путешествия',
+      'Визы',
+      'Погода',
+    ]);
+    // Порядок в самом дереве (страница /links) не меняется.
+    expect(tree.map((node) => node.title)).toEqual(['Путешествия', 'Авиакомпании и аэропорты']);
+  });
 });
 
 describe('формы каталога', () => {

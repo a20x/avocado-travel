@@ -21,8 +21,15 @@ export type CampaignFormValues = {
   isEnabled: boolean;
 };
 
-const IMAGE_OPTIONS = Object.entries(AD_IMAGES).map(([value, label]) => ({ value, label }));
-const PLACEMENT_OPTIONS = Object.entries(PLACEMENTS).map(([value, label]) => ({ value, label }));
+// Выпадающие списки сайта — по алфавиту.
+const byLabel = (a: { label: string }, b: { label: string }) =>
+  a.label.localeCompare(b.label, 'ru');
+const IMAGE_OPTIONS = Object.entries(AD_IMAGES)
+  .map(([value, label]) => ({ value, label }))
+  .sort(byLabel);
+const PLACEMENT_OPTIONS = Object.entries(PLACEMENTS)
+  .map(([value, label]) => ({ value, label }))
+  .sort(byLabel);
 
 /** Форма кампании в админке: создание и правка. */
 export function CampaignForm({ id, initial }: { id?: number; initial: CampaignFormValues }) {

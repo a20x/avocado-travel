@@ -30,10 +30,9 @@ export function AddFeedForm() {
         <Select
           name="category"
           label="Рубрика"
-          options={(Object.keys(INDUSTRY_CATEGORIES) as IndustryCategory[]).map((key) => ({
-            value: key,
-            label: INDUSTRY_CATEGORIES[key],
-          }))}
+          options={(Object.keys(INDUSTRY_CATEGORIES) as IndustryCategory[])
+            .map((key) => ({ value: key, label: INDUSTRY_CATEGORIES[key] }))
+            .sort((a, b) => a.label.localeCompare(b.label, 'ru'))}
         />
       </div>
       <div className="flex flex-wrap items-center gap-4">
