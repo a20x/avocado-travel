@@ -5,6 +5,8 @@ import {
   htmlToText,
   linkHash,
   mentionsRealAirline,
+  INDUSTRY_TOTAL,
+  industryQuota,
   normalizeLink,
   prepareIndustryNews,
   summarize,
@@ -209,11 +211,38 @@ describe('prepareIndustryNews', () => {
       now,
       seen,
     );
-    expect(report.skipped).toEqual({ invalid: 2, old: 1, airline: 1, duplicate: 2 });
+    expect(report.skipped).toEqual({ invalid: 2, old: 1, airline: 1, duplicate: 2, limit: 0 });
+    // От новых к старым: дата из будущего стала «сейчас» — это самая свежая.
     expect(report.drafts.map((draft) => draft.externalUrl)).toEqual([
-      'https://example.org/1',
       'https://example.org/future',
+      'https://example.org/1',
     ]);
-    expect(report.drafts[1]?.publishedAt).toEqual(now);
+    expect(report.drafts[0]?.publishedAt).toEqual(now);
+  });
+
+  it('берёт только самые свежие новости в пределах доли ленты', () => {
+    const items = [1, 5, 3, 4, 2].map((day) =>
+      item({
+        link: `https://example.org/${day}`,
+        publishedAt: new Date(`2026-10-${10 + day}T12:00:00Z`),
+      }),
+    );
+    const report = prepareIndustryNews(feed, items, now, new Set(), 2);
+    expect(report.drafts.map((draft) => draft.externalUrl)).toEqual([
+      'https://example.org/5',
+      'https://example.org/4',
+    ]);
+    expect(report.skipped.limit).toBe(3);
+  });
+});
+
+describe('industryQuota', () => {
+  it('30 новостей отрасли — поровну между лентами, хотя бы одна', () => {
+    expect(INDUSTRY_TOTAL).toBe(30);
+    expect(industryQuota(3)).toBe(10);
+    expect(industryQuota(1)).toBe(30);
+    expect(industryQuota(4)).toBe(7);
+    expect(industryQuota(0)).toBe(30);
+    expect(industryQuota(100)).toBe(1);
   });
 });

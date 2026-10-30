@@ -2,7 +2,7 @@ import 'server-only';
 import { and, asc, count, desc, eq, ilike, lte, or, sql, type SQL } from 'drizzle-orm';
 import { news } from '@/modules/news';
 import { db } from '@/server/db';
-import type { CombinedQuery } from '../combined';
+import { MIX_FEEDS, MIX_SITE, type CombinedQuery } from '../combined';
 import type { ExternalFeed, ExternalFeedStatus, IndustryCategory } from '../feeds';
 import { externalFeeds } from '../schema';
 
@@ -90,11 +90,49 @@ export type CombinedRow = {
   publishedAt: Date;
 };
 
+/** Новость сайта — 1, из внешней ленты — 0: для порядка «вперемешку». */
+const isSite = sql`${news.source} = 'site'`;
+
 const ORDER: Record<CombinedQuery['sort'], SQL[]> = {
+  // «Вперемешку» — как mixRank в combined.ts: номер новости внутри своей группы (row_number по
+  // источнику, от новых к старым), умноженный на долю другой группы; при равенстве — сайт выше.
+  mixed: [
+    sql`(row_number() over (partition by ${news.source} order by ${news.publishedAt} desc, ${news.id} desc) - 1) * case when ${isSite} then ${sql.raw(String(MIX_FEEDS))} else ${sql.raw(String(MIX_SITE))} end`,
+    desc(isSite),
+    desc(news.publishedAt),
+    desc(news.id),
+  ],
   new: [desc(news.publishedAt), desc(news.id)],
   old: [asc(news.publishedAt), asc(news.id)],
   title: [asc(news.title), desc(news.publishedAt)],
 };
+
+/** Опубликованные новости сайта (запланированные — ещё нет) и все новости внешних лент. */
+function publishedNews(now: Date) {
+  return or(and(eq(news.source, 'site'), lte(news.publishedAt, now)), eq(news.source, 'external'));
+}
+
+/** Поиск по заголовку и краткому описанию без учёта регистра. */
+function searchNews(q: string) {
+  if (!q) return undefined;
+  // Знаки % и _ в запросе — обычные символы, а не шаблон LIKE.
+  const pattern = `%${q.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
+  return or(ilike(news.title, pattern), ilike(news.summary, pattern));
+}
+
+/** Из чего собрана общая лента под поисковый запрос: новостей сайта и из внешних лент. */
+export async function countCombinedBySource(
+  q: string,
+  now: Date,
+): Promise<{ site: number; external: number }> {
+  const rows = await db
+    .select({ source: news.source, total: count() })
+    .from(news)
+    .where(and(publishedNews(now), searchNews(q)))
+    .groupBy(news.source);
+  const totalOf = (source: string) => rows.find((row) => row.source === source)?.total ?? 0;
+  return { site: totalOf('site'), external: totalOf('external') };
+}
 
 /**
  * Общая лента: опубликованные новости сайта и новости внешних лент. Источник — `site`,
@@ -105,10 +143,7 @@ export async function findCombinedNews(
   paging: { limit: number; offset: number },
   now: Date,
 ): Promise<{ rows: CombinedRow[]; total: number }> {
-  const published = or(
-    and(eq(news.source, 'site'), lte(news.publishedAt, now)),
-    eq(news.source, 'external'),
-  );
+  const published = publishedNews(now);
   const source =
     filter.source === 'all'
       ? undefined
@@ -117,12 +152,7 @@ export async function findCombinedNews(
         : filter.source === 'external'
           ? eq(news.source, 'external')
           : eq(news.externalFeed, filter.source);
-  // Знаки % и _ в запросе — обычные символы, а не шаблон LIKE.
-  const pattern = `%${filter.q.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
-  const search = filter.q
-    ? or(ilike(news.title, pattern), ilike(news.summary, pattern))
-    : undefined;
-  const where = and(published, source, search);
+  const where = and(published, source, searchNews(filter.q));
 
   const [rows, [totals]] = await Promise.all([
     db

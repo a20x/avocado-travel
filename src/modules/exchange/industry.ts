@@ -21,13 +21,25 @@ export type IndustryNewsDraft = {
 
 export type PrepareReport = {
   drafts: IndustryNewsDraft[];
-  skipped: { invalid: number; old: number; airline: number; duplicate: number };
+  /** limit — свежие новости сверх доли ленты: на сайте их всё равно не хранить. */
+  skipped: { invalid: number; old: number; airline: number; duplicate: number; limit: number };
 };
 
 /** Записи старше этого не импортируем, а уже сохранённые — удаляем: раздел про свежие новости. */
 export const INDUSTRY_MAX_AGE_DAYS = 30;
-/** Из одной ленты за раз — не больше, чтобы одна болтливая лента не заняла весь раздел. */
-export const ITEMS_PER_FEED = 30;
+/**
+ * Сколько новостей внешних лент хранится на сайте всего (замечание преподавателя по лабе 4):
+ * иначе за несколько дней их набираются сотни, и новости сайта теряются в общей ленте.
+ * Число делится поровну между лентами, чтобы частая лента не вытеснила редкую.
+ */
+export const INDUSTRY_TOTAL = 30;
+/** Записей ленты, которые разбираются за раз: обычная лента — 20–100 записей. */
+const ITEMS_SCANNED = 100;
+
+/** Доля одной ленты: 30 новостей поровну между подключёнными лентами, хотя бы одна. */
+export function industryQuota(feedCount: number): number {
+  return Math.max(1, Math.floor(INDUSTRY_TOTAL / Math.max(1, feedCount)));
+}
 const SUMMARY_LENGTH = 300;
 
 const NAMED_ENTITIES: Record<string, string> = {
@@ -173,12 +185,14 @@ export function prepareIndustryNews(
   items: FeedItem[],
   now: Date,
   seen: Set<string> = new Set(),
+  /** Доля ленты (industryQuota): берутся самые свежие. */
+  limit: number = INDUSTRY_TOTAL,
 ): PrepareReport {
-  const skipped = { invalid: 0, old: 0, airline: 0, duplicate: 0 };
+  const skipped = { invalid: 0, old: 0, airline: 0, duplicate: 0, limit: 0 };
   const drafts: IndustryNewsDraft[] = [];
   const oldest = now.getTime() - INDUSTRY_MAX_AGE_DAYS * 86_400_000;
 
-  for (const item of items.slice(0, ITEMS_PER_FEED)) {
+  for (const item of items.slice(0, ITEMS_SCANNED)) {
     const title = htmlToText(item.title);
     const link = normalizeLink(item.link);
     if (!title || !link) {
@@ -213,5 +227,9 @@ export function prepareIndustryNews(
       publishedAt,
     });
   }
-  return { drafts, skipped };
+  // Только самые свежие в пределах доли ленты: старые всё равно удалились бы после импорта,
+  // а так они не добавляются заново при каждом обновлении.
+  const newest = drafts.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
+  skipped.limit = Math.max(0, newest.length - limit);
+  return { drafts: newest.slice(0, limit), skipped };
 }

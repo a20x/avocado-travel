@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { plural } from '@/shared/lib/format';
 import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
@@ -40,6 +41,26 @@ function sourceOptions(feeds: ExternalFeedStatus[]) {
       .map((feed) => ({ value: feed.id, label: feed.name }))
       .sort((a, b) => a.label.localeCompare(b.label, 'ru')),
   ];
+}
+
+/**
+ * Из чего собрана общая лента: новости сайта и внешних лент вместе (замечание преподавателя
+ * по лабе 4). Числа — ссылки на выборку по источнику с тем же поисковым запросом.
+ */
+function Composition({ page }: { page: RssPage }) {
+  const { site, external } = page.composition;
+  const total = site + external;
+  const link = (source: string) => combinedHref(page.query, { source, page: 1 });
+  return (
+    <p className="text-sm text-slate">
+      В общей ленте {total} {plural(total, ['новость', 'новости', 'новостей'])}:{' '}
+      <Link href={link('site')}>
+        {site} — {plural(site, ['новость', 'новости', 'новостей'])} сайта Avocado Travel
+      </Link>
+      , <Link href={link('external')}>{external} — из внешних лент</Link>. По умолчанию они идут
+      вперемешку: на каждые три внешние новости — две новости сайта.
+    </p>
+  );
 }
 
 /**
@@ -114,6 +135,7 @@ export function CombinedNews({ page }: { page: RssPage }) {
       </Card>
 
       <p role="status">Найдено новостей: {page.total}</p>
+      <Composition page={page} />
       {page.items.length === 0 ? (
         <Card>
           <EmptyState

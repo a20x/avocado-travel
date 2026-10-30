@@ -8,11 +8,30 @@ import { toCsv, type ExportTable } from './csv';
  */
 
 export const COMBINED_SORTS = {
+  mixed: 'Вперемешку',
   new: 'Сначала новые',
   old: 'Сначала старые',
   title: 'По заголовку',
 } as const;
 export type CombinedSort = keyof typeof COMBINED_SORTS;
+
+/**
+ * Порядок «вперемешку» (по умолчанию): новости сайта и внешних лент чередуются, чтобы сайт
+ * не терялся среди частых внешних новостей (замечание преподавателя по лабе 4). В каждых пяти
+ * записях — две новости сайта и три из лент (40 % / 60 %), внутри каждой группы — от новых
+ * к старым. Новости сайта кончились — дальше идут только внешние, и наоборот.
+ */
+export const MIX_SITE = 2;
+export const MIX_FEEDS = 3;
+
+/**
+ * Место записи в порядке «вперемешку»: `index` — номер новости внутри своей группы (с нуля),
+ * от новых к старым. Меньше — выше; при равенстве первой идёт новость сайта. Тот же расчёт
+ * делает запрос к базе (`exchange/server/repository.ts`).
+ */
+export function mixRank(isSite: boolean, index: number): number {
+  return index * (isSite ? MIX_FEEDS : MIX_SITE);
+}
 
 export const COMBINED_PAGE_SIZE = 20;
 /** Сколько записей попадает в выгрузку: этого хватает на всю ленту. */
@@ -30,7 +49,7 @@ export const combinedQuerySchema = z.object({
   source: param.pipe(z.string().regex(/^[a-z0-9-]{1,60}$/)).catch('all'),
   sort: param
     .pipe(z.enum(Object.keys(COMBINED_SORTS) as [CombinedSort, ...CombinedSort[]]))
-    .catch('new'),
+    .catch('mixed'),
   page: z.preprocess(first, z.coerce.number().int().min(1).max(1000)).catch(1),
 });
 export type CombinedQuery = z.infer<typeof combinedQuerySchema>;
@@ -213,7 +232,7 @@ export function combinedHref(
   const params = new URLSearchParams();
   if (next.q) params.set('q', next.q);
   if (next.source !== 'all') params.set('source', next.source);
-  if (next.sort !== 'new') params.set('sort', next.sort);
+  if (next.sort !== 'mixed') params.set('sort', next.sort);
   if (next.page > 1) params.set('page', String(next.page));
   const search = params.toString();
   return search ? `${path}${path.includes('?') ? '&' : '?'}${search}` : path;

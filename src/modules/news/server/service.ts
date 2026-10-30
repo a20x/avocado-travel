@@ -83,6 +83,11 @@ export function pruneIndustryNews(before: Date): Promise<number> {
   return repository.deleteExternalBefore(before);
 }
 
+/** Оставляет у каждой внешней ленты только `perFeed` самых свежих новостей. */
+export function trimIndustryNews(perFeed: number): Promise<number> {
+  return repository.deleteExternalBeyond(perFeed);
+}
+
 /** Удаляет новости отключённой внешней ленты (вкладка «RSS», модуль exchange). */
 export function removeIndustryNewsOfFeed(feedId: string): Promise<number> {
   return repository.deleteExternalByFeed(feedId);
