@@ -47,7 +47,7 @@ export function uniqueEmail(tag: string): string {
 export async function fillRegistration(page: Page, name: string, email: string) {
   await page.getByLabel('Имя').fill(name);
   await page.getByLabel('Почта').fill(email);
-  await page.getByLabel('Пароль').fill('test-password');
+  await page.getByLabel('Пароль', { exact: true }).fill('test-password');
   await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
 }
 
@@ -73,7 +73,7 @@ export async function openAsAdmin(page: Page, path: string) {
 
 export async function signIn(page: Page, email: string, password: string) {
   await page.getByLabel('Почта').fill(email);
-  await page.getByLabel('Пароль').fill(password);
+  await page.getByLabel('Пароль', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Войти' }).click();
 }
 

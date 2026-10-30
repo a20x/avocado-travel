@@ -60,7 +60,7 @@ export async function SiteHeader() {
 
   return (
     <header className="relative border-b border-line bg-white">
-      <div className="container-site flex h-16 items-center gap-6 lg:h-18">
+      <div className="container-site flex h-16 items-center gap-6 lg:h-auto lg:flex-wrap lg:gap-y-2 lg:py-3">
         <Link href="/" className="flex-1 lg:flex-none">
           <Image
             src="/images/brand/logo.svg"
@@ -72,7 +72,11 @@ export async function SiteHeader() {
         </Link>
 
         <MainNav />
-        <SiteSearch id="site-search" name="Поиск по сайту" className="hidden w-56 lg:block" />
+        <SiteSearch
+          id="site-search"
+          name="Поиск по сайту"
+          className="hidden min-w-56 flex-1 lg:block"
+        />
         <div className="hidden shrink-0 items-center gap-2 lg:flex">
           <AccountLink {...account} />
           {!user && <AccountLink href="/register" label="Регистрация" />}
