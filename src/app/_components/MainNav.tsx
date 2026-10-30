@@ -132,8 +132,11 @@ export function MainNav() {
   const isMoreActive = MORE_NAV.some((item) => isNavItemActive(item, pathname));
 
   return (
-    <nav aria-label="Основное меню" className="order-last hidden basis-full lg:block">
-      <ul className="flex items-center gap-1">
+    <nav
+      aria-label="Основное меню"
+      className="order-last hidden basis-full lg:block xl:col-start-2 xl:row-start-2"
+    >
+      <ul className="flex items-center justify-center gap-1">
         {MAIN_NAV.map((item) => (
           <li key={item.href}>
             <NavLink item={item} pathname={pathname} className={linkClasses} />

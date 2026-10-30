@@ -44,7 +44,13 @@ function AccountLink({
   fullWidth?: boolean;
 }) {
   return (
-    <Link href={href} className={buttonClasses({ variant: 'secondary', fullWidth })}>
+    <Link
+      href={href}
+      className={cn(
+        buttonClasses({ variant: 'secondary', fullWidth }),
+        !fullWidth && 'px-3! text-sm!',
+      )}
+    >
       {label}
     </Link>
   );
@@ -60,8 +66,8 @@ export async function SiteHeader() {
 
   return (
     <header className="relative border-b border-line bg-white">
-      <div className="container-site flex h-16 items-center gap-6 lg:h-auto lg:flex-wrap lg:gap-y-2 lg:py-3">
-        <Link href="/" className="flex-1 lg:flex-none">
+      <div className="container-site flex h-16 items-center gap-6 lg:h-auto lg:flex-wrap lg:gap-y-2 lg:py-3 xl:grid xl:grid-cols-[minmax(0,1fr)_max-content_minmax(0,1fr)]">
+        <Link href="/" className="flex-1 lg:flex-none xl:col-start-1 xl:row-start-1">
           <Image
             src="/images/brand/logo.svg"
             alt="Avocado Travel — на главную"
@@ -75,9 +81,9 @@ export async function SiteHeader() {
         <SiteSearch
           id="site-search"
           name="Поиск по сайту"
-          className="hidden min-w-56 flex-1 lg:block"
+          className="hidden min-w-56 flex-1 lg:block xl:col-start-2 xl:row-start-1 xl:w-full"
         />
-        <div className="hidden shrink-0 items-center gap-2 lg:flex">
+        <div className="hidden shrink-0 items-center gap-2 lg:flex xl:col-start-3 xl:row-start-1 xl:justify-self-end">
           <AccountLink {...account} />
           {!user && <AccountLink href="/register" label="Регистрация" />}
         </div>
