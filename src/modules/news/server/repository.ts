@@ -1,5 +1,18 @@
 import 'server-only';
-import { and, count, desc, eq, isNotNull, lt, lte, ne, sql, type SQL } from 'drizzle-orm';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  lt,
+  lte,
+  ne,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 import { db } from '@/server/db';
 import type { ExternalNewsInput, IndustryNewsItem, News, NewsListItem } from '../model';
 import { news } from '../schema';
@@ -169,6 +182,27 @@ export async function deleteExternalBefore(date: Date): Promise<number> {
     .delete(news)
     .where(and(eq(news.source, 'external'), lt(news.publishedAt, date)))
     .returning({ id: news.id });
+  return deleted.length;
+}
+
+/**
+ * Оставляет у каждой внешней ленты только `perFeed` самых свежих новостей, остальные удаляет.
+ * Номер новости внутри ленты — оконная функция row_number().
+ */
+export async function deleteExternalBeyond(perFeed: number): Promise<number> {
+  const ranked = db
+    .select({
+      id: news.id,
+      place:
+        sql<number>`row_number() over (partition by ${news.externalFeed} order by ${news.publishedAt} desc, ${news.id} desc)`.as(
+          'place',
+        ),
+    })
+    .from(news)
+    .where(eq(news.source, 'external'))
+    .as('ranked');
+  const extra = db.select({ id: ranked.id }).from(ranked).where(gt(ranked.place, perFeed));
+  const deleted = await db.delete(news).where(inArray(news.id, extra)).returning({ id: news.id });
   return deleted.length;
 }
 

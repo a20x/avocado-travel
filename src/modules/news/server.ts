@@ -14,5 +14,6 @@ export {
   listPublishedNews,
   pruneIndustryNews,
   removeIndustryNewsOfFeed,
+  trimIndustryNews,
   saveIndustryNews,
 } from './server/service';

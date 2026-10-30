@@ -1,6 +1,6 @@
 import 'server-only';
 import { NEWS_CATEGORIES, isNewsCategory } from '@/modules/news';
-import { listLatestNews, removeIndustryNewsOfFeed } from '@/modules/news/server';
+import { listLatestNews, removeIndustryNewsOfFeed, trimIndustryNews } from '@/modules/news/server';
 import { SITE_URL } from '@/shared/config/site';
 import { fail, ok, type Result } from '@/shared/lib/result';
 import {
@@ -25,6 +25,7 @@ import {
   type FeedInput,
   type IndustryCategory,
 } from '../feeds';
+import { industryQuota } from '../industry';
 import { parseFeed, type FeedItem } from '../rss';
 import { downloadFeed, importFeed, importIndustryNews, type FeedImportResult } from './import';
 import * as repository from './repository';
@@ -58,6 +59,8 @@ export type RssPage = {
   total: number;
   page: number;
   totalPages: number;
+  /** Из чего собрана общая лента под поисковый запрос — для счётчиков над списком. */
+  composition: { site: number; external: number };
   feeds: ExternalFeedStatus[];
 };
 
@@ -67,12 +70,13 @@ export async function getRssPage(
   now = new Date(),
 ): Promise<RssPage> {
   const query = combinedQuerySchema.parse(params);
-  const [found, feeds] = await Promise.all([
+  const [found, composition, feeds] = await Promise.all([
     repository.findCombinedNews(
       query,
       { limit: COMBINED_PAGE_SIZE, offset: (query.page - 1) * COMBINED_PAGE_SIZE },
       now,
     ),
+    repository.countCombinedBySource(query.q, now),
     repository.findFeedStatuses(),
   ]);
   return {
@@ -81,6 +85,7 @@ export async function getRssPage(
     total: found.total,
     page: query.page,
     totalPages: Math.max(1, Math.ceil(found.total / COMBINED_PAGE_SIZE)),
+    composition,
     feeds,
   };
 }
@@ -124,7 +129,11 @@ export async function addFeed(input: unknown, now = new Date()): Promise<AddFeed
     ...data,
   };
   if (!(await repository.insertFeed(feed))) return fail('DUPLICATE');
-  return ok(await importFeed(feed, now, new Set(), items));
+  // Лент стало больше — доля каждой меньше: новая берёт свою долю, у остальных лишнее удаляется.
+  const quota = industryQuota(feeds.length + 1);
+  const result = await importFeed(feed, now, quota, new Set(), items);
+  await trimIndustryNews(quota);
+  return ok(result);
 }
 
 /** Отключить ленту: её новости удаляются с сайта вместе с ней. */

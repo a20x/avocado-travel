@@ -43,6 +43,22 @@ test('RSS: загруженный файл разбирается на запи�
   await expect(upload.getByRole('alert')).toHaveText(/нет ленты RSS или Atom/);
 });
 
+test('RSS: общая лента — новости сайта вместе с внешними, вперемешку', async ({ page }) => {
+  // Замечание преподавателя по лабе 4: в общей ленте должны быть видны и новости сайта.
+  await page.goto('/rss');
+  await expect(page.getByLabel('Порядок')).toHaveValue('mixed');
+  const composition = page.getByText(/^В общей ленте \d+ новост/);
+  await expect(composition).toBeVisible();
+  await expect(composition.getByRole('link', { name: /сайта Avocado Travel/ })).toHaveAttribute(
+    'href',
+    '/rss?source=site',
+  );
+  // Новость сайта — первой: внешние не вытесняют её с первой страницы.
+  await expect(
+    page.getByRole('article').first().getByText('Avocado Travel', { exact: true }),
+  ).toBeVisible();
+});
+
 test('RSS: общая лента — поиск по источнику', async ({ page }) => {
   await page.goto('/rss?source=site');
   await expect(page.getByText(/^Найдено новостей: \d+$/)).toBeVisible();

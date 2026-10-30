@@ -1,9 +1,14 @@
 import 'server-only';
 import { lookup } from 'node:dns/promises';
-import { pruneIndustryNews, saveIndustryNews } from '@/modules/news/server';
+import { pruneIndustryNews, saveIndustryNews, trimIndustryNews } from '@/modules/news/server';
 import { isCronRequest } from '@/server/cron';
 import { isPrivateAddress, type ExternalFeed } from '../feeds';
-import { INDUSTRY_MAX_AGE_DAYS, prepareIndustryNews, type PrepareReport } from '../industry';
+import {
+  INDUSTRY_MAX_AGE_DAYS,
+  industryQuota,
+  prepareIndustryNews,
+  type PrepareReport,
+} from '../industry';
 import { MAX_FEED_BYTES, decodeFeed, parseFeed, type FeedItem } from '../rss';
 import * as repository from './repository';
 
@@ -63,18 +68,28 @@ export async function downloadFeed(address: string): Promise<string> {
   throw new Error('слишком много переадресаций');
 }
 
-const NO_SKIPS: PrepareReport['skipped'] = { invalid: 0, old: 0, airline: 0, duplicate: 0 };
+const NO_SKIPS: PrepareReport['skipped'] = {
+  invalid: 0,
+  old: 0,
+  airline: 0,
+  duplicate: 0,
+  limit: 0,
+};
 
-/** Импорт одной ленты; итог записывается у ленты — его видно на вкладке «RSS». */
+/**
+ * Импорт одной ленты; итог записывается у ленты — его видно на вкладке «RSS». `quota` — доля
+ * ленты в 30 хранимых новостях отрасли (industryQuota): берутся самые свежие.
+ */
 export async function importFeed(
   feed: ExternalFeed,
   now: Date,
+  quota: number,
   seen: Set<string> = new Set(),
   items?: FeedItem[],
 ): Promise<FeedImportResult> {
   try {
     const received = items ?? parseFeed(await downloadFeed(feed.url));
-    const report = prepareIndustryNews(feed, received, now, seen);
+    const report = prepareIndustryNews(feed, received, now, seen, quota);
     const added = await saveIndustryNews(report.drafts);
     await repository.updateFeedStatus(feed.id, {
       checkedAt: now,
@@ -96,20 +111,23 @@ export async function importFeed(
 
 /**
  * Импорт новостей отрасли из всех подключённых лент (L4-05, L4-06): скачать, разобрать,
- * отобрать и сохранить новые; старые — удалить. Недоступная или сломанная лента не мешает
- * остальным: предупреждение в лог и дальше.
+ * отобрать и сохранить новые; старые и лишние — удалить: всего на сайте хранится 30 новостей
+ * отрасли, поровну на ленту. Недоступная или сломанная лента не мешает остальным:
+ * предупреждение в лог и дальше.
  */
 export async function importIndustryNews(
   now: Date = new Date(),
 ): Promise<{ feeds: FeedImportResult[]; removed: number }> {
   const seen = new Set<string>();
   const feeds: FeedImportResult[] = [];
-  for (const feed of await repository.findFeeds()) {
-    feeds.push(await importFeed(feed, now, seen));
+  const all = await repository.findFeeds();
+  const quota = industryQuota(all.length);
+  for (const feed of all) {
+    feeds.push(await importFeed(feed, now, quota, seen));
   }
-  const removed = await pruneIndustryNews(
-    new Date(now.getTime() - INDUSTRY_MAX_AGE_DAYS * 86_400_000),
-  );
+  const removed =
+    (await pruneIndustryNews(new Date(now.getTime() - INDUSTRY_MAX_AGE_DAYS * 86_400_000))) +
+    (await trimIndustryNews(quota));
   return { feeds, removed };
 }
 
