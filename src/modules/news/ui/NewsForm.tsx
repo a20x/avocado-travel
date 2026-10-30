@@ -16,10 +16,10 @@ type NewsFormProps = {
   initial: NewsInput;
 };
 
-const CATEGORY_OPTIONS = Object.entries(NEWS_CATEGORIES).map(([value, label]) => ({
-  value,
-  label,
-}));
+// Выпадающие списки сайта — по алфавиту.
+const CATEGORY_OPTIONS = Object.entries(NEWS_CATEGORIES)
+  .map(([value, label]) => ({ value, label }))
+  .sort((a, b) => a.label.localeCompare(b.label, 'ru'));
 
 /** Форма новости в админке: создание и правка. */
 export function NewsForm({ id, initial }: NewsFormProps) {

@@ -35,7 +35,10 @@ function sourceOptions(feeds: ExternalFeedStatus[]) {
     { value: 'all', label: 'Все источники' },
     { value: 'site', label: 'Avocado Travel' },
     { value: 'external', label: 'Все внешние ленты' },
-    ...feeds.map((feed) => ({ value: feed.id, label: feed.name })),
+    // Общие пункты — сверху, под ними ленты по алфавиту.
+    ...feeds
+      .map((feed) => ({ value: feed.id, label: feed.name }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'ru')),
   ];
 }
 

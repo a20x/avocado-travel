@@ -164,11 +164,13 @@ export function buildPressView(releases: PressRelease[], requested: PressQuery):
     items,
     total: releases.length,
     query,
-    categories: categoryKeys.map((key) => ({
-      value: key,
-      label: PRESS_CATEGORIES[key],
-      count: categoryCounts.get(key) ?? 0,
-    })),
+    categories: categoryKeys
+      .map((key) => ({
+        value: key,
+        label: PRESS_CATEGORIES[key],
+        count: categoryCounts.get(key) ?? 0,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'ru')),
     authors: [...authorCounts]
       .map(([name, count]) => ({ value: name, label: name, count }))
       .sort((a, b) => a.label.localeCompare(b.label, 'ru')),
