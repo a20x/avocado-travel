@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { DB_REPORTS, type DbReport } from '@/modules/database';
-import { getPassport, getRoutePairs, runDatabaseQuery } from '@/modules/database/server';
+import { getFlightCombos, getPassport, runDatabaseQuery } from '@/modules/database/server';
 import { DbPassportCard, DbQueryForm, DbResultView, SqlBlock } from '@/modules/database/ui';
 import { listAirlines, listCities } from '@/modules/catalog-data/server';
 import { buttonClasses } from '@/shared/ui/Button';
@@ -20,10 +20,10 @@ export const metadata = pageMetadata({
  */
 export default async function DatabasePage(props: PageProps<'/database'>) {
   const params = await props.searchParams;
-  const [page, passport, pairs, cities, airlines] = await Promise.all([
+  const [page, passport, combos, cities, airlines] = await Promise.all([
     runDatabaseQuery(params),
     getPassport(),
-    getRoutePairs(),
+    getFlightCombos(),
     listCities(),
     listAirlines(),
   ]);
@@ -69,10 +69,8 @@ export default async function DatabasePage(props: PageProps<'/database'>) {
         />
         <DbQueryForm
           query={query}
-          pairs={pairs}
-          cities={[...cities]
-            .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
-            .map((city) => ({ value: city.slug, label: city.name }))}
+          combos={combos}
+          cities={cities.map((city) => ({ value: city.slug, label: city.name }))}
           airlines={airlines.map((airline) => ({ value: airline.code, label: airline.name }))}
         />
         <DbResultView query={query} result={page.result} fetchedAt={fetchedAt} />

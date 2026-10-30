@@ -25,7 +25,7 @@ export type {
   FlightSort,
   MonthRow,
   RatingRow,
-  RoutePair,
+  FlightCombo,
   RouteRow,
   SqlText,
 } from './model';

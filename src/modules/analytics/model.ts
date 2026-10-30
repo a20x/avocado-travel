@@ -18,6 +18,9 @@ const optionalParam = <T extends z.ZodType>(schema: T) =>
   );
 
 /** Фильтры страницы из адреса: `/analytics?from=…&to=…&airline=KRR&destination=sochi`. */
+/** Сочетание «авиакомпания — город прилёта», по которому были продажи: для связанных фильтров. */
+export type SalesPair = { airline: string; destination: string };
+
 export type AnalyticsFilter = {
   from: string;
   to: string;

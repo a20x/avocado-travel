@@ -10,6 +10,7 @@ import {
   percent,
   sharesOf,
   type AnalyticsReport,
+  type SalesPair,
 } from '../model';
 import * as repository from './repository';
 
@@ -70,4 +71,9 @@ export async function getAnalytics(
     ]).filter((share) => share.key !== 'pending' || share.percent > 0),
     routes,
   };
+}
+
+/** Сочетания «авиакомпания — направление» с продажами — для связанных фильтров страницы. */
+export function listSalesPairs(): Promise<SalesPair[]> {
+  return repository.findSalesPairs();
 }

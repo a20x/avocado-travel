@@ -6,15 +6,18 @@ import {
   listAirportsInCity,
 } from '@/modules/catalog-data/server';
 import { fail, ok, type Result } from '@/shared/lib/result';
+import { nearestDates } from '@/shared/lib/available-days';
 import { dateInZone, zonedDayRange } from '@/shared/lib/time';
 import { z } from 'zod';
 import { seatCapacity } from '@/modules/catalog-data';
 import {
+  SEARCH_DAYS_AHEAD,
   searchQuerySchema,
   type FlightDetails,
   type FlightError,
   type SearchError,
   type SearchResult,
+  type SearchRoute,
 } from '../model';
 import {
   distanceKm,
@@ -93,6 +96,27 @@ export async function searchFlights(
     offers: sortOffers(filterOffers(offers, query), query.sort),
     airlines: airlineFacets(offers),
   });
+}
+
+/**
+ * Направления с рейсами в окне продажи — для поиска-фразы: в «Куда» остаются только города,
+ * куда можно улететь из выбранного, а календарь ограничен днями этих рейсов.
+ */
+export function listSearchRoutes(now: Date = new Date()): Promise<SearchRoute[]> {
+  return repository.findSearchRoutes(now, SEARCH_DAYS_AHEAD);
+}
+
+/** На дату поиска рейсов нет — до трёх ближайших дат, когда по направлению летаем. */
+export async function listNearestSearchDates(
+  query: { from: string; to: string; date: string },
+  now: Date = new Date(),
+): Promise<string[]> {
+  const days = await repository.findSearchDays(query, now, SEARCH_DAYS_AHEAD);
+  return nearestDates(
+    days.filter((day) => day !== query.date),
+    query.date,
+    query.date,
+  );
 }
 
 /** Часовой пояс расписания: дата выгрузки — московская, как у всего сайта. */

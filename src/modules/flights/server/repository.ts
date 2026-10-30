@@ -12,6 +12,7 @@ import {
 import { db } from '@/server/db';
 import { flights } from '../schema';
 import type { RouteStatRow } from '../routes';
+import type { SearchRoute } from '../model';
 import type { FlightRow } from '../search';
 
 // Таблица аэропортов нужна дважды — для вылета и прилёта, поэтому у каждой копии своё имя.
@@ -297,4 +298,57 @@ export async function countRoute(route: RouteKey): Promise<{ flights: number; ti
 export async function deleteRoute(route: RouteKey): Promise<number> {
   const deleted = await db.delete(flights).where(routeWhere(route)).returning({ id: flights.id });
   return deleted.length;
+}
+
+/*
+ * Окно продажи для поиска-фразы: рейсы, которые ещё не улетели и вылетают не позже чем через
+ * `daysAhead` дней по местному времени города вылета (как проверяет сам поиск).
+ */
+
+const localDeparture = sql`(${flights.departsAt} at time zone ${origin.timezone})`;
+const localDay = sql<string>`to_char(${localDeparture}, 'YYYY-MM-DD')`;
+
+function inSaleWindow(now: Date, daysAhead: number) {
+  return and(
+    gte(flights.departsAt, now),
+    sql`${localDeparture}::date <= (${now.toISOString()}::timestamptz at time zone ${origin.timezone})::date + ${daysAhead}::int`,
+  );
+}
+
+/** Направления с рейсами в окне продажи: первый и последний день и дни недели (местные). */
+export function findSearchRoutes(now: Date, daysAhead: number): Promise<SearchRoute[]> {
+  return db
+    .select({
+      from: origin.citySlug,
+      to: destination.citySlug,
+      first: sql<string>`min(${localDay})`,
+      last: sql<string>`max(${localDay})`,
+      weekdays: sql<number[]>`array_agg(distinct extract(isodow from ${localDeparture})::int)`,
+    })
+    .from(flights)
+    .innerJoin(origin, eq(flights.originId, origin.id))
+    .innerJoin(destination, eq(flights.destinationId, destination.id))
+    .where(inSaleWindow(now, daysAhead))
+    .groupBy(origin.citySlug, destination.citySlug);
+}
+
+/** Местные дни вылета рейсов между городами в окне продажи — для «ближайших дат». */
+export async function findSearchDays(
+  route: { from: string; to: string },
+  now: Date,
+  daysAhead: number,
+): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ day: localDay })
+    .from(flights)
+    .innerJoin(origin, eq(flights.originId, origin.id))
+    .innerJoin(destination, eq(flights.destinationId, destination.id))
+    .where(
+      and(
+        eq(origin.citySlug, route.from),
+        eq(destination.citySlug, route.to),
+        inSaleWindow(now, daysAhead),
+      ),
+    );
+  return rows.map((row) => row.day);
 }

@@ -5,7 +5,7 @@ import { PromoBlocks } from '@/modules/ads/ui';
 import { listCities } from '@/modules/catalog-data/server';
 import { CityCard } from '@/modules/catalog-data/ui';
 import { SEARCH_DAYS_AHEAD, defaultSearchDate, searchQuerySchema } from '@/modules/flights';
-import { listRoutes } from '@/modules/flights/server';
+import { listRoutes, listSearchRoutes } from '@/modules/flights/server';
 import { SearchPhrase } from '@/modules/flights/ui';
 import { getActivePoll } from '@/modules/poll/server';
 import { PollWidget } from '@/modules/poll/ui';
@@ -41,9 +41,10 @@ const WEATHER_COUNT = WEATHER_CITIES.length;
 
 export default async function HomePage(props: PageProps<'/'>) {
   const now = new Date();
-  const [cities, routes, params, poll, rating, ads, savedCities] = await Promise.all([
+  const [cities, routes, searchRoutes, params, poll, rating, ads, savedCities] = await Promise.all([
     listCities(),
     listRoutes({ from: HUB }, now),
+    listSearchRoutes(now),
     props.searchParams,
     getActivePoll(),
     getRating(),
@@ -80,6 +81,7 @@ export default async function HomePage(props: PageProps<'/'>) {
         <div className="container-site">
           <SearchPhrase
             cities={cities}
+            routes={searchRoutes}
             defaults={defaults}
             minDate={today}
             maxDate={addDays(today, SEARCH_DAYS_AHEAD)}
