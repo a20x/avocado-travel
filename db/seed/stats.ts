@@ -2,7 +2,8 @@ import { createHash } from 'node:crypto';
 import { pageViews, sectionOf } from '@/modules/stats';
 import { addDays, zonedTimeToUtc } from '@/shared/lib/time';
 import type { Db } from './db';
-import { createRandom, weekday } from './schedule';
+import { weekday } from '@/modules/flights';
+import { createRandom } from './schedule';
 
 // Просмотры за 90 дней до вчерашнего (docs/04-data-model.md, «Демо-данные»): сегодняшние цифры
 // счётчика набираются уже настоящими открытиями страниц. Посещаемость растёт к сегодняшнему дню,

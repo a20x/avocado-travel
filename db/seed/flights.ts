@@ -1,15 +1,8 @@
-import type { AircraftModel, Airline, Airport } from '@/modules/catalog-data';
-import { flights } from '@/modules/flights';
+import type { AircraftModel, Airline, AirportRecord as Airport } from '@/modules/catalog-data';
+import { basePrices, distanceKm, flightMinutes, flights, weekday } from '@/modules/flights';
 import { addDays, zonedTimeToUtc } from '@/shared/lib/time';
 import type { Db } from './db';
-import {
-  basePrices,
-  createRandom,
-  departureTimes,
-  distanceKm,
-  flightMinutes,
-  weekday,
-} from './schedule';
+import { createRandom, departureTimes } from './schedule';
 
 type NewFlight = typeof flights.$inferInsert;
 

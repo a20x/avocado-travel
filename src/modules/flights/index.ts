@@ -32,4 +32,19 @@ export { defaultSearchDate, searchUrl } from './search';
 export type { FlightRow, SearchLink } from './search';
 export type { AirlineStats, DestinationStats, RouteSummary } from './routes';
 export { buildSeatMap } from './seat-map';
+
+/** Расписание: расчёт по расстоянию (им пользуется и сид) и форма «Добавить рейсы» в админке. */
+export {
+  MAX_SCHEDULE_DAYS,
+  TURNAROUND_MINUTES,
+  WEEKDAYS,
+  basePrices,
+  distanceKm,
+  flightMinutes,
+  flightScheduleSchema,
+  planFlights,
+  roundTo,
+  weekday,
+} from './schedule';
+export type { AdminRoute, FlightScheduleError, FlightScheduleInput } from './schedule';
 export type { SeatInfo, SeatMapRow } from './seat-map';

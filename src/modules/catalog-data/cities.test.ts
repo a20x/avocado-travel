@@ -1,46 +1,51 @@
 import { describe, expect, it } from 'vitest';
 import { groupCities } from './cities';
-import type { Airport } from './model';
+import type { AirportRecord, CityRecord } from './model';
 
-function airport(id: number, iata: string, city: string, citySlug: string, lat = 0): Airport {
+const created = new Date('2026-01-01T00:00:00Z');
+
+function city(slug: string, name: string): CityRecord {
   return {
-    id,
-    iata,
-    name: iata,
-    city,
-    citySlug,
+    id: 1,
+    slug,
+    name,
+    nameFrom: `из ${name}`,
+    nameTo: `в ${name}`,
     country: 'Россия',
-    lat,
-    lon: 0,
-    timezone: 'Europe/Moscow',
+    description: '',
+    image: '/images/destinations/default.svg',
+    createdAt: created,
+    updatedAt: created,
   };
 }
 
-describe('города', () => {
-  it('собирает аэропорты одного города вместе', () => {
-    const cities = groupCities([
-      airport(1, 'DME', 'Москва', 'moscow', 55.4),
-      airport(2, 'KZN', 'Казань', 'kazan', 55.6),
-      airport(3, 'SVO', 'Москва', 'moscow', 55.9),
-    ]);
+function airport(id: number, iata: string, citySlug: string, lat = 0): AirportRecord {
+  return { id, iata, name: iata, citySlug, lat, lon: 0, timezone: 'Europe/Moscow' };
+}
 
-    expect(cities.map((city) => city.slug)).toEqual(['moscow', 'kazan']);
-    expect(cities[0]?.airports.map((a) => a.iata)).toEqual(['DME', 'SVO']);
+describe('города', () => {
+  it('собирает аэропорты одного города вместе в порядке городов', () => {
+    const cities = groupCities(
+      [city('kazan', 'Казань'), city('moscow', 'Москва')],
+      [
+        airport(1, 'DME', 'moscow', 55.4),
+        airport(2, 'KZN', 'kazan', 55.6),
+        airport(3, 'SVO', 'moscow', 55.9),
+      ],
+    );
+
+    expect(cities.map((item) => item.slug)).toEqual(['kazan', 'moscow']);
+    expect(cities[1]?.airports.map((a) => a.iata)).toEqual(['DME', 'SVO']);
     // Координаты города — первого аэропорта.
-    expect(cities[0]?.lat).toBe(55.4);
+    expect(cities[1]?.lat).toBe(55.4);
+    expect(cities[1]?.nameTo).toBe('в Москва');
   });
 
-  it('берёт описание, падежи и иллюстрацию города, для неизвестного — общую картинку', () => {
-    const [kazan, unknown] = groupCities([
-      airport(1, 'KZN', 'Казань', 'kazan'),
-      airport(2, 'XXX', 'Новый город', 'new-city'),
-    ]);
-
-    expect(kazan?.description).not.toBe('');
-    expect([kazan?.nameFrom, kazan?.nameTo]).toEqual(['Казани', 'Казань']);
-    expect([unknown?.nameFrom, unknown?.nameTo]).toEqual(['Новый город', 'Новый город']);
-    expect(kazan?.image).toBe('/images/destinations/kazan.svg');
-    expect(unknown?.description).toBe('');
-    expect(unknown?.image).toBe('/images/destinations/default.svg');
+  it('пропускает город без аэропортов', () => {
+    const cities = groupCities(
+      [city('kazan', 'Казань'), city('empty', 'Пусто')],
+      [airport(1, 'KZN', 'kazan')],
+    );
+    expect(cities.map((item) => item.slug)).toEqual(['kazan']);
   });
 });

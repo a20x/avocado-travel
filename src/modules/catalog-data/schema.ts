@@ -7,21 +7,43 @@ import {
   pgTable,
   serial,
   text,
+  timestamp,
   unique,
 } from 'drizzle-orm/pg-core';
 
 // Имена колонок в базе — snake_case: Drizzle переводит их сам (casing: 'snake_case').
 
-/** Аэропорты — реальные (docs/04-data-model.md). */
+const createdAt = timestamp({ withTimezone: true }).notNull().defaultNow();
+const updatedAt = timestamp({ withTimezone: true }).notNull().defaultNow();
+
+/** Города: название, падежные формы и описание. Администратор заводит и правит их в админке. */
+export const cities = pgTable('cities', {
+  id: serial().primaryKey(),
+  /** Адрес страницы `/destinations/<slug>`. Не меняется: на него ссылаются аэропорты и ссылки. */
+  slug: text().notNull().unique(),
+  name: text().notNull(),
+  /** Название после «из»: «из Москвы». */
+  nameFrom: text().notNull(),
+  /** Название после «в»: «в Москву». */
+  nameTo: text().notNull(),
+  country: text().notNull(),
+  description: text().notNull().default(''),
+  /** Иллюстрация из public/images/destinations; новым городам — общая картинка. */
+  image: text().notNull().default('/images/destinations/default.svg'),
+  createdAt,
+  updatedAt,
+});
+
+/** Аэропорты — реальные (docs/04-data-model.md). Город — по `city_slug`. */
 export const airports = pgTable(
   'airports',
   {
     id: serial().primaryKey(),
     iata: char({ length: 3 }).notNull().unique(),
     name: text().notNull(),
-    city: text().notNull(),
-    citySlug: text().notNull(),
-    country: text().notNull(),
+    citySlug: text()
+      .notNull()
+      .references(() => cities.slug),
     lat: doublePrecision().notNull(),
     lon: doublePrecision().notNull(),
     timezone: text().notNull(),
@@ -39,6 +61,8 @@ export const airlines = pgTable('airlines', {
   logo: text().notNull(),
   description: text().notNull(),
   baggageIncluded: boolean().notNull().default(false),
+  createdAt,
+  updatedAt,
 });
 
 /** Модели самолётов — «вид транспорта» из темы методички. */

@@ -31,7 +31,7 @@ async function main() {
   // Всё или ничего: если что-то упадёт, база останется как была.
   const counts = await db.transaction(async (tx) => {
     await tx.execute(
-      sql`TRUNCATE TABLE search_documents, ad_campaigns, ad_events, catalog_sections, catalog_links, site_ratings, polls, poll_options, poll_votes, page_views, forum_topics, forum_posts, guestbook_entries, guestbook_stop_words, guestbook_banned_hosts, orders, flights, airports, airlines, aircraft_models RESTART IDENTITY CASCADE`,
+      sql`TRUNCATE TABLE search_documents, ad_campaigns, ad_events, catalog_sections, catalog_links, site_ratings, polls, poll_options, poll_votes, page_views, forum_topics, forum_posts, guestbook_entries, guestbook_stop_words, guestbook_banned_hosts, orders, flights, airports, cities, airlines, aircraft_models RESTART IDENTITY CASCADE`,
     );
     // Новости отрасли — не демо-данные, а импорт из внешних лент: их сид не трогает.
     await tx.execute(sql`DELETE FROM news WHERE source = 'site'`);
@@ -41,6 +41,7 @@ async function main() {
     const admin = await seedAdmin(tx);
     return {
       admin,
+      cities: catalog.cities.length,
       airports: catalog.airports.length,
       airlines: catalog.airlines.length,
       aircraftModels: catalog.aircraftModels.length,

@@ -10,6 +10,17 @@ export const metadata: Metadata = { title: 'Админка', robots: { index: fa
 type Section = { title: string; href?: string; description?: string; task?: string };
 
 const SECTIONS: Section[] = [
+  { title: 'Города', href: '/admin/cities', description: 'Добавить, изменить, удалить' },
+  {
+    title: 'Авиакомпании',
+    href: '/admin/airlines',
+    description: 'Добавить, изменить, удалить',
+  },
+  {
+    title: 'Рейсы',
+    href: '/admin/flights',
+    description: 'Расписание по дням недели, маршруты',
+  },
   { title: 'Новости', href: '/admin/news', description: 'Написать, изменить, удалить' },
   {
     title: 'Гостевая книга',
