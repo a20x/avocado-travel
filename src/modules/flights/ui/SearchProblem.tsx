@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { formatDate } from '@/shared/lib/format';
 import { buttonClasses } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import type { SearchError } from '../model';
@@ -33,18 +34,39 @@ const TEXTS: Record<Problem, { title: string; text: string }> = {
 };
 
 /** Почему список рейсов пуст и что сделать дальше. */
-export function SearchProblem({ problem, editHref }: { problem: Problem; editHref: string }) {
+export function SearchProblem({
+  problem,
+  editHref,
+  nearest = [],
+}: {
+  problem: Problem;
+  editHref: string;
+  /** На эту дату рейсов нет — ссылки на ближайшие даты, когда по направлению летаем. */
+  nearest?: Array<{ date: string; href: string }>;
+}) {
   const { title, text } = TEXTS[problem];
   return (
     <EmptyState
       image="/images/illustrations/no-results.svg"
       title={title}
-      text={text}
+      text={nearest.length > 0 ? 'По этому направлению рейсы есть в другие дни.' : text}
       action={
         problem === 'NO_MATCHES' ? null : (
-          <Link href={editHref} className={buttonClasses({ variant: 'secondary' })}>
-            Изменить запрос
-          </Link>
+          <div className="grid justify-items-center gap-4">
+            {nearest.length > 0 ? (
+              <p className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+                <span>Ближайшие рейсы:</span>
+                {nearest.map((item) => (
+                  <Link key={item.date} href={item.href}>
+                    {formatDate(item.date, { weekday: true })}
+                  </Link>
+                ))}
+              </p>
+            ) : null}
+            <Link href={editHref} className={buttonClasses({ variant: 'secondary' })}>
+              Изменить запрос
+            </Link>
+          </div>
         )
       }
     />

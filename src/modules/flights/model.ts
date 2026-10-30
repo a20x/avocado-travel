@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { CabinClass } from '@/modules/catalog-data';
+import type { DaySpan } from '@/shared/lib/available-days';
 import type { SeatMapRow } from './seat-map';
 import type { flights } from './schema';
 
@@ -82,6 +83,12 @@ export type SearchResult = {
   offers: FlightOffer[];
   airlines: AirlineFacet[];
 };
+
+/**
+ * Направление «откуда — куда» с рейсами в окне продажи: первый и последний день и дни недели
+ * по местному времени вылета. По ним поиск-фраза сужает «Куда» и ограничивает календарь.
+ */
+export type SearchRoute = { from: string; to: string } & DaySpan;
 
 /** Рейс на своей странице: цены обоих классов, свободные места и схема салона. */
 export type FlightDetails = Omit<FlightOffer, 'cabinClass' | 'price' | 'seatsLeft'> & {

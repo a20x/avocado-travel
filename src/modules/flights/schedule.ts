@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { WEEKDAY_SHORT } from '@/shared/lib/available-days';
 import { addDays, daysBetween, zonedTimeToUtc } from '@/shared/lib/time';
 import type { flights } from './schema';
 
@@ -42,7 +43,7 @@ export function weekday(date: string): number {
   return day === 0 ? 7 : day;
 }
 
-export const WEEKDAYS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'] as const;
+export const WEEKDAYS = WEEKDAY_SHORT;
 
 /** На сколько дней вперёд можно завести рейсы за один раз. */
 export const MAX_SCHEDULE_DAYS = 180;

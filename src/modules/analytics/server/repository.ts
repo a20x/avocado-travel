@@ -5,7 +5,7 @@ import { orders, tickets } from '@/modules/booking';
 import { aircraftModels, airlines, airports, cities } from '@/modules/catalog-data';
 import { flights } from '@/modules/flights';
 import { db } from '@/server/db';
-import type { RouteSales, SalesTotals } from '../model';
+import type { RouteSales, SalesPair, SalesTotals } from '../model';
 
 /**
  * Запросы отчётов (лаба 3). Таблицы заказов, рейсов и справочников — чужие, их можно
@@ -209,4 +209,19 @@ export function findFlightLoad(scope: Scope, now: Date) {
       ),
     )
     .groupBy(airlines.name, aircraftModels.id);
+}
+
+/**
+ * Сочетания «авиакомпания — город прилёта», по которым продан хотя бы один билет (оплаченный
+ * заказ, действующий билет): из них строятся связанные фильтры, чтобы отчёт не был пустым.
+ */
+export function findSalesPairs(): Promise<SalesPair[]> {
+  return db
+    .selectDistinct({ airline: airlines.code, destination: destination.citySlug })
+    .from(tickets)
+    .innerJoin(orders, eq(orders.id, tickets.orderId))
+    .innerJoin(flights, eq(flights.id, tickets.flightId))
+    .innerJoin(airlines, eq(airlines.id, flights.airlineId))
+    .innerJoin(destination, eq(destination.id, flights.destinationId))
+    .where(and(isPaid, eq(tickets.isActive, true)));
 }

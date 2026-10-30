@@ -23,6 +23,7 @@ export type {
   MonthRevenue,
   Occupancy,
   RouteSales,
+  SalesPair,
   SalesTotals,
   Share,
 } from './model';

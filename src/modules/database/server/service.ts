@@ -1,4 +1,5 @@
 import 'server-only';
+import { nearestDates } from '@/shared/lib/available-days';
 import { addDays, zonedTimeToUtc } from '@/shared/lib/time';
 import {
   FLIGHTS_PAGE_SIZE,
@@ -7,7 +8,7 @@ import {
   type DbPassport,
   type DbQuery,
   type DbResult,
-  type RoutePair,
+  type FlightCombo,
   type SqlText,
 } from '../model';
 import * as repository from './repository';
@@ -40,11 +41,21 @@ export async function runDatabaseQuery(params: Record<string, unknown>): Promise
   switch (query.report) {
     case 'flights': {
       const page = query.page;
-      const found = await repository.searchFlights(
-        { from: query.from, to: query.to, airline: query.airline, range },
-        query.sort,
-        { limit: FLIGHTS_PAGE_SIZE, offset: (page - 1) * FLIGHTS_PAGE_SIZE },
-      );
+      const filter = { from: query.from, to: query.to, airline: query.airline };
+      const found = await repository.searchFlights({ ...filter, range }, query.sort, {
+        limit: FLIGHTS_PAGE_SIZE,
+        offset: (page - 1) * FLIGHTS_PAGE_SIZE,
+      });
+      // Пусто из-за дат — подсказываем ближайшие дни, когда по тем же условиям есть рейсы.
+      const start = query.dateFrom ?? query.dateTo;
+      const end = query.dateTo ?? query.dateFrom;
+      const days =
+        found.total === 0 && start && end
+          ? await repository.findFlightDays(filter, {
+              before: range.start ?? range.end,
+              after: range.end ?? range.start,
+            })
+          : [];
       return {
         query,
         result: {
@@ -53,6 +64,7 @@ export async function runDatabaseQuery(params: Record<string, unknown>): Promise
           total: found.total,
           page,
           totalPages: Math.max(1, Math.ceil(found.total / FLIGHTS_PAGE_SIZE)),
+          nearestDates: start && end ? nearestDates(days, start, end) : [],
         },
         sql: found.sql,
       };
@@ -85,7 +97,10 @@ export function getPassport(): Promise<DbPassport> {
   return repository.readPassport();
 }
 
-/** Сочетания «авиакомпания — город прилёта» для связанных списков второго запроса. */
-export function getRoutePairs(): Promise<RoutePair[]> {
-  return repository.listRoutePairs();
+/**
+ * Сочетания «откуда — куда — авиакомпания», для которых есть рейсы, с их датами: из них строятся
+ * связанные списки первого и второго запросов (замечание преподавателя по лабе 3).
+ */
+export function getFlightCombos(): Promise<FlightCombo[]> {
+  return repository.listFlightCombos();
 }

@@ -1,7 +1,7 @@
 import { ctr } from '@/modules/ads';
 import { listCampaigns } from '@/modules/ads/server';
 import { formatRubCompact } from '@/modules/analytics';
-import { getAnalytics } from '@/modules/analytics/server';
+import { getAnalytics, listSalesPairs } from '@/modules/analytics/server';
 import {
   AdsSummary,
   AnalyticsFilters,
@@ -40,11 +40,12 @@ function exportHref(report: string, filter: Record<string, string | undefined>):
 export default async function AnalyticsPage(props: PageProps<'/analytics'>) {
   const now = new Date();
   const today = dateInZone(now, 'Europe/Moscow');
-  const [params, airlines, cities, campaigns] = await Promise.all([
+  const [params, airlines, cities, campaigns, pairs] = await Promise.all([
     props.searchParams,
     listAirlines(),
     listCities(),
     listCampaigns(),
+    listSalesPairs(),
   ]);
   const report = await getAnalytics(params, now);
   const { filter, totals } = report;
@@ -68,6 +69,7 @@ export default async function AnalyticsPage(props: PageProps<'/analytics'>) {
         isDefault={isDefault}
         airlines={airlines.map((airline) => ({ value: airline.code, label: airline.name }))}
         destinations={cities.map((city) => ({ value: city.slug, label: city.name }))}
+        pairs={pairs}
       />
 
       {totals.orders === 0 && totals.cancelled === 0 ? (

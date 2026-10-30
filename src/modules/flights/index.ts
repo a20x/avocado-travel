@@ -24,6 +24,7 @@ export type {
   SearchError,
   SearchQuery,
   SearchResult,
+  SearchRoute,
   SortOption,
 } from './model';
 

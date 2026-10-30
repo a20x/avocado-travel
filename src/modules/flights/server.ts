@@ -10,7 +10,9 @@ export {
   listAirlineStats,
   listDestinationStats,
   listRoutes,
+  listNearestSearchDates,
   listRoutesForAdmin,
   listSchedule,
+  listSearchRoutes,
   searchFlights,
 } from './server/service';

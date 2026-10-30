@@ -17,7 +17,11 @@ export type PhraseOption = { value: string; label: string };
 type PhraseSelectProps = {
   name: string;
   label: string;
-  defaultValue: string;
+  /** Начальное значение, если поле само хранит выбор. */
+  defaultValue?: string;
+  /** Значение снаружи — когда выбор в поле зависит от других полей фразы (связанные списки). */
+  value?: string;
+  onChange?: (value: string) => void;
   options: PhraseOption[];
 };
 
@@ -51,13 +55,25 @@ const hasFinePointer = () => window.matchMedia(FINE_POINTER).matches;
  * обычного размера с прокруткой, по образцу WAI-ARIA «combobox со списком»: стрелки, Home/End,
  * Enter, Escape и поиск по первым буквам. Значение уходит в форму через скрытое поле.
  */
-export function PhraseSelect({ name, label, defaultValue, options }: PhraseSelectProps) {
+export function PhraseSelect({
+  name,
+  label,
+  defaultValue = '',
+  value: outerValue,
+  onChange,
+  options,
+}: PhraseSelectProps) {
   const enhanced = useSyncExternalStore(subscribePointer, hasFinePointer, () => false);
   const id = `phrase-${name}`;
   const listId = useId();
   const labelId = `${id}-label`;
 
-  const [value, setValue] = useState(defaultValue);
+  const [ownValue, setOwnValue] = useState(defaultValue);
+  const value = outerValue ?? ownValue;
+  const setValue = (next: string) => {
+    setOwnValue(next);
+    onChange?.(next);
+  };
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const root = useRef<HTMLSpanElement>(null);
@@ -90,7 +106,13 @@ export function PhraseSelect({ name, label, defaultValue, options }: PhraseSelec
         <label htmlFor={id} className="sr-only">
           {label}
         </label>
-        <select id={id} name={name} defaultValue={defaultValue} className={fieldClasses}>
+        <select
+          id={id}
+          name={name}
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          className={fieldClasses}
+        >
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}

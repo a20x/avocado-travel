@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { DaySpan } from '@/shared/lib/available-days';
 
 /**
  * Пять видов запросов вкладки «БД» (лаба 3, L3-02): поиск с постраничным выводом, связанные
@@ -99,11 +100,22 @@ export type MonthRow = { month: string; orders: number; tickets: number; revenue
 
 export type RatingRow = { score: number; count: number };
 
-/** Сочетание «авиакомпания — город прилёта», для которого есть рейсы: для связанных списков. */
-export type RoutePair = { airline: string; destination: string };
+/**
+ * Сочетание «откуда — куда — авиакомпания», для которого в базе есть рейсы, с датами этих рейсов
+ * (по Москве): из таких сочетаний строятся связанные списки и подсказка о датах.
+ */
+export type FlightCombo = { from: string; to: string; airline: string } & DaySpan;
 
 export type DbResult =
-  | { report: 'flights'; rows: FlightRow[]; total: number; page: number; totalPages: number }
+  | {
+      report: 'flights';
+      rows: FlightRow[];
+      total: number;
+      page: number;
+      totalPages: number;
+      /** Ничего не нашлось в выбранные даты — ближайшие даты с рейсами по тем же условиям. */
+      nearestDates: string[];
+    }
   | { report: 'routes'; rows: RouteRow[] }
   | { report: 'airlines'; rows: AirlineRow[] }
   | { report: 'months'; rows: MonthRow[] }

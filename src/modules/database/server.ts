@@ -3,5 +3,5 @@
  */
 import 'server-only';
 
-export { getPassport, getRoutePairs, runDatabaseQuery } from './server/service';
+export { getFlightCombos, getPassport, runDatabaseQuery } from './server/service';
 export type { DatabasePage } from './server/service';

@@ -3,8 +3,8 @@ import { Fragment, Suspense } from 'react';
 import { getAdsFor } from '@/modules/ads/server';
 import { AdCard } from '@/modules/ads/ui';
 import { listCities } from '@/modules/catalog-data/server';
-import { searchQuerySchema } from '@/modules/flights';
-import { searchFlights } from '@/modules/flights/server';
+import { searchQuerySchema, searchUrl } from '@/modules/flights';
+import { listNearestSearchDates, searchFlights } from '@/modules/flights/server';
 import {
   FlightCard,
   FlightFilters,
@@ -40,8 +40,27 @@ async function Results({ params }: { params: Params }) {
   if (!result.ok) return <SearchProblem problem={result.error} editHref={editHref(params)} />;
 
   const { query, offers, airlines } = result.data;
-  if (airlines.length === 0)
-    return <SearchProblem problem="NO_FLIGHTS" editHref={editHref(params)} />;
+  if (airlines.length === 0) {
+    // На эту дату пусто — предлагаем ближайшие даты, когда по направлению летаем.
+    const dates = await listNearestSearchDates(query);
+    return (
+      <SearchProblem
+        problem="NO_FLIGHTS"
+        editHref={editHref(params)}
+        nearest={dates.map((date) => ({
+          date,
+          // Без фильтров: на другую дату они могли бы отсеять все рейсы.
+          href: searchUrl({
+            from: query.from,
+            to: query.to,
+            date,
+            passengers: query.passengers,
+            cabinClass: query.cabinClass,
+          }),
+        }))}
+      />
+    );
+  }
 
   // «Выгодно» — только если самая низкая цена у одного рейса, иначе плашка ничего не выделяет.
   // Нет рейсов — нет и рекламы: показ не засчитывается впустую.

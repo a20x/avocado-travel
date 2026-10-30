@@ -3,4 +3,4 @@
  */
 import 'server-only';
 
-export { getAnalytics } from './server/service';
+export { getAnalytics, listSalesPairs } from './server/service';

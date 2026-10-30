@@ -30,9 +30,9 @@ import type {
   FlightRow,
   FlightSort,
   MonthRow,
+  FlightCombo,
   RatingRow,
   RouteRow,
-  RoutePair,
   SqlText,
 } from '../model';
 
@@ -137,13 +137,55 @@ export async function searchFlights(
   return { rows: rows.rows, total: totals.rows[0]?.total ?? 0, sql: [rows.sql, totals.sql] };
 }
 
-/** Сочетания «авиакомпания — город прилёта», для которых есть рейсы: для связанных списков. */
-export async function listRoutePairs(): Promise<RoutePair[]> {
+/** День вылета по Москве — как его понимают даты формы. */
+const departureDay = sql<string>`to_char(${flights.departsAt} at time zone 'Europe/Moscow', 'YYYY-MM-DD')`;
+
+/**
+ * Сочетания «откуда — куда — авиакомпания», для которых есть рейсы, с первым и последним днём
+ * вылета и днями недели (по Москве): для связанных списков и подсказки о датах.
+ */
+export function listFlightCombos(): Promise<FlightCombo[]> {
   return db
-    .selectDistinct({ airline: airlines.code, destination: destination.citySlug })
+    .select({
+      from: origin.citySlug,
+      to: destination.citySlug,
+      airline: airlines.code,
+      first: sql<string>`min(${departureDay})`,
+      last: sql<string>`max(${departureDay})`,
+      weekdays: sql<
+        number[]
+      >`array_agg(distinct extract(isodow from ${flights.departsAt} at time zone 'Europe/Moscow')::int)`,
+    })
     .from(flights)
     .innerJoin(airlines, eq(airlines.id, flights.airlineId))
-    .innerJoin(destination, eq(destination.id, flights.destinationId));
+    .innerJoin(origin, eq(origin.id, flights.originId))
+    .innerJoin(destination, eq(destination.id, flights.destinationId))
+    .groupBy(origin.citySlug, destination.citySlug, airlines.code);
+}
+
+/**
+ * Дни с рейсами по тем же условиям, но вне выбранных дат: до трёх ближайших до `before`
+ * и после `after`. Нужны, когда в выбранные даты ничего не нашлось.
+ */
+export async function findFlightDays(
+  filter: Omit<FlightFilter, 'range'>,
+  around: { before?: Date; after?: Date },
+): Promise<string[]> {
+  const days = (when: SQL, order: SQL) =>
+    db
+      .selectDistinct({ day: departureDay })
+      .from(flights)
+      .innerJoin(airlines, eq(airlines.id, flights.airlineId))
+      .innerJoin(origin, eq(origin.id, flights.originId))
+      .innerJoin(destination, eq(destination.id, flights.destinationId))
+      .where(and(flightWhere({ ...filter, range: {} }), when))
+      .orderBy(order)
+      .limit(3);
+  const [before, after] = await Promise.all([
+    around.before ? days(lt(flights.departsAt, around.before), sql`1 desc`) : [],
+    around.after ? days(gte(flights.departsAt, around.after), sql`1`) : [],
+  ]);
+  return [...before, ...after].map((row) => row.day);
 }
 
 /** 2. Маршруты авиакомпании в город: число рейсов, цены эконома MIN/AVG/MAX, продано мест. */

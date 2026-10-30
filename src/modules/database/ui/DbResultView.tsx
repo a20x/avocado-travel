@@ -1,5 +1,6 @@
 import { ChartData } from '@/modules/analytics/ui';
-import { formatPrice, plural } from '@/shared/lib/format';
+import Link from 'next/link';
+import { formatDate, formatPrice, plural } from '@/shared/lib/format';
 import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Pagination } from '@/shared/ui/Pagination';
@@ -28,6 +29,30 @@ function Empty() {
       image="/images/illustrations/no-results.svg"
       title="Ничего не нашлось"
       text="Ослабьте условия: очистите часть полей или расширьте период."
+    />
+  );
+}
+
+/** В выбранные даты рейсов нет — ссылки на ближайшие дни, когда по тем же условиям летаем. */
+function NearestDates({ query, dates }: { query: DbQuery; dates: string[] }) {
+  return (
+    <EmptyState
+      image="/images/illustrations/no-results.svg"
+      title="В эти даты рейсов нет"
+      text="По выбранным городам и авиакомпании рейсы есть в другие дни."
+      action={
+        <p className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+          <span>Ближайшие рейсы:</span>
+          {dates.map((date) => (
+            <Link
+              key={date}
+              href={dbHref({ ...query, report: 'flights', dateFrom: date, dateTo: date })}
+            >
+              {formatDate(date, { year: true })}
+            </Link>
+          ))}
+        </p>
+      }
     />
   );
 }
@@ -80,7 +105,9 @@ function ResultBody({
       return (
         <>
           <Summary count={result.total} fetchedAt={fetchedAt} />
-          {result.rows.length === 0 ? (
+          {result.rows.length === 0 && result.nearestDates.length > 0 ? (
+            <NearestDates query={query} dates={result.nearestDates} />
+          ) : result.rows.length === 0 ? (
             <Empty />
           ) : (
             <>

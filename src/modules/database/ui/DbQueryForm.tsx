@@ -1,14 +1,15 @@
 import Link from 'next/link';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
+import { LinkedSelects } from '@/shared/ui/LinkedSelects';
 import { Select, type SelectOption } from '@/shared/ui/Select';
-import { FLIGHT_SORTS, type DbQuery, type FlightSort, type RoutePair } from '../model';
-import { RouteSelects } from './RouteSelects';
+import { FLIGHT_SORTS, type DbQuery, type FlightCombo, type FlightSort } from '../model';
+import { FlightQueryFields } from './FlightQueryFields';
 
 /** Что делает каждый запрос — подпись над формой. */
 const DESCRIPTIONS: Record<DbQuery['report'], string> = {
   flights:
-    'Рейсы с условиями по городам, авиакомпании и дате вылета, по 20 на страницу. «Продано» — места, занятые действующими билетами.',
+    'Рейсы с условиями по городам, авиакомпании и дате вылета, по 20 на страницу. Списки связаны — в них только сочетания, для которых есть рейсы. «Продано» — места, занятые действующими билетами.',
   routes:
     'Маршруты выбранной авиакомпании и цены эконома на них: минимальная, средняя и максимальная. Списки связаны — в них только сочетания, для которых есть рейсы.',
   airlines:
@@ -26,15 +27,28 @@ export function DbQueryForm({
   query,
   cities,
   airlines,
-  pairs,
+  combos,
 }: {
   query: DbQuery;
   cities: SelectOption[];
   airlines: SelectOption[];
-  pairs: RoutePair[];
+  /** Сочетания «откуда — куда — авиакомпания», для которых есть рейсы: для связанных списков. */
+  combos: FlightCombo[];
 }) {
   const { report } = query;
-  const withDates = report === 'flights' || report === 'airlines' || report === 'months';
+  const withDates = report === 'airlines' || report === 'months';
+  const linked = report === 'flights' || report === 'routes';
+  const sort = (
+    <Select
+      name="sort"
+      label="Сортировка"
+      defaultValue={query.sort}
+      options={(Object.keys(FLIGHT_SORTS) as FlightSort[]).map((key) => ({
+        value: key,
+        label: FLIGHT_SORTS[key],
+      }))}
+    />
+  );
 
   return (
     <form
@@ -48,43 +62,35 @@ export function DbQueryForm({
       {report === 'ratings' ? null : (
         <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {report === 'flights' ? (
-            <>
-              <Select
-                name="from"
-                label="Откуда"
-                defaultValue={query.from ?? ''}
-                options={[{ value: '', label: 'Любой город' }, ...cities]}
-              />
-              <Select
-                name="to"
-                label="Куда"
-                defaultValue={query.to ?? ''}
-                options={[{ value: '', label: 'Любой город' }, ...cities]}
-              />
-            </>
+            <FlightQueryFields
+              cities={cities}
+              airlines={airlines}
+              combos={combos}
+              initial={{ from: query.from, to: query.to, airline: query.airline }}
+              dateFrom={query.dateFrom}
+              dateTo={query.dateTo}
+            >
+              {sort}
+            </FlightQueryFields>
           ) : null}
 
           {report === 'routes' ? (
-            <RouteSelects
-              airlines={airlines.filter(
-                (option) =>
-                  !query.to ||
-                  pairs.some(
-                    (pair) => pair.airline === option.value && pair.destination === query.to,
-                  ),
-              )}
-              destinations={cities.filter(
-                (option) =>
-                  !query.airline ||
-                  pairs.some(
-                    (pair) => pair.destination === option.value && pair.airline === query.airline,
-                  ),
-              )}
-              pairs={pairs}
-              airline={query.airline ?? ''}
-              destination={query.to ?? ''}
+            <LinkedSelects
+              fields={[
+                {
+                  name: 'airline',
+                  label: 'Авиакомпания',
+                  anyLabel: 'Все авиакомпании',
+                  options: airlines,
+                },
+                { name: 'to', label: 'Направление', anyLabel: 'Все направления', options: cities },
+              ]}
+              combos={combos}
+              initial={{ airline: query.airline, to: query.to }}
             />
-          ) : report === 'flights' || report === 'months' ? (
+          ) : null}
+
+          {report === 'months' ? (
             <Select
               name="airline"
               label="Авиакомпания"
@@ -93,24 +99,12 @@ export function DbQueryForm({
             />
           ) : null}
 
-          {report === 'flights' ? (
-            <Select
-              name="sort"
-              label="Сортировка"
-              defaultValue={query.sort}
-              options={(Object.keys(FLIGHT_SORTS) as FlightSort[]).map((key) => ({
-                value: key,
-                label: FLIGHT_SORTS[key],
-              }))}
-            />
-          ) : null}
-
           {withDates ? (
             <>
               <Input
                 name="dateFrom"
                 type="date"
-                label={report === 'flights' ? 'Вылет с даты' : 'Заказы с даты'}
+                label="Заказы с даты"
                 defaultValue={query.dateFrom ?? ''}
               />
               <Input
@@ -129,7 +123,7 @@ export function DbQueryForm({
       )}
       <div className="flex flex-wrap items-center gap-4">
         <Button type="submit">Выполнить запрос</Button>
-        {report === 'routes' ? (
+        {linked ? (
           // Без JavaScript списки сужает сервер: эта кнопка присылает выбор и получает новые списки.
           <noscript>
             <Button type="submit" variant="secondary">
