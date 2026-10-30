@@ -73,8 +73,9 @@ export async function SiteHeader() {
 
         <MainNav />
         <SiteSearch id="site-search" name="Поиск по сайту" className="hidden w-56 lg:block" />
-        <div className="hidden lg:block">
+        <div className="hidden shrink-0 items-center gap-2 lg:flex">
           <AccountLink {...account} />
+          {!user && <AccountLink href="/register" label="Регистрация" />}
         </div>
 
         {/* Меню для телефона и планшета: раскрывается и без JavaScript. */}
@@ -83,6 +84,7 @@ export async function SiteHeader() {
             <SiteSearch id="site-search-mobile" name="Поиск по сайту (мобильное меню)" />
             <MobileNavList />
             <AccountLink {...account} fullWidth />
+            {!user && <AccountLink href="/register" label="Регистрация" fullWidth />}
           </div>
         </MobileMenu>
       </div>
