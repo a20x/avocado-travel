@@ -5,6 +5,7 @@ import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import type { AuthFormState } from '../server/actions';
 import { signInAction, signUpAction } from '../server/actions';
+import { PasswordInput } from './PasswordInput';
 
 type AuthFormProps = {
   mode: 'sign-in' | 'sign-up';
@@ -55,12 +56,8 @@ export function AuthForm({ mode, next }: AuthFormProps) {
         defaultValue={state.values?.email}
         error={errors.email}
       />
-      <Input
-        name="password"
-        type="password"
-        label="Пароль"
+      <PasswordInput
         autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
-        required
         hint={mode === 'sign-up' ? 'Не меньше 8 символов' : undefined}
         error={errors.password}
       />

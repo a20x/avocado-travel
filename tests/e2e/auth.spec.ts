@@ -21,13 +21,29 @@ async function expectAccountButton(page: Page, name: string) {
   if (isMobile) await menu.click();
 }
 
+for (const path of ['/login', '/register']) {
+  test(`переключение видимости пароля на ${path}`, async ({ page }) => {
+    await page.goto(path);
+    const password = page.getByLabel('Пароль', { exact: true });
+    await password.fill('test-password');
+    await expect(password).toHaveAttribute('type', 'password');
+    await page.getByRole('button', { name: 'Показать пароль', exact: true }).click();
+    await expect(password).toHaveAttribute('type', 'text');
+    await expect(password).toHaveValue('test-password');
+    await page.getByRole('button', { name: 'Скрыть пароль', exact: true }).press('Enter');
+    await expect(password).toHaveAttribute('type', 'password');
+    await expect(password).toHaveValue('test-password');
+    await expect(page).toHaveURL(path);
+  });
+}
+
 test('регистрация, кабинет и выход', async ({ page }, testInfo) => {
   const email = uniqueEmail(`anna-${testInfo.project.name}`);
 
   await page.goto('/register');
   await page.getByLabel('Имя').fill('Анна');
   await page.getByLabel('Почта').fill(email);
-  await page.getByLabel('Пароль').fill('short');
+  await page.getByLabel('Пароль', { exact: true }).fill('short');
   await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
   await expect(page.getByText('Пароль — от 8 символов')).toBeVisible();
   // Введённое не пропадает после ошибки.
