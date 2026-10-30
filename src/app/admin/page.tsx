@@ -65,12 +65,17 @@ export default async function AdminPage() {
         <h2 id="sections-title" className="text-xl">
           Разделы
         </h2>
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* auto-rows-fr: все строки сетки — по самой высокой карточке, блоки одного размера. */}
+        <ul className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {SECTIONS.map((section) => (
             <li key={section.title}>
-              <Card className="grid gap-1 p-5">
+              <Card className="relative grid h-full content-start gap-1 p-5 transition-shadow focus-within:ring-3 focus-within:ring-leaf hover:shadow-lg">
                 {section.href ? (
-                  <Link href={section.href} className="font-semibold">
+                  // Ссылка растянута на всю карточку, но в доступном дереве остаётся одна — на названии.
+                  <Link
+                    href={section.href}
+                    className="font-semibold outline-none after:absolute after:inset-0"
+                  >
                     {section.title}
                   </Link>
                 ) : (
