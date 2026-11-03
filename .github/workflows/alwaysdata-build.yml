@@ -3,7 +3,7 @@ name: Build for alwaysdata
 on:
   push:
     branches:
-      - deploy/alwaysdata
+      - main
 
 permissions:
   contents: read
@@ -15,7 +15,7 @@ jobs:
 
     env:
       NEXT_PUBLIC_SITE_URL: https://avocado-travel.alwaysdata.net
-      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_TELEMETRY_DISABLED: '1'
 
     steps:
       - uses: actions/checkout@v4
