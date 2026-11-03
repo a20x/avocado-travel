@@ -1,0 +1,51 @@
+name: Build for alwaysdata
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+
+    env:
+      NEXT_PUBLIC_SITE_URL: https://avocado-travel.alwaysdata.net
+      NEXT_TELEMETRY_DISABLED: '1'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+
+      - name: Package application
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p bundle/.next bundle/db
+          cp -a .next/standalone/. bundle/
+          cp -a .next/static bundle/.next/static
+          cp -a public bundle/public
+          cp -a db/migrations bundle/db/migrations
+          mkdir -p bundle/content
+          cp -a content/press bundle/content/press
+          tar -czf avocado-alwaysdata.tar.gz -C bundle .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: avocado-alwaysdata
+          path: avocado-alwaysdata.tar.gz
+          retention-days: 3
