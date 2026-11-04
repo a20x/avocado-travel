@@ -13,7 +13,7 @@ export const metadata = pageMetadata({
 export default function HelpPage() {
   return (
     <div className="container-site grid gap-6 py-8">
-      <header className="grid max-w-2xl gap-2">
+      <header id="page-top" className="grid max-w-2xl scroll-mt-4 gap-2">
         <h1 className="text-3xl">Справка</h1>
         <p className="text-slate">
           Ответы на частые вопросы. Не нашли свой — спросите на <Link href="/forum">форуме</Link>{' '}

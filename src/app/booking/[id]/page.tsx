@@ -71,6 +71,9 @@ export default async function OrderPage(props: PageProps<'/booking/[id]'>) {
   const minutesLeft = Math.max(1, Math.ceil((order.expiresAt.getTime() - now.getTime()) / 60_000));
   return (
     <div className="container-site grid gap-6 py-8">
+      <p>
+        <Link href="/account">← Мои заказы</Link>
+      </p>
       <header className="grid gap-1">
         <h1 className="text-3xl">Оплата брони</h1>
         <p className="text-slate">

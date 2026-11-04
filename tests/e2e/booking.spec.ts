@@ -22,6 +22,10 @@ test('ошибки в данных пассажиров и карты, заня�
   await page.goto(bookingUrl);
   await expectNoHorizontalScroll(page);
   await expectValidHtml(page, bookingUrl);
+  await expect(page.getByRole('link', { name: '← К выбору мест' })).toHaveAttribute(
+    'href',
+    `/flights/${flightId}?passengers=2&cabinClass=economy`,
+  );
 
   // Пустая фамилия второго пассажира — ошибка у поля, введённое не пропадает.
   await page.getByLabel('Имя').nth(0).fill('Дина');
@@ -35,6 +39,10 @@ test('ошибки в данных пассажиров и карты, заня�
 
   await expect(page).toHaveURL(/\/booking\/[0-9a-f-]{36}$/);
   await expect(page.getByText('Демонстрационная оплата')).toBeVisible();
+  await expect(page.getByRole('link', { name: '← Мои заказы' })).toHaveAttribute(
+    'href',
+    '/account',
+  );
   await expectNoHorizontalScroll(page);
   await expectValidHtml(page, new URL(page.url()).pathname);
 

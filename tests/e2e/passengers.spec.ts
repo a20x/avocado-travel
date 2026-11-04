@@ -57,3 +57,39 @@ test('страницы раздела находятся поиском по с�
   await page.getByRole('link', { name: 'Перевозка животных' }).click();
   await expect(page).toHaveURL('/passengers/pets');
 });
+
+test('карточка раздела открывается щелчком в любом её месте', async ({ page }) => {
+  await page.goto('/passengers');
+  const link = page.getByRole('main').getByRole('link', { name: 'Ручная кладь', exact: true });
+  const card = link.locator('xpath=ancestor::li[1]');
+  await card.scrollIntoViewIfNeeded();
+  const box = (await card.boundingBox())!;
+  // Правый нижний угол карточки — не текст ссылки.
+  await page.mouse.click(box.x + box.width - 8, box.y + box.height - 8);
+  await expect(page).toHaveURL('/passengers/carry-on');
+
+  // То же у «Читайте также».
+  const related = page.getByRole('region', { name: 'Читайте также' }).getByRole('listitem').first();
+  await related.scrollIntoViewIfNeeded();
+  const relatedBox = (await related.boundingBox())!;
+  await page.mouse.click(relatedBox.x + relatedBox.width - 8, relatedBox.y + relatedBox.height - 8);
+  await expect(page).not.toHaveURL('/passengers/carry-on');
+  await expect(page).toHaveURL(/\/passengers\/[a-z-]+$/);
+});
+
+test('«К началу страницы» прокручивает наверх, «← Все страницы» ведёт в раздел', async ({
+  page,
+}) => {
+  await page.goto('/passengers/baggage#packing');
+  const main = page.getByRole('main');
+  const title = main.getByRole('heading', { level: 1, name: 'Багаж' });
+  await main
+    .getByRole('region', { name: 'Как упаковать' })
+    .getByRole('link', { name: '↑ К началу страницы' })
+    .click();
+  await expect(page).toHaveURL(/#page-top$/);
+  await expect(title).toBeInViewport();
+
+  await main.getByRole('link', { name: '← Все страницы для пассажиров' }).click();
+  await expect(page).toHaveURL('/passengers');
+});
