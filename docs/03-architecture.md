@@ -33,9 +33,9 @@ flowchart LR
 | Тесты | Vitest (модульные), Playwright (сквозные) | Быстрые и стандартные |
 | Качество кода | ESLint, Prettier, html-validate | Автоматическая проверка стиля и валидности HTML |
 | Окружение | Docker Compose | PostgreSQL на ноутбуке одной командой |
-| Хостинг | Render (Docker) + Neon (PostgreSQL) + cron-job.org | Бесплатно без срока, открывается из России. [ADR-0009](adr/0009-hosting-render-neon.md), [09-deploy.md](09-deploy.md) |
+| Хостинг | Render (Docker) + Neon (PostgreSQL) + cron-job.org; вторая копия — alwaysdata со своей PostgreSQL | Бесплатно без срока, открывается из России. [ADR-0009](adr/0009-hosting-render-neon.md), [ADR-0012](adr/0012-second-copy-alwaysdata.md), [09-deploy.md](09-deploy.md) |
 | Пакетный менеджер | pnpm | Быстрее и строже npm |
-| CI | GitHub Actions | Проверки на каждый PR; ручной workflow «Боевая база» — миграции и демо-данные на хостинге ([09-deploy.md](09-deploy.md)) |
+| CI | GitHub Actions | Проверки на каждый PR; ручной workflow «Боевая база» — миграции и демо-данные на хостинге; «Сайт на alwaysdata» — сборка и выкладка второй копии после CI ([09-deploy.md](09-deploy.md)) |
 
 Версии фиксируются в `package.json` на момент старта проекта (актуальные стабильные). Node.js — текущая LTS.
 
@@ -174,7 +174,8 @@ avocado-travel/
 │   └── seed/                   # скрипты демо-данных
 ├── scripts/
 │   ├── jobs/                   # задания по расписанию для ручного запуска (pnpm job:…)
-│   └── check-russia.ts         # проверка доступности сайта из России (pnpm check:russia)
+│   ├── check-russia.ts         # проверка доступности сайта из России (pnpm check:russia)
+│   └── alwaysdata-release.sh   # релизы на сервере alwaysdata, запускает workflow выкладки
 ├── public/                     # статика: иконки, иллюстрации
 ├── tests/e2e/                  # сквозные тесты Playwright
 ├── docs/                       # документация

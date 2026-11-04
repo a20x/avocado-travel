@@ -12,6 +12,8 @@
 
 Все три сервиса бесплатны без срока. Сайт и база — во Франкфурте: это ближайший к России регион, и запросы к базе идут внутри одного города.
 
+Вторая копия сайта работает на [alwaysdata](https://www.alwaysdata.com) — `https://avocado-travel.alwaysdata.net`, со своей базой. Она обновляется автоматически из того же `main`, см. [«Вторая копия на alwaysdata»](#вторая-копия-на-alwaysdata) и [ADR-0012](adr/0012-second-copy-alwaysdata.md).
+
 ## Как устроен деплой
 
 - **Образ.** `Dockerfile` собирает сайт в три этапа: зависимости, сборка (`next build` с `output: 'standalone'`), запуск. В итоговый образ попадают только сервер Next.js с нужными ему пакетами, статика и миграции — без исходников и devDependencies. Сервер работает не от root.
@@ -82,9 +84,101 @@ pnpm check:russia https://avocado-travel.onrender.com
 
 ## Обновление
 
-Обычный порядок: PR → CI → слияние в `main` → Render собирает и выкладывает новую версию сам, миграции применяются при запуске. Ничего запускать руками не нужно.
+Обычный порядок: PR → CI → слияние в `main` → Render собирает и выкладывает новую версию сам, миграции применяются при запуске. Одновременно workflow «Сайт на alwaysdata» выкладывает ту же версию на вторую копию. Ничего запускать руками не нужно.
 
 Демо-данные на боевой базе обновляются так же, как в шаге 2: workflow «Боевая база» с действием `seed`. Сид стирает заказы, отзывы и сообщения посетителей, поэтому без нужды его не запускать.
+
+## Вторая копия на alwaysdata
+
+Тот же код, отдельный сервер и отдельная база PostgreSQL на alwaysdata. Данные между копиями не синхронизируются: новость или заказ, созданные на одной, на другой не появятся. Почему так — [ADR-0012](adr/0012-second-copy-alwaysdata.md).
+
+### Как устроена выкладка
+
+Workflow `.github/workflows/alwaysdata-deploy.yml` («Сайт на alwaysdata») запускается сам, когда CI на `main` прошёл. Вручную — **Actions → «Сайт на alwaysdata» → Run workflow** (только с `main`).
+
+1. Собирает сайт на серверах GitHub (на alwaysdata сборке не хватило бы 256 МБ памяти) и упаковывает standalone-сборку, статику, миграции и файлы лабы 2 в архив. Архив ещё 3 дня можно скачать из запуска.
+2. По SSH отправляет архив на сервер и распаковывает его в новый каталог релиза.
+3. Переключает ссылку `current` на новый релиз и перезапускает сайт через API alwaysdata. При запуске применяются миграции.
+4. До 3 минут ждёт, пока сайт начнёт отдавать статику новой сборки и `/api/health` ответит 200. Получилось — удаляет старые релизы, кроме двух прошлых. Нет — возвращает `current` на прошлый релиз, перезапускает сайт и завершается с ошибкой.
+
+Каталоги на сервере:
+
+```text
+~/apps/avocado/
+├── current -> releases/20261104-153000-e06f6ef   # работающий релиз
+└── releases/
+    ├── 20261103-120000-6c7c928                   # два прошлых — для отката
+    ├── 20261104-101500-1bdc81b
+    └── 20261104-153000-e06f6ef
+```
+
+Команды на сервере — в `scripts/alwaysdata-release.sh`: workflow передаёт его по SSH, на сервере ничего ставить не нужно.
+
+### Первая настройка выкладки
+
+Делается один раз. Сайт на alwaysdata, его база и переменные окружения уже должны быть настроены.
+
+1. **Ключ для выкладки.** На своём компьютере создать отдельный ключ и добавить его на сервер:
+
+   ```bash
+   ssh-keygen -t ed25519 -f ~/.ssh/avocado_deploy -N "" -C "github-actions avocado"
+   ssh-copy-id -i ~/.ssh/avocado_deploy.pub ПОЛЬЗОВАТЕЛЬ@ssh-avocado-travel.alwaysdata.net
+   ```
+
+   Пользователь и сервер SSH — в панели alwaysdata, раздел **Remote access → SSH**.
+2. **Ключ сервера**, чтобы workflow не отправил архив подменённому серверу:
+
+   ```bash
+   ssh-keyscan ssh-avocado-travel.alwaysdata.net
+   ```
+
+3. **Токен API:** в панели alwaysdata **Profile → Tokens**, создать токен. **ID сайта** — число в адресе страницы настроек сайта в панели (`…/site/<ID>/…`).
+4. **Секреты репозитория** — **Settings → Secrets and variables → Actions → New repository secret**:
+
+   | Секрет | Значение |
+   |---|---|
+   | `ALWAYSDATA_SSH_HOST` | Сервер SSH, например `ssh-avocado-travel.alwaysdata.net` |
+   | `ALWAYSDATA_SSH_USER` | Пользователь SSH |
+   | `ALWAYSDATA_SSH_KEY` | Закрытый ключ целиком: `pbcopy < ~/.ssh/avocado_deploy` |
+   | `ALWAYSDATA_SSH_KNOWN_HOSTS` | Вывод `ssh-keyscan` из шага 2 целиком |
+   | `ALWAYSDATA_ACCOUNT` | Имя аккаунта alwaysdata |
+   | `ALWAYSDATA_API_TOKEN` | Токен из шага 3 |
+   | `ALWAYSDATA_SITE_ID` | ID сайта из шага 3 |
+
+5. **Первый релиз:** **Actions → «Сайт на alwaysdata» → Run workflow**. Он распакует сборку в `~/apps/avocado/releases/…`, создаст ссылку `current` и закончится сообщением «Первая выкладка». Сайт пока работает из прежнего каталога.
+6. **Переключить сайт** в панели: **Web → Sites → сайт → изменить**:
+   - Working directory — `/home/АККАУНТ/apps/avocado/current`;
+   - Command — `node /home/АККАУНТ/apps/avocado/current/server.js`.
+
+   Сохранить, перезапустить сайт и открыть `https://avocado-travel.alwaysdata.net/api/health` — должно быть `{"status":"ok"}`. Переменные окружения сайта не меняются.
+7. Когда сайт проработал на новом каталоге хотя бы одну выкладку, прежний каталог ручной выкладки можно удалить: `rm -rf ~/apps/avocado-travel`.
+
+Ключ `~/.ssh/avocado_deploy` нужен только GitHub: если он утёк, удалить его строку из `~/.ssh/authorized_keys` на сервере и повторить шаги 1 и 4.
+
+### Переменные сайта на alwaysdata
+
+Задаются в панели: **Web → Sites → сайт → Environment**. Значения секретов — свои, не те, что на Render.
+
+| Переменная | Значение |
+|---|---|
+| `NODE_ENV` | `production` |
+| `NEXT_PUBLIC_SITE_URL` | `https://avocado-travel.alwaysdata.net` — тот же, что в workflow |
+| `DATABASE_URL` | Подключение к PostgreSQL на alwaysdata |
+| `BETTER_AUTH_SECRET`, `CRON_SECRET`, `IP_HASH_SALT` | Случайные значения: `openssl rand -hex 32` |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Администратор сайта |
+| `DB_MIGRATE_ON_START` | `true` |
+| `HOSTNAME`, `PORT` | Адрес и порт, которые панель показывает в настройках сайта |
+
+Расписание — те же задания `/api/cron/*` на cron-job.org с адресом alwaysdata и его `CRON_SECRET`.
+
+### Если выкладка не прошла
+
+| Признак | Что делать |
+|---|---|
+| Шаг «Выложить» падает на `scp` или `ssh`, «Permission denied» или «Host key verification failed» | Проверить секреты `ALWAYSDATA_SSH_*`: ключ скопирован целиком, публичная часть есть в `~/.ssh/authorized_keys`, `ssh-keyscan` сделан для того же сервера |
+| Ошибка `curl` при перезапуске, код 401 или 404 | Неверный токен, имя аккаунта или ID сайта |
+| «Новая версия не ответила за 3 минуты» | Сайт уже возвращён на прошлый релиз. Причина — в журнале сайта: `~/admin/logs/sites/` или панель. Если ошибка в каждой выкладке — проверить, что сайт в панели запускается из `current` (шаг 6) |
+| Нужно откатить вручную | По SSH: `ls ~/apps/avocado/releases`, затем `ln -sfn releases/<релиз> ~/apps/avocado/current` и перезапуск сайта в панели |
 
 ## Если что-то не так
 
