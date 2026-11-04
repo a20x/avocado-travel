@@ -12,6 +12,7 @@ export {
   getMergedFeed,
   getRssPage,
   handleCombinedExport,
+  handleMergedRss,
   handleRssFeed,
 } from './server/feeds';
 export type { MergedFeed, MergedFeedResult, RssPage, RssPreview } from './server/feeds';

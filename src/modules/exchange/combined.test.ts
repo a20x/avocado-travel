@@ -65,7 +65,7 @@ describe('общая лента: параметры', () => {
 
   it('адрес — только параметры не по умолчанию; к выгрузке добавляются через &', () => {
     const query = combinedQuerySchema.parse({ q: 'сочи', source: 'site' });
-    expect(combinedHref(query)).toBe('/rss?q=%D1%81%D0%BE%D1%87%D0%B8&source=site');
+    expect(combinedHref(query)).toBe('/rss?view=search&q=%D1%81%D0%BE%D1%87%D0%B8&source=site');
     expect(combinedHref(combinedQuerySchema.parse({}), {}, '/rss/export?format=csv')).toBe(
       '/rss/export?format=csv',
     );

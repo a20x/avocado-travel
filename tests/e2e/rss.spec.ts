@@ -22,7 +22,7 @@ test('RSS: своя лента в RSS 2.0 и выгрузки в формата�
 
 test('RSS: загруженный файл разбирается на записи', async ({ page, request }) => {
   const feed = await (await request.get('/feed.xml')).body();
-  await page.goto('/rss');
+  await page.goto('/rss?view=upload');
   const upload = page.getByRole('region', { name: 'Разобрать RSS-файл' });
   await upload.getByLabel('Файл ленты').setInputFiles({
     name: 'avocado.xml',
@@ -45,13 +45,13 @@ test('RSS: загруженный файл разбирается на запи�
 
 test('RSS: общая лента — новости сайта вместе с внешними, вперемешку', async ({ page }) => {
   // Замечание преподавателя по лабе 4: в общей ленте должны быть видны и новости сайта.
-  await page.goto('/rss');
+  await page.goto('/rss?view=search');
   await expect(page.getByLabel('Порядок')).toHaveValue('mixed');
   const composition = page.getByText(/^В общей ленте \d+ новост/);
   await expect(composition).toBeVisible();
   await expect(composition.getByRole('link', { name: /сайта Avocado Travel/ })).toHaveAttribute(
     'href',
-    '/rss?source=site',
+    '/rss?view=search&source=site',
   );
   // Новость сайта — первой: внешние не вытесняют её с первой страницы.
   await expect(
@@ -70,14 +70,14 @@ test('RSS: общая лента — поиск по источнику', async 
 test('RSS: ленты подключает только администратор, адрес внутренней сети не принимается', async ({
   page,
 }) => {
-  await page.goto('/rss');
+  await page.goto('/rss?view=feeds');
   const feeds = page.getByRole('region', { name: 'Внешние RSS-ленты' });
   await expect(feeds.getByText(/может только администратор/)).toBeVisible();
   await expect(feeds.getByLabel('Адрес RSS-ленты')).toHaveCount(0);
 
-  await page.goto('/login?next=%2Frss');
+  await page.goto('/login?next=%2Frss%3Fview%3Dfeeds');
   await signIn(page, ADMIN.email, ADMIN.password);
-  await expect(page).toHaveURL('/rss');
+  await expect(page).toHaveURL('/rss?view=feeds');
   await feeds.getByLabel('Адрес RSS-ленты').fill('http://127.0.0.1:3000/feed.xml');
   await feeds.getByLabel('Название источника').fill('Своя лента');
   await feeds.getByRole('button', { name: 'Подключить ленту' }).click();
@@ -109,4 +109,86 @@ test('RSS: объединённые новости — неверный адре
   await page.goto('/rss?feed=ftp%3A%2F%2Fexample.com%2Frss#merged');
   const merged = page.getByRole('region', { name: /^Объединённые новости/ });
   await expect(merged.getByRole('alert')).toContainText('https://example.com/rss.xml');
+});
+
+test('RSS: меню разделов, первыми — объединённые новости со значком RSS', async ({
+  page,
+  request,
+}) => {
+  // Замечание преподавателя одногруппнику: ввод новостей, ввод RSS-ленты, поиск и объединённые
+  // новости — в одном месте с понятными названиями; под объединёнными новостями — значок RSS.
+  await page.goto('/rss');
+  const menu = page.getByRole('navigation', { name: 'Разделы RSS' }).getByRole('link');
+  await expect(menu).toHaveText([
+    'Объединённые новости',
+    'Ввод новостей сайта',
+    'Подключить RSS-ленту',
+    'Поиск по новостям',
+    'Выгрузка и подписка',
+    'Разбор RSS-файла',
+  ]);
+  await expect(menu.first()).toHaveAttribute('aria-current', 'page');
+
+  // Пока адрес не введён — новости сайта и подключённых лент вместе, под ними значок RSS.
+  const preview = page.getByRole('region', { name: 'Новости сайта и подключённых RSS-лент' });
+  await expect(preview.getByText(/^В общей ленте \d+ новост/)).toBeVisible();
+  const rss = preview.getByRole('link', { name: 'Объединённые новости в формате RSS' });
+  const href = await rss.getAttribute('href');
+  expect(href).toBe('/rss/export?format=rss');
+  const feed = await request.get(href!);
+  expect(feed.headers()['content-type']).toContain('application/rss+xml');
+  expect(await feed.text()).toMatch(/<rss version="2\.0"[\s\S]*<item>/);
+
+  await menu.getByText('Выгрузка и подписка').click();
+  await expect(page.getByRole('region', { name: 'Скачать новости' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'RSS-подписка Avocado Travel' })).toBeVisible();
+});
+
+test('RSS: объединённые новости в RSS по адресу ленты — ошибки понятны', async ({ request }) => {
+  const wrong = await request.get('/rss/merged?feed=ftp%3A%2F%2Fexample.com%2Frss');
+  expect(wrong.status()).toBe(400);
+  expect(await wrong.text()).toContain('https://example.com/rss.xml');
+  // Адрес внутренней сети сайт не скачивает (защита от SSRF).
+  const inner = await request.get('/rss/merged?feed=http%3A%2F%2F127.0.0.1%3A3000%2Ffeed.xml');
+  expect(inner.status()).toBe(422);
+});
+
+test('RSS: ввод новостей сайта — гостю вход, администратор пишет новость прямо здесь', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'база общая, новость одна на оба экрана');
+
+  await page.goto('/rss?view=input');
+  await expect(page.getByRole('link', { name: 'Войти как администратор' })).toHaveAttribute(
+    'href',
+    '/login?next=%2Frss%3Fview%3Dinput',
+  );
+
+  const title = `Новость с вкладки RSS ${Date.now()}`;
+  await page.getByRole('link', { name: 'Войти как администратор' }).click();
+  await signIn(page, ADMIN.email, ADMIN.password);
+  await expect(page).toHaveURL('/rss?view=input');
+  await page.getByLabel('Заголовок').fill(title);
+  await page.getByLabel('Кратко').fill('Проверка ввода новости на вкладке RSS.');
+  await page.getByLabel('Текст').fill('Новость сайта появляется среди объединённых новостей.');
+  await page.getByRole('button', { name: 'Опубликовать' }).click();
+
+  // Сразу — в объединённых новостях вместе с RSS-лентами.
+  await expect(page).toHaveURL('/rss?saved=news');
+  await expect(
+    page.getByRole('region', { name: 'Новости сайта и подключённых RSS-лент' }).getByText(title),
+  ).toBeVisible();
+
+  // Убираем за собой.
+  await page.goto('/admin/news');
+  await page
+    .getByRole('row')
+    .filter({ hasText: title })
+    .getByRole('button', { name: 'Удалить' })
+    .click();
+  await page
+    .getByRole('dialog', { name: 'Удалить новость?' })
+    .getByRole('button', { name: 'Удалить' })
+    .click();
+  await expect(page).toHaveURL('/admin/news?deleted=1');
 });

@@ -61,6 +61,9 @@ export {
   exportCombined,
   toRss,
 } from './combined';
+/** Разделы вкладки «RSS». */
+export { RSS_VIEWS, mergedRssHref, rssViewHref, rssViewOf } from './rss-tab';
+export type { RssView } from './rss-tab';
 export type {
   CombinedNewsItem,
   CombinedQuery,

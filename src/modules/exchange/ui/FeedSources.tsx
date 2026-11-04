@@ -31,7 +31,8 @@ export function FeedSources({ feeds, isAdmin }: { feeds: ExternalFeedStatus[]; i
         <p className="text-slate">
           Сайт сам скачивает эти ленты каждые 6 часов, разбирает записи на заголовок, описание,
           ссылку и дату, очищает текст от HTML, отбрасывает дубли и старые записи, расставляет теги
-          и сохраняет новости в базу — они появляются в общей ленте ниже и в «Новостях отрасли».
+          и сохраняет новости в базу — они появляются в «Объединённых новостях», в поиске по
+          новостям и в «Новостях отрасли».
         </p>
       </div>
 
@@ -71,7 +72,7 @@ export function FeedSources({ feeds, isAdmin }: { feeds: ExternalFeedStatus[]; i
                   ) : null}
                 </td>
                 <td className="tabular-nums">
-                  <Link href={`/rss?source=${feed.id}`}>{feed.newsCount}</Link>
+                  <Link href={`/rss?view=search&source=${feed.id}`}>{feed.newsCount}</Link>
                 </td>
                 {isAdmin ? (
                   <td>
@@ -82,7 +83,7 @@ export function FeedSources({ feeds, isAdmin }: { feeds: ExternalFeedStatus[]; i
                       text={`Лента «${feed.name}» больше не будет импортироваться, а её ${feed.newsCount} новостей исчезнут с сайта.`}
                       confirmLabel="Отключить"
                       action={removeFeedAction}
-                      permalink="/rss"
+                      permalink="/rss?view=feeds"
                     >
                       <input type="hidden" name="id" value={feed.id} />
                     </ConfirmButton>
@@ -101,7 +102,7 @@ export function FeedSources({ feeds, isAdmin }: { feeds: ExternalFeedStatus[]; i
           <h3 className="text-lg">Подключить ленту</h3>
           <AddFeedForm />
           <div>
-            <ActionForm action={refreshFeedsAction} permalink="/rss">
+            <ActionForm action={refreshFeedsAction} permalink="/rss?view=feeds">
               <Button type="submit" variant="secondary">
                 Обновить все ленты сейчас
               </Button>
@@ -111,9 +112,9 @@ export function FeedSources({ feeds, isAdmin }: { feeds: ExternalFeedStatus[]; i
       ) : (
         <p className="text-sm text-slate">
           Подключать ленты насовсем (с сохранением новостей в базу) может только администратор —{' '}
-          <Link href="/login?next=%2Frss">войти под его учётной записью</Link>. Посмотреть любую
-          ленту вместе с новостями сайта может каждый — в блоке{' '}
-          <a href="#merged">«Объединённые новости»</a> в начале страницы.
+          <Link href="/login?next=%2Frss%3Fview%3Dfeeds">войти под его учётной записью</Link>.
+          Посмотреть любую ленту вместе с новостями сайта может каждый — в разделе{' '}
+          <Link href="/rss">«Объединённые новости»</Link>.
         </p>
       )}
     </Card>

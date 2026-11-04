@@ -226,7 +226,7 @@ export function exportCombined(
 export function combinedHref(
   query: CombinedQuery,
   change: Partial<CombinedQuery> = {},
-  path = '/rss',
+  path = '/rss?view=search',
 ): string {
   const next = { ...query, ...change };
   const params = new URLSearchParams();

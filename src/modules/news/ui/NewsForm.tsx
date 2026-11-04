@@ -14,6 +14,8 @@ type NewsFormProps = {
   /** Есть — правка этой новости, нет — новая. */
   id?: string;
   initial: NewsInput;
+  /** Форма на вкладке «RSS»: после сохранения — туда, к объединённым новостям. */
+  returnTo?: 'rss';
 };
 
 // Выпадающие списки сайта — по алфавиту.
@@ -22,12 +24,12 @@ const CATEGORY_OPTIONS = Object.entries(NEWS_CATEGORIES)
   .sort((a, b) => a.label.localeCompare(b.label, 'ru'));
 
 /** Форма новости в админке: создание и правка. */
-export function NewsForm({ id, initial }: NewsFormProps) {
+export function NewsForm({ id, initial, returnTo }: NewsFormProps) {
   // Адрес в action — для валидного HTML и работы без JavaScript (см. AuthForm).
   const [state, formAction, pending] = useActionState<NewsFormState, FormData>(
     saveNewsAction,
     {},
-    id ? `/admin/news/${id}/edit` : '/admin/news/new',
+    id ? `/admin/news/${id}/edit` : returnTo === 'rss' ? '/rss?view=input' : '/admin/news/new',
   );
   const errors = state.fieldErrors ?? {};
   const value = (field: keyof NewsInput) => state.values?.[field] ?? initial[field];
@@ -36,6 +38,7 @@ export function NewsForm({ id, initial }: NewsFormProps) {
     <Card className="p-4 md:p-6">
       <form action={formAction} noValidate className="grid gap-5 md:grid-cols-2">
         {id ? <input type="hidden" name="id" value={id} /> : null}
+        {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
         {state.error ? (
           <p role="alert" className="rounded-sm bg-error-bg px-4 py-3 text-error md:col-span-2">
             {state.error}

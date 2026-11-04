@@ -24,7 +24,7 @@ export function RssUpload() {
   const [state, formAction, pending] = useActionState<PreviewState, FormData>(
     previewRssAction,
     null,
-    '/rss',
+    '/rss?view=upload',
   );
   return (
     <Card as="section" aria-labelledby="upload-title" className="grid gap-4 p-5 md:p-6">

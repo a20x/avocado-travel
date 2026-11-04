@@ -13,7 +13,7 @@ export function AddFeedForm() {
   const [state, formAction, pending] = useActionState<FeedFormState, FormData>(
     addFeedAction,
     null,
-    '/rss',
+    '/rss?view=feeds',
   );
   return (
     <form action={formAction} aria-label="Подключить ленту" className="grid gap-4">
