@@ -33,7 +33,14 @@ describe('PASSENGER_PAGES', () => {
 
   it('якоря разделов уникальны на странице и не заняты общим макетом', () => {
     // Уже есть на каждой странице: оглавление, «Читайте также», шапка, подвал и счётчик.
-    const taken = ['contents', 'contents-title', 'related-title', 'content', 'site-search'];
+    const taken = [
+      'page-top',
+      'contents',
+      'contents-title',
+      'related-title',
+      'content',
+      'site-search',
+    ];
     for (const page of PASSENGER_PAGES) {
       const anchors = page.sections.flatMap((section) => [section.id, `${section.id}-title`]);
       for (const anchor of page.sections.map((section) => section.id)) {

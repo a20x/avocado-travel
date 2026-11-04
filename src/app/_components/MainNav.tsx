@@ -123,8 +123,10 @@ function MoreMenu({ pathname, isActive }: { pathname: string; isActive: boolean 
   );
 }
 
+// От 1280 px меню стоит в центральной колонке шапки между логотипом и кнопками входа —
+// пункты компактнее, чтобы колонкам по бокам хватило места.
 const linkClasses =
-  'block rounded-sm px-3 py-2 font-medium whitespace-nowrap text-graphite no-underline hover:bg-mist';
+  'block rounded-sm px-3 py-2 font-medium whitespace-nowrap text-graphite no-underline hover:bg-mist xl:px-2';
 
 /** Основное меню для широкого экрана: пункты и выпадающее «Ещё». */
 export function MainNav() {

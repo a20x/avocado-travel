@@ -12,9 +12,11 @@ test('справка: оглавление ведёт к вопросу на э�
 
   await page
     .getByRole('region', { name: 'Бронирование и оплата' })
-    .getByRole('link', { name: '↑ К оглавлению' })
+    .getByRole('link', { name: '↑ К началу страницы' })
     .click();
-  await expect(page).toHaveURL(/\/help#contents$/);
+  await expect(page).toHaveURL(/\/help#page-top$/);
+  // Страница действительно прокрутилась наверх — к заголовку.
+  await expect(page.getByRole('heading', { level: 1, name: 'Справка' })).toBeInViewport();
   await expect(contents).toBeInViewport();
 });
 

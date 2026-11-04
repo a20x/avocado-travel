@@ -14,7 +14,7 @@ async function expectAccountButton(page: Page, name: string) {
 }
 
 // Замечание преподавателя по лабе 1: на окне уже 1024 px кнопки прятались в меню.
-for (const width of [320, 800, 1100, 1280]) {
+for (const width of [320, 800, 1100, 1280, 1440]) {
   test(`вход и регистрация видны в шапке без меню при ширине ${width} px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
     for (const path of ['/', '/news']) {
@@ -28,6 +28,12 @@ for (const width of [320, 800, 1100, 1280]) {
         await expect(link).toBeVisible();
         await expect(link).toHaveAttribute('href', href);
         await expect(link).toBeInViewport({ ratio: 1 });
+      }
+      // Поле поиска (видно от 1024 px) не слипается с кнопкой «Войти».
+      if (width >= 1024) {
+        const search = await header.getByRole('search').boundingBox();
+        const signIn = await header.getByRole('link', { name: 'Войти', exact: true }).boundingBox();
+        expect(signIn!.x - (search!.x + search!.width)).toBeGreaterThanOrEqual(16);
       }
       // Шапка не шире экрана: ничего не уехало вбок.
       const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
@@ -135,4 +141,17 @@ test('у покупателя в кабинете нет ссылки в адм�
   await registerCustomer(page, 'Вера', `vera-${testInfo.project.name}`);
   await page.goto('/account');
   await expect(page.getByRole('link', { name: '← В админку' })).toHaveCount(0);
+});
+
+test('со страницы входа «← Назад» возвращает на предыдущую страницу', async ({ page }) => {
+  await page.goto('/news');
+  await page.getByRole('banner').getByRole('link', { name: 'Войти', exact: true }).click();
+  await expect(page).toHaveURL('/login');
+  await page.getByRole('main').getByRole('link', { name: '← Назад' }).click();
+  await expect(page).toHaveURL('/news');
+
+  // Открыли регистрацию по прямой ссылке — «Назад» ведёт на главную.
+  await page.goto('/register');
+  await page.getByRole('main').getByRole('link', { name: '← Назад' }).click();
+  await expect(page).toHaveURL('/');
 });

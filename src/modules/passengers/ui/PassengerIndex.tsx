@@ -24,7 +24,8 @@ export function PassengerIndex({
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {group.pages.map((page) => (
               <li key={page.slug}>
-                <Card className="flex h-full items-start gap-4 p-4">
+                {/* Вся карточка — ссылка: ::after у ссылки растягивает её на карточку. */}
+                <Card className="relative transition-shadow focus-within:ring-3 focus-within:ring-leaf hover:shadow-lg flex h-full items-start gap-4 p-4">
                   <Image
                     src={passengerImageSrc(page.slug)}
                     alt=""
@@ -33,7 +34,10 @@ export function PassengerIndex({
                     className="shrink-0"
                   />
                   <div className="grid gap-1">
-                    <Link href={passengerPageHref(page.slug)} className="font-semibold">
+                    <Link
+                      href={passengerPageHref(page.slug)}
+                      className="font-semibold outline-none after:absolute after:inset-0"
+                    >
                       {page.title}
                     </Link>
                     <span className="text-sm text-slate">{page.description}</span>

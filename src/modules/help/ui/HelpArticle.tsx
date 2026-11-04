@@ -50,7 +50,8 @@ export function HelpArticle({ sections }: { sections: HelpSection[] }) {
             <Question key={item.id} item={item} />
           ))}
           <p className="text-sm">
-            <a href="#contents">↑ К оглавлению</a>
+            {/* Оглавление прилипает при прокрутке, поэтому ссылка ведёт к началу страницы. */}
+            <a href="#page-top">↑ К началу страницы</a>
           </p>
         </Card>
       ))}

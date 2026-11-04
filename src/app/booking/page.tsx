@@ -74,6 +74,14 @@ export default async function BookingPage(props: PageProps<'/booking'>) {
 
   return (
     <div className="container-site grid gap-6 py-8">
+      <p>
+        {/* Назад к схеме салона того же рейса — с тем же числом пассажиров и классом. */}
+        <Link
+          href={`/flights/${flight.id}?passengers=${seats.length}&cabinClass=${request.cabinClass}`}
+        >
+          ← К выбору мест
+        </Link>
+      </p>
       <header className="grid gap-1">
         <h1 className="text-3xl">Оформление брони</h1>
         <p className="text-slate">

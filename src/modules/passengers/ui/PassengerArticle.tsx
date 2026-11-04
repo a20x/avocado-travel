@@ -83,10 +83,10 @@ export function PassengerArticle({
 }) {
   return (
     <div className="container-site grid gap-8 py-8">
-      <nav aria-label="Путь к странице" className="text-sm">
-        <Link href={PASSENGERS_PATH}>Пассажирам</Link>
-        <span className="text-slate"> / {page.title}</span>
-      </nav>
+      {/* К этому месту ведут ссылки «К началу страницы» внизу разделов. */}
+      <p id="page-top" className="scroll-mt-4">
+        <Link href={PASSENGERS_PATH}>← Все страницы для пассажиров</Link>
+      </p>
 
       <header className="grid items-center gap-6 md:grid-cols-[minmax(0,1fr)_14rem]">
         <div className="grid max-w-2xl gap-3">
@@ -138,7 +138,8 @@ export function PassengerArticle({
                 <Block key={index} block={block} />
               ))}
               <p className="text-sm">
-                <a href="#contents">↑ К оглавлению страницы</a>
+                {/* Оглавление прилипает при прокрутке, поэтому ссылка ведёт к началу страницы. */}
+                <a href="#page-top">↑ К началу страницы</a>
               </p>
             </Card>
           ))}
@@ -163,8 +164,12 @@ export function PassengerArticle({
               <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {related.map((item) => (
                   <li key={item.slug}>
-                    <Card className="grid h-full content-start gap-1 p-4">
-                      <Link href={passengerPageHref(item.slug)} className="font-semibold">
+                    <Card className="relative transition-shadow focus-within:ring-3 focus-within:ring-leaf hover:shadow-lg grid h-full content-start gap-1 p-4">
+                      {/* Вся карточка — ссылка: ::after растягивает её на карточку. */}
+                      <Link
+                        href={passengerPageHref(item.slug)}
+                        className="font-semibold outline-none after:absolute after:inset-0"
+                      >
                         {item.title}
                       </Link>
                       <span className="text-sm text-slate">{item.description}</span>

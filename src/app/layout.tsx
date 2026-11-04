@@ -4,6 +4,7 @@ import { getMetrikaId } from '@/modules/stats/server';
 import { YandexMetrika } from '@/modules/stats/ui';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/shared/config/site';
 import { OPEN_GRAPH_DEFAULTS } from '@/shared/lib/metadata';
+import { NavigationHistory } from '@/shared/ui/BackLink';
 import { SiteFooter } from './_components/SiteFooter';
 import { SiteHeader } from './_components/SiteHeader';
 import './globals.css';
@@ -45,6 +46,8 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         >
           Перейти к содержимому
         </a>
+        {/* Запоминает предыдущую страницу для ссылок «← Назад» (BackLink). */}
+        <NavigationHistory />
         <SiteHeader />
         <main id="content" className="flex-1">
           {children}

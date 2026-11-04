@@ -58,7 +58,7 @@ export async function SiteHeader() {
 
   return (
     <header className="relative border-b border-line bg-white">
-      <div className="container-site flex h-16 items-center gap-3 lg:h-auto lg:gap-x-6 lg:flex-wrap lg:gap-y-2 lg:py-3 xl:grid xl:grid-cols-[minmax(0,1fr)_max-content_minmax(0,1fr)]">
+      <div className="container-site flex h-16 items-center gap-3 lg:h-auto lg:gap-x-6 lg:flex-wrap lg:gap-y-2 lg:py-3 xl:grid xl:grid-cols-[minmax(max-content,1fr)_minmax(0,max-content)_minmax(max-content,1fr)]">
         <Link href="/" className="flex-1 lg:flex-none xl:col-start-1 xl:row-start-1">
           {/* Уже 640 px — только знак: рядом должны поместиться кнопки входа и меню. */}
           <Image
