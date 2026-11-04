@@ -1,0 +1,140 @@
+name: Сайт на alwaysdata
+
+# Сборка и выкладка второй копии сайта (docs/09-deploy.md#вторая-копия-на-alwaysdata).
+# Сама — после успешного CI на main; вручную — Actions → «Сайт на alwaysdata» → Run workflow.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Выкладки идут по очереди: две одновременно переключали бы одну ссылку current.
+concurrency:
+  group: alwaysdata-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # После CI — только если проверки пуша в main прошли; вручную — только с main.
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    env:
+      SITE_URL: https://avocado-travel.alwaysdata.net
+      # Next.js вписывает адрес сайта в код при сборке.
+      NEXT_PUBLIC_SITE_URL: https://avocado-travel.alwaysdata.net
+      NEXT_TELEMETRY_DISABLED: '1'
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # После CI — ровно тот коммит, который CI проверил.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Собирается здесь, а не на сервере: next build не уместился бы в 256 МБ памяти alwaysdata.
+      - run: pnpm build
+
+      - name: Упаковать сборку
+        id: pack
+        run: |
+          set -euo pipefail
+          mkdir -p bundle/.next bundle/db bundle/content
+          cp -a .next/standalone/. bundle/
+          cp -a .next/static bundle/.next/static
+          cp -a public bundle/public
+          cp -a db/migrations bundle/db/migrations
+          cp -a content/press bundle/content/press
+          tar -czf avocado-alwaysdata.tar.gz -C bundle .
+          echo "release=$(date -u +%Y%m%d-%H%M%S)-$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+          echo "build-id=$(cat .next/BUILD_ID)" >> "$GITHUB_OUTPUT"
+
+      # Тот же архив можно скачать и выложить вручную, если автоматическая выкладка не работает.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: avocado-alwaysdata
+          path: avocado-alwaysdata.tar.gz
+          retention-days: 3
+
+      - name: Ключ SSH
+        env:
+          SSH_KEY: ${{ secrets.ALWAYSDATA_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.ALWAYSDATA_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          # Ключ сервера известен заранее: подменённый сервер не получит архив.
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Выложить
+        env:
+          SSH_TARGET: ${{ secrets.ALWAYSDATA_SSH_USER }}@${{ secrets.ALWAYSDATA_SSH_HOST }}
+          ACCOUNT: ${{ secrets.ALWAYSDATA_ACCOUNT }}
+          API_TOKEN: ${{ secrets.ALWAYSDATA_API_TOKEN }}
+          SITE_ID: ${{ secrets.ALWAYSDATA_SITE_ID }}
+          RELEASE: ${{ steps.pack.outputs.release }}
+          BUILD_ID: ${{ steps.pack.outputs.build-id }}
+        run: |
+          set -euo pipefail
+
+          remote() {
+            ssh -o BatchMode=yes "$SSH_TARGET" bash -s -- "$@" < scripts/alwaysdata-release.sh
+          }
+          restart() {
+            curl -fsS -o /dev/null -X POST --user "$API_TOKEN account=$ACCOUNT:" \
+              "https://api.alwaysdata.com/v1/site/$SITE_ID/restart/"
+          }
+          # Новая версия запущена, когда сайт отдаёт её статику (у каждой сборки свой BUILD_ID —
+          # прежний сервер такого файла не знает) и /api/health отвечает 200. Ждём до 3 минут:
+          # при запуске применяются миграции.
+          ready() {
+            for _ in $(seq 36); do
+              sleep 5
+              if curl -fsS -o /dev/null "$SITE_URL/_next/static/$BUILD_ID/_buildManifest.js" &&
+                curl -fsS -o /dev/null "$SITE_URL/api/health"; then
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          scp -o BatchMode=yes avocado-alwaysdata.tar.gz "$SSH_TARGET:avocado-$RELEASE.tar.gz"
+          remote unpack "$RELEASE" "avocado-$RELEASE.tar.gz"
+          previous="$(remote current)"
+          remote switch "$RELEASE"
+
+          if [ -z "$previous" ]; then
+            echo "::notice::Первая выкладка: релиз $RELEASE готов. Переключите сайт в панели alwaysdata на ~/apps/avocado/current (docs/09-deploy.md)."
+            exit 0
+          fi
+
+          restart
+          if ready; then
+            remote prune
+            echo "::notice::Выложен релиз $RELEASE"
+            exit 0
+          fi
+
+          echo "::error::Новая версия не ответила за 3 минуты — возвращаю релиз $previous"
+          remote switch "$previous"
+          restart
+          remote drop "$RELEASE"
+          exit 1
