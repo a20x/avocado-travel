@@ -9,9 +9,16 @@ export {
   MAX_UPLOAD_BYTES,
   PREVIEW_ITEMS,
   getMergedFeed,
+  getMergedPreview,
   getRssPage,
   handleCombinedExport,
   handleMergedRss,
   handleRssFeed,
 } from './server/feeds';
-export type { MergedFeed, MergedFeedResult, RssPage, RssPreview } from './server/feeds';
+export type {
+  MergedFeed,
+  MergedFeedResult,
+  MergedPreview,
+  RssPage,
+  RssPreview,
+} from './server/feeds';

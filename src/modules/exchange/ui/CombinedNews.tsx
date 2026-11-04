@@ -15,7 +15,8 @@ import {
   type ExchangeFormat,
 } from '../combined';
 import type { ExternalFeedStatus } from '../feeds';
-import type { RssPage } from '../server/feeds';
+import { mergedRssHref } from '../rss-tab';
+import type { MergedPreview, RssPage } from '../server/feeds';
 import { CombinedItem } from './CombinedItem';
 import { RssLink } from './RssLink';
 
@@ -49,8 +50,8 @@ function Composition({ page }: { page: RssPage }) {
       <Link href={link('site')}>
         {site} — {plural(site, ['новость', 'новости', 'новостей'])} сайта Avocado Travel
       </Link>
-      , <Link href={link('external')}>{external} — из внешних лент</Link>. По умолчанию они идут
-      вперемешку: на каждые три внешние новости — две новости сайта.
+      , <Link href={link('external')}>{external} — из внешних лент</Link>. По умолчанию — по дате,
+      от новых к старым.
     </p>
   );
 }
@@ -143,18 +144,32 @@ export function CombinedNews({ page }: { page: RssPage }) {
   );
 }
 
+const news = (count: number) => plural(count, ['новость', 'новости', 'новостей']);
+
 /**
- * Общая лента без условий — в разделе «Объединённые новости», пока адрес ленты не введён:
- * новости сайта и подключённых лент вперемешку, под ними — значок RSS.
+ * Раздел «Объединённые новости», пока адрес ленты не введён: новости сайта и подключённых
+ * RSS-лент одним списком по убыванию дат, одной страницей; под ним — значок RSS на тот же набор.
  */
-export function CombinedPreview({ page }: { page: RssPage }) {
+export function CombinedPreview({ preview }: { preview: MergedPreview }) {
+  const total = preview.items.length;
   return (
     <section aria-labelledby="preview-title" className="grid gap-4">
       <h3 id="preview-title" className="text-xl">
         Новости сайта и подключённых RSS-лент
       </h3>
-      <CombinedList page={page} />
-      <RssLink href={exportHref(page.query, 'rss')}>Объединённые новости в формате RSS</RssLink>
+      <p role="status">
+        Объединено {total} {news(total)}: {preview.siteCount} — {news(preview.siteCount)} сайта
+        Avocado Travel из базы, {preview.feedCount} — из подключённых RSS-лент.
+      </p>
+      <p className="text-sm text-slate">
+        Порядок — по дате, от новых к старым: новости сайта и лент вместе, на одной странице.
+      </p>
+      <div className="grid gap-3">
+        {preview.items.map((item) => (
+          <CombinedItem key={`${item.isExternal ? 'feed' : 'site'}:${item.id}`} item={item} />
+        ))}
+      </div>
+      <RssLink href={mergedRssHref()}>Объединённые новости в формате RSS</RssLink>
     </section>
   );
 }

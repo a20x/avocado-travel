@@ -2,7 +2,7 @@ import 'server-only';
 import { and, asc, count, desc, eq, ilike, lte, or, sql, type SQL } from 'drizzle-orm';
 import { news } from '@/modules/news';
 import { db } from '@/server/db';
-import { MIX_FEEDS, MIX_SITE, type CombinedQuery } from '../combined';
+import type { CombinedQuery } from '../combined';
 import type { ExternalFeed, ExternalFeedStatus, IndustryCategory } from '../feeds';
 import { externalFeeds } from '../schema';
 
@@ -90,18 +90,7 @@ export type CombinedRow = {
   publishedAt: Date;
 };
 
-/** Новость сайта — 1, из внешней ленты — 0: для порядка «вперемешку». */
-const isSite = sql`${news.source} = 'site'`;
-
 const ORDER: Record<CombinedQuery['sort'], SQL[]> = {
-  // «Вперемешку» — как mixRank в combined.ts: номер новости внутри своей группы (row_number по
-  // источнику, от новых к старым), умноженный на долю другой группы; при равенстве — сайт выше.
-  mixed: [
-    sql`(row_number() over (partition by ${news.source} order by ${news.publishedAt} desc, ${news.id} desc) - 1) * case when ${isSite} then ${sql.raw(String(MIX_FEEDS))} else ${sql.raw(String(MIX_SITE))} end`,
-    desc(isSite),
-    desc(news.publishedAt),
-    desc(news.id),
-  ],
   new: [desc(news.publishedAt), desc(news.id)],
   old: [asc(news.publishedAt), asc(news.id)],
   title: [asc(news.title), desc(news.publishedAt)],

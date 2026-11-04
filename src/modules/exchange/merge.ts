@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { mixRank, type CombinedNewsItem } from './combined';
+import type { CombinedNewsItem } from './combined';
 import { htmlToText, mentionsRealAirline, normalizeLink, summarize } from './industry';
 import type { FeedItem } from './rss';
 
 /**
  * Объединённые новости по введённой ленте (замечание преподавателя по лабе 4): посетитель вводит
- * адрес любой ленты RSS или Atom, сайт скачивает её, делит на записи и показывает их вперемешку
- * с новостями сайта из базы — обычной страницей. Лента никуда не сохраняется.
+ * адрес любой ленты RSS или Atom, сайт скачивает её, делит на записи и показывает их вместе
+ * с новостями сайта из базы — одной страницей, по дате. Лента никуда не сохраняется.
  */
 
 /** Сколько записей введённой ленты и новостей сайта показываем. */
@@ -79,22 +79,16 @@ export function feedItemsToNews(
   return report;
 }
 
-const newestFirst = (a: CombinedNewsItem, b: CombinedNewsItem) =>
-  b.publishedAt.getTime() - a.publishedAt.getTime();
-
 /**
- * Новости сайта и записи ленты в одном списке — тем же порядком «вперемешку», что и общая лента
- * вкладки: в каждых пяти записях две новости сайта и три из ленты, внутри групп — от новых
- * к старым, при равенстве первой идёт новость сайта.
+ * Новости сайта и записи ленты в одном списке по убыванию дат (замечание преподавателя
+ * одногруппнику, Этап 12): внутренние и внешние — вместе, от новых к старым. Одно время —
+ * первой новость сайта, затем по заголовку, чтобы порядок не зависел от случая.
  */
 export function mergeNews(site: CombinedNewsItem[], feed: CombinedNewsItem[]): CombinedNewsItem[] {
-  const ranked = [
-    ...[...site]
-      .sort(newestFirst)
-      .map((item, index) => ({ item, rank: mixRank(true, index), site: 0 })),
-    ...[...feed]
-      .sort(newestFirst)
-      .map((item, index) => ({ item, rank: mixRank(false, index), site: 1 })),
-  ];
-  return ranked.sort((a, b) => a.rank - b.rank || a.site - b.site).map(({ item }) => item);
+  return [...site, ...feed].sort(
+    (a, b) =>
+      b.publishedAt.getTime() - a.publishedAt.getTime() ||
+      Number(a.isExternal) - Number(b.isExternal) ||
+      a.title.localeCompare(b.title, 'ru'),
+  );
 }

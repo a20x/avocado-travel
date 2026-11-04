@@ -7,7 +7,6 @@ import {
   combinedQuerySchema,
   combinedWrapped,
   combinedXml,
-  mixRank,
   toRss,
   type CombinedNewsItem,
 } from './combined';
@@ -31,34 +30,17 @@ const channel = {
   selfUrl: 'https://avocado.example/feed.xml',
 };
 
-describe('общая лента: порядок «вперемешку»', () => {
-  /** Порядок записей: S — новость сайта, E — из внешней ленты. */
-  const order = (site: number, feeds: number) =>
-    [
-      ...Array.from({ length: site }, (_, i) => ({ code: 'S', rank: mixRank(true, i), tie: 0 })),
-      ...Array.from({ length: feeds }, (_, i) => ({ code: 'E', rank: mixRank(false, i), tie: 1 })),
-    ]
-      .sort((a, b) => a.rank - b.rank || a.tie - b.tie)
-      .map((item) => item.code)
-      .join('');
-
-  it('в каждых пяти записях — две новости сайта и три из лент', () => {
-    expect(order(12, 30).slice(0, 20)).toBe('SEESE'.repeat(4));
-    expect([...order(12, 30)].filter((code) => code === 'S')).toHaveLength(12);
-  });
-
-  it('новости одной группы кончились — дальше идут только другие', () => {
-    expect(order(2, 8)).toBe('SEESEEEEEE');
-    expect(order(5, 1)).toBe('SESSSS');
-  });
-});
-
 describe('общая лента: параметры', () => {
+  it('по умолчанию — по дате, от новых; старый порядок «вперемешку» из ссылок не применяется', () => {
+    expect(combinedQuerySchema.parse({}).sort).toBe('new');
+    expect(combinedQuerySchema.parse({ sort: 'mixed' }).sort).toBe('new');
+  });
+
   it('мусор в адресе не применяется', () => {
     expect(combinedQuerySchema.parse({ source: 'DROP TABLE', sort: 'x', page: '-3' })).toEqual({
       q: '',
       source: 'all',
-      sort: 'mixed',
+      sort: 'new',
       page: 1,
     });
   });

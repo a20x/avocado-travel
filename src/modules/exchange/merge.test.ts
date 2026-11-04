@@ -94,22 +94,28 @@ describe('mergeNews', () => {
     isExternal,
   });
 
-  it('вперемешку: в каждых пяти — две новости сайта и три из ленты, внутри — от новых', () => {
-    const site = [news('s-old', false, 1), news('s-new', false, 3), news('s-mid', false, 2)];
-    const feed = [1, 2, 3, 4, 5].map((day) => news(`f${day}`, true, day));
+  it('внутренние и внешние — вместе, по убыванию дат', () => {
+    const site = [news('s-old', false, 1), news('s-new', false, 6), news('s-mid', false, 3)];
+    const feed = [2, 4, 5, 7].map((day) => news(`f${day}`, true, day));
     expect(mergeNews(site, feed).map((item) => item.id)).toEqual([
+      'f7',
       's-new',
       'f5',
       'f4',
       's-mid',
-      'f3',
-      's-old',
       'f2',
-      'f1',
+      's-old',
     ]);
   });
 
-  it('кончилась одна группа — дальше идёт другая; пустые списки не ломают', () => {
+  it('в одно время первой идёт новость сайта', () => {
+    expect(mergeNews([news('s', false, 2)], [news('f', true, 2)]).map((item) => item.id)).toEqual([
+      's',
+      'f',
+    ]);
+  });
+
+  it('одна группа пустая или обе — не ломается', () => {
     expect(mergeNews([], [news('f1', true, 1)]).map((item) => item.id)).toEqual(['f1']);
     expect(mergeNews([news('s1', false, 1)], []).map((item) => item.id)).toEqual(['s1']);
     expect(mergeNews([], [])).toEqual([]);

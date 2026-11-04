@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 import { ADMIN, signIn } from './helpers';
 
 test('RSS: своя лента в RSS 2.0 и выгрузки в форматах обмена', async ({ request }) => {
@@ -43,20 +43,31 @@ test('RSS: загруженный файл разбирается на запи�
   await expect(upload.getByRole('alert')).toHaveText(/нет ленты RSS или Atom/);
 });
 
-test('RSS: общая лента — новости сайта вместе с внешними, вперемешку', async ({ page }) => {
-  // Замечание преподавателя по лабе 4: в общей ленте должны быть видны и новости сайта.
+/** Даты новостей на странице (атрибут datetime) — сверху вниз. */
+const datesOf = async (scope: Locator) =>
+  (await scope
+    .getByRole('article')
+    .locator('time')
+    .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('datetime') ?? ''))) as string[];
+const isNewestFirst = (dates: string[]) =>
+  dates.every((date, index) => index === 0 || dates[index - 1]! >= date);
+
+test('RSS: поиск по новостям — сайт и внешние ленты вместе, по убыванию дат', async ({ page }) => {
+  // Замечание преподавателя одногруппнику: новости сайта и RSS — с сортировкой по убыванию дат.
   await page.goto('/rss?view=search');
-  await expect(page.getByLabel('Порядок')).toHaveValue('mixed');
+  await expect(page.getByLabel('Порядок')).toHaveValue('new');
+  expect(await page.getByLabel('Порядок').locator('option').allTextContents()).not.toContain(
+    'Вперемешку',
+  );
   const composition = page.getByText(/^В общей ленте \d+ новост/);
   await expect(composition).toBeVisible();
   await expect(composition.getByRole('link', { name: /сайта Avocado Travel/ })).toHaveAttribute(
     'href',
     '/rss?view=search&source=site',
   );
-  // Новость сайта — первой: внешние не вытесняют её с первой страницы.
-  await expect(
-    page.getByRole('article').first().getByText('Avocado Travel', { exact: true }),
-  ).toBeVisible();
+  const dates = await datesOf(page.getByRole('main'));
+  expect(dates.length).toBeGreaterThan(0);
+  expect(isNewestFirst(dates)).toBe(true);
 });
 
 test('RSS: общая лента — поиск по источнику', async ({ page }) => {
@@ -130,14 +141,28 @@ test('RSS: меню разделов, первыми — объединённы�
   await expect(menu.first()).toHaveAttribute('aria-current', 'page');
 
   // Пока адрес не введён — новости сайта и подключённых лент вместе, под ними значок RSS.
+  // Одной страницей (без переключателя страниц), по убыванию дат.
   const preview = page.getByRole('region', { name: 'Новости сайта и подключённых RSS-лент' });
-  await expect(preview.getByText(/^В общей ленте \d+ новост/)).toBeVisible();
+  await expect(preview.getByRole('status')).toHaveText(
+    /^Объединено \d+ новост.*: \d+ — новост.* сайта/,
+  );
+  const dates = await datesOf(preview);
+  expect(dates.length).toBeGreaterThan(0);
+  expect(isNewestFirst(dates)).toBe(true);
+  await expect(preview.getByRole('navigation', { name: 'Страницы' })).toHaveCount(0);
+
+  // Значок RSS — тот же набор в том же порядке (число записей не сравниваем: соседние тесты
+  // могут добавить новость между запросами).
   const rss = preview.getByRole('link', { name: 'Объединённые новости в формате RSS' });
-  const href = await rss.getAttribute('href');
-  expect(href).toBe('/rss/export?format=rss');
-  const feed = await request.get(href!);
+  await expect(rss).toHaveAttribute('href', '/rss/merged');
+  const feed = await request.get('/rss/merged');
   expect(feed.headers()['content-type']).toContain('application/rss+xml');
-  expect(await feed.text()).toMatch(/<rss version="2\.0"[\s\S]*<item>/);
+  const xml = await feed.text();
+  expect(xml).toContain('<item>');
+  const rssDates = [...xml.matchAll(/<pubDate>([^<]+)<\/pubDate>/g)].map((m) =>
+    new Date(m[1]!).toISOString(),
+  );
+  expect(isNewestFirst(rssDates)).toBe(true);
 
   await menu.getByText('Выгрузка и подписка').click();
   await expect(page.getByRole('region', { name: 'Скачать новости' })).toBeVisible();
