@@ -87,3 +87,19 @@ test('покупатель создаёт тему, отвечает и прав
   await expect(page).toHaveURL('/forum?deleted=1');
   await expect(page.getByRole('link', { name: title })).toHaveCount(0);
 });
+
+test('администратор из админки попадает на форум и возвращается обратно', async ({ page }) => {
+  await page.goto('/login?next=%2Fadmin');
+  await signIn(page, ADMIN.email, ADMIN.password);
+  await expect(page).toHaveURL('/admin');
+  const main = page.getByRole('main');
+  await main.getByRole('link', { name: 'Форум', exact: true }).click();
+  await expect(page).toHaveURL('/forum');
+  await main.getByRole('link', { name: '← В админку' }).click();
+  await expect(page).toHaveURL('/admin');
+});
+
+test('гостю на форуме ссылки в админку нет', async ({ page }) => {
+  await page.goto('/forum');
+  await expect(page.getByRole('link', { name: '← В админку' })).toHaveCount(0);
+});
