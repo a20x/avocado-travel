@@ -21,6 +21,8 @@ const DESCRIPTIONS: Record<DbReport, string> = {
     'Рейсы с условиями по городам, авиакомпании и дате вылета, по 20 на страницу. Списки связаны — в них только сочетания, для которых есть рейсы. «Продано» — места, занятые действующими билетами.',
   routes:
     'Поиск по двум атрибутам — авиакомпании и направлению. Маршруты выбранной авиакомпании и цены эконома на них: минимальная, средняя и максимальная. Списки связаны — в них только сочетания, для которых есть рейсы.',
+  schedule:
+    'Все авиакомпании справочника и их рейсы: всего и предстоящих, число маршрутов, минимальная, средняя и максимальная цена эконома, внизу — итог. Авиакомпания без рейсов — с нулями; после ввода рейсов числа сразу растут. Условий у запроса нет.',
   airlines:
     'Оплаченные билеты по авиакомпаниям за период оформления: заказы, билеты, выручка, средняя и максимальная цена билета.',
   months: 'Заказы, билеты и выручка по месяцам оформления — по всем авиакомпаниям или по одной.',
@@ -51,6 +53,8 @@ export function DbQueryForm({
   flightAirlines: AirlineOption[];
 }) {
   const withDates = report === 'airlines' || report === 'months';
+  // У этих запросов условий нет: форма — описание и кнопка.
+  const noFields = report === 'ratings' || report === 'schedule';
   const linked = report === 'flights' || report === 'routes';
   const sort = (
     <Select
@@ -73,7 +77,7 @@ export function DbQueryForm({
       <input type="hidden" name="report" value={report} />
       <p className="text-slate">{DESCRIPTIONS[report]}</p>
 
-      {report === 'ratings' ? null : (
+      {noFields ? null : (
         <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {report === 'airline' ? (
             <Select
@@ -145,7 +149,7 @@ export function DbQueryForm({
         </div>
       )}
 
-      {report === 'ratings' || report === 'airline' ? null : (
+      {noFields || report === 'airline' ? null : (
         <p className="text-sm text-slate">Пустые поля не ограничивают выборку.</p>
       )}
       <div className="flex flex-wrap items-center gap-4">

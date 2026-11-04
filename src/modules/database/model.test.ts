@@ -7,6 +7,7 @@ import {
   formatBytes,
   formatSql,
   pickAirline,
+  scheduleTotal,
   sectionHref,
   sectionOf,
   share,
@@ -67,11 +68,11 @@ describe('вкладка «БД»: меню разделов', () => {
     ]);
   });
 
-  it('три сводки — один раздел «Агрегация», его адрес — первая сводка', () => {
-    for (const view of ['airlines', 'months', 'ratings'] as const) {
+  it('четыре сводки — один раздел «Агрегация», первой открываются рейсы по авиакомпаниям', () => {
+    for (const view of ['schedule', 'airlines', 'months', 'ratings'] as const) {
       expect(sectionOf(view).label).toBe('Агрегация');
     }
-    expect(sectionHref(sectionOf('months'))).toBe('/database?report=airlines');
+    expect(sectionHref(sectionOf('months'))).toBe('/database?report=schedule');
     expect(sectionOf('routes').label).toBe('Поиск по двум атрибутам');
   });
 
@@ -109,6 +110,57 @@ describe('вкладка «БД»: поиск по одному атрибуту
     expect(dbHref({ report: 'airline', airline: 'LST' }, 2)).toBe(
       '/database?report=airline&airline=LST&page=2',
     );
+  });
+});
+
+describe('вкладка «БД»: итог рейсов по авиакомпаниям', () => {
+  const row = (airline: string, flights: number, avgPrice: number, minPrice = 0, maxPrice = 0) => ({
+    airline,
+    flights,
+    upcoming: flights / 2,
+    routes: flights ? 2 : 0,
+    minPrice,
+    avgPrice,
+    maxPrice,
+  });
+
+  it('суммы, крайние цены и средняя с весом числа рейсов', () => {
+    expect(
+      scheduleTotal([row('А', 30, 10_000, 5_000, 20_000), row('Б', 10, 30_000, 25_000, 40_000)]),
+    ).toEqual({
+      flights: 40,
+      upcoming: 20,
+      routes: 4,
+      minPrice: 5_000,
+      avgPrice: 15_000,
+      maxPrice: 40_000,
+    });
+  });
+
+  it('авиакомпания без рейсов не тянет минимальную цену к нулю', () => {
+    expect(scheduleTotal([row('А', 4, 8_000, 6_000, 9_000), row('Новая', 0, 0)])).toMatchObject({
+      flights: 4,
+      minPrice: 6_000,
+      avgPrice: 8_000,
+    });
+  });
+
+  it('новые рейсы увеличивают итог', () => {
+    const before = scheduleTotal([row('А', 4, 8_000)]);
+    const after = scheduleTotal([row('А', 4, 8_000), row('Новая', 14, 9_000)]);
+    expect(after.flights).toBeGreaterThan(before.flights);
+    expect(after.routes).toBeGreaterThan(before.routes);
+  });
+
+  it('пустой справочник — нули', () => {
+    expect(scheduleTotal([])).toEqual({
+      flights: 0,
+      upcoming: 0,
+      routes: 0,
+      minPrice: 0,
+      avgPrice: 0,
+      maxPrice: 0,
+    });
   });
 });
 

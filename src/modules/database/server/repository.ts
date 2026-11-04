@@ -34,6 +34,7 @@ import type {
   FlightCombo,
   RatingRow,
   RouteRow,
+  ScheduleRow,
   SqlText,
 } from '../model';
 
@@ -249,7 +250,32 @@ function paidTicketsWhere(range: Range, extra?: SQL) {
   );
 }
 
-/** 3. Сводка по авиакомпаниям: COUNT, SUM, AVG, MAX по оплаченным билетам. */
+/**
+ * Рейсы по авиакомпаниям: COUNT рейсов (всего и с `now`), COUNT DISTINCT маршрутов, MIN, AVG,
+ * MAX цены эконома. LEFT JOIN от справочника: авиакомпания без рейсов — строка с нулями,
+ * и после ввода рейсов её числа сразу растут.
+ */
+export async function summarizeSchedule(now: Date): Promise<Executed<ScheduleRow>> {
+  const flightCount = count(flights.id);
+  return run(
+    db
+      .select({
+        airline: airlines.name,
+        flights: flightCount,
+        upcoming: num(sql`count(${flights.id}) filter (where ${flights.departsAt} >= ${now})`),
+        routes: num(sql`count(distinct (${flights.originId}, ${flights.destinationId}))`),
+        minPrice: num(sql`${min(flights.priceEconomy)}`),
+        avgPrice: num(sql`round(${avg(flights.priceEconomy)})`),
+        maxPrice: num(sql`${max(flights.priceEconomy)}`),
+      })
+      .from(airlines)
+      .leftJoin(flights, eq(flights.airlineId, airlines.id))
+      .groupBy(airlines.name)
+      .orderBy(desc(flightCount), asc(airlines.name)),
+  );
+}
+
+/** Продажи по авиакомпаниям: COUNT, SUM, AVG, MAX по оплаченным билетам. */
 export async function summarizeAirlines(range: Range): Promise<Executed<AirlineRow>> {
   return run(
     db

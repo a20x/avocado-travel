@@ -39,7 +39,14 @@ test('БД: меню разделов словами преподавателя,
   await menu.getByText('Агрегация').click();
   await expect(
     page.getByRole('navigation', { name: 'Вид агрегации' }).getByRole('link'),
-  ).toHaveText(['Сводка по авиакомпаниям', 'Динамика продаж', 'Оценки сайта']);
+  ).toHaveText([
+    'Рейсы по авиакомпаниям',
+    'Продажи по авиакомпаниям',
+    'Динамика продаж',
+    'Оценки сайта',
+  ]);
+  const schedule = page.getByRole('table', { name: 'Точные значения: рейсы по авиакомпаниям' });
+  await expect(schedule.locator('tfoot')).toContainText('Итого');
 });
 
 test('БД: поиск рейсов по условиям, постранично, с текстом SQL', async ({ page }) => {

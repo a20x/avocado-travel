@@ -16,6 +16,7 @@ export {
   formatSql,
   isReport,
   pickAirline,
+  scheduleTotal,
   sectionHref,
   sectionOf,
   share,
@@ -35,5 +36,6 @@ export type {
   RatingRow,
   FlightCombo,
   RouteRow,
+  ScheduleRow,
   SqlText,
 } from './model';

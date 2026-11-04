@@ -111,6 +111,10 @@ export async function runDatabaseQuery(
       const found = await repository.findRoutes({ airline: query.airline, to: query.to });
       return { query, result: { report: 'routes', rows: found.rows }, sql: [found.sql] };
     }
+    case 'schedule': {
+      const found = await repository.summarizeSchedule(now);
+      return { query, result: { report: 'schedule', rows: found.rows }, sql: [found.sql] };
+    }
     case 'airlines': {
       const found = await repository.summarizeAirlines(range);
       return { query, result: { report: 'airlines', rows: found.rows }, sql: [found.sql] };

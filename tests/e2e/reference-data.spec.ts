@@ -63,6 +63,15 @@ test('админ заводит город, авиакомпанию и рейс
   await expect(page).toHaveURL(/\/admin\/airlines\?saved=/);
   await expect(page.getByRole('row').filter({ hasText: airline })).toContainText(code);
 
+  // Агрегация: авиакомпания без рейсов — с нулями.
+  await page.goto('/database?report=schedule');
+  const schedule = page.getByRole('table', { name: 'Точные значения: рейсы по авиакомпаниям' });
+  const scheduleRow = schedule.getByRole('row').filter({ hasText: airline });
+  await expect(scheduleRow.getByRole('cell').nth(1)).toHaveText('0');
+  const totalBefore = Number(
+    (await schedule.locator('tfoot td').nth(1).textContent())?.replace(/\D/g, ''),
+  );
+
   // Рейсы туда и обратно на неделю, каждый день.
   await page.goto('/admin/flights/new');
   await page.getByLabel('Последний день').fill('');
@@ -79,6 +88,13 @@ test('админ заводит город, авиакомпанию и рейс
   await page.getByLabel('Последний день').fill(inDays(106));
   await page.getByRole('button', { name: 'Создать рейсы' }).click();
   await expect(page).toHaveURL('/admin/flights?created=14');
+
+  // Агрегация: после ввода — 14 рейсов на двух маршрутах, итог вырос на 14.
+  await page.goto('/database?report=schedule');
+  await expect(scheduleRow.getByRole('cell')).toHaveText([airline, '14', '14', '2', /₽/, /₽/, /₽/]);
+  await expect(schedule.locator('tfoot td').nth(1)).toHaveText(
+    new Intl.NumberFormat('ru-RU').format(totalBefore + 14),
+  );
 
   // Поиск по одному атрибуту: новая авиакомпания — в списке по алфавиту, находит свои рейсы.
   await page.goto('/database');
