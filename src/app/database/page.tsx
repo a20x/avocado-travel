@@ -99,6 +99,7 @@ export default async function DatabasePage(props: PageProps<'/database'>) {
             cities={cities.map((city) => ({ value: city.slug, label: city.name }))}
             airlines={airlines.map((airline) => ({ value: airline.code, label: airline.name }))}
             flightAirlines={result.report === 'airline' ? result.airlines : []}
+            salesSpans={page.salesSpans}
           />
           <DbResultView
             query={query}

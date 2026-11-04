@@ -6,7 +6,9 @@ import {
   fillScores,
   formatBytes,
   formatSql,
+  clampToSales,
   pickAirline,
+  salesPeriod,
   scheduleTotal,
   sectionHref,
   sectionOf,
@@ -193,5 +195,37 @@ describe('вкладка «БД»: показ результатов', () => {
     ).toBe(
       'select "a"\nfrom "flights"\ninner join "airlines" on x\nwhere "a" = $1\ngroup by "a"\norder by "a"\nlimit $2',
     );
+  });
+});
+
+describe('вкладка «БД»: даты сводок — в периоде продаж', () => {
+  const spans = [
+    { airline: 'ALT', first: '2026-05-10', last: '2026-11-01' },
+    { airline: 'LST', first: '2026-06-01', last: '2026-11-04' },
+  ];
+
+  it('период — по всем авиакомпаниям или по одной; без продаж — без ограничений', () => {
+    expect(salesPeriod(spans)).toEqual({ first: '2026-05-10', last: '2026-11-04' });
+    expect(salesPeriod(spans, 'LST')).toEqual({ first: '2026-06-01', last: '2026-11-04' });
+    expect(salesPeriod(spans, 'NOP')).toBeNull();
+    expect(salesPeriod([])).toBeNull();
+  });
+
+  it('даты вне периода подтягиваются к его краям, внутри — не меняются', () => {
+    const period = { first: '2026-05-10', last: '2026-11-04' };
+    expect(clampToSales({ dateFrom: '2026-01-01', dateTo: '2026-06-15' }, period)).toEqual({
+      dateFrom: '2026-05-10',
+      dateTo: '2026-06-15',
+    });
+    // Период целиком после продаж — их последний день, а не пустой результат.
+    expect(clampToSales({ dateFrom: '2027-01-01', dateTo: '2027-02-01' }, period)).toEqual({
+      dateFrom: '2026-11-04',
+      dateTo: '2026-11-04',
+    });
+    expect(clampToSales({ dateFrom: undefined, dateTo: undefined }, period)).toEqual({
+      dateFrom: undefined,
+      dateTo: undefined,
+    });
+    expect(clampToSales({ dateFrom: '2020-01-01' }, null)).toEqual({ dateFrom: '2020-01-01' });
   });
 });

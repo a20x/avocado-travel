@@ -209,8 +209,13 @@ export type DbResult =
     } & FlightPage)
   | { report: 'routes'; rows: RouteRow[] }
   | { report: 'schedule'; rows: ScheduleRow[] }
-  | { report: 'airlines'; rows: AirlineRow[] }
-  | { report: 'months'; rows: MonthRow[] }
+  | {
+      report: 'airlines';
+      rows: AirlineRow[];
+      /** Период продаж — для ссылки «Показать весь период с продажами» при пустом результате. */
+      period: { first: string; last: string } | null;
+    }
+  | { report: 'months'; rows: MonthRow[]; period: { first: string; last: string } | null }
   | {
       report: 'ratings';
       rows: RatingRow[];
@@ -300,4 +305,44 @@ export function dbHref(query: Partial<DbQuery> & { report: DbView }, page?: numb
   }
   if (page && page > 1) params.set('page', String(page));
   return `/database?${params}`;
+}
+
+/** Первый и последний день продаж авиакомпании (по Москве) — границы календаря в сводках. */
+export type SalesSpan = { airline: string; first: string; last: string };
+
+/**
+ * Период продаж: по одной авиакомпании или по всем. Нет продаж — null (тогда даты не
+ * ограничиваются). Дни — `YYYY-MM-DD`, их можно сравнивать как строки.
+ */
+export function salesPeriod(
+  spans: SalesSpan[],
+  airline?: string,
+): { first: string; last: string } | null {
+  const chosen = airline ? spans.filter((span) => span.airline === airline) : spans;
+  if (chosen.length === 0) return null;
+  return {
+    first: chosen.reduce((min, span) => (span.first < min ? span.first : min), chosen[0]!.first),
+    last: chosen.reduce((max, span) => (span.last > max ? span.last : max), chosen[0]!.last),
+  };
+}
+
+/**
+ * Даты сводки подтягиваются к периоду продаж: раньше первого дня — первый день, позже
+ * последнего — последний. Период целиком вне продаж становится их крайним днём, а в крайние
+ * дни продажи есть всегда — пустого результата из-за дат вне периода не бывает.
+ */
+export function clampToSales<T extends { dateFrom?: string; dateTo?: string }>(
+  query: T,
+  period: { first: string; last: string } | null,
+): T {
+  if (!period) return query;
+  const clamp = (date?: string) =>
+    date === undefined
+      ? undefined
+      : date < period.first
+        ? period.first
+        : date > period.last
+          ? period.last
+          : date;
+  return { ...query, dateFrom: clamp(query.dateFrom), dateTo: clamp(query.dateTo) };
 }
