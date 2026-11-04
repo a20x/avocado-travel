@@ -34,6 +34,7 @@ export const PUBLIC_PAGES = [
   '/database?report=about',
   '/database?report=flights',
   '/database?report=routes&airline=KRR',
+  '/database?report=schedule',
   '/database?report=airlines',
   '/database?report=months',
   '/database?report=ratings',

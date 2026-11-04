@@ -5,7 +5,7 @@ import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Pagination } from '@/shared/ui/Pagination';
 import { Table } from '@/shared/ui/Table';
-import { DB_REPORTS, dbHref, share, type DbQuery, type DbResult } from '../model';
+import { DB_REPORTS, dbHref, scheduleTotal, share, type DbQuery, type DbResult } from '../model';
 import { MonthLine, ValueBars } from './charts';
 
 const number = new Intl.NumberFormat('ru-RU');
@@ -210,6 +210,77 @@ function ResultBody({
           )}
         </>
       );
+
+    case 'schedule': {
+      const total = scheduleTotal(result.rows);
+      const price = (value: number, flights: number) => (flights > 0 ? formatPrice(value) : '—');
+      return (
+        <>
+          <Summary count={result.rows.length} fetchedAt={fetchedAt} />
+          {result.rows.length === 0 ? (
+            <Empty />
+          ) : (
+            <>
+              <h3 className="text-lg">Число рейсов по авиакомпаниям</h3>
+              <ValueBars
+                data={result.rows.map((row) => ({ label: row.airline, value: row.flights }))}
+                unit="count"
+                name="Рейсов"
+              />
+              <Table caption="Точные значения: рейсы по авиакомпаниям">
+                <thead>
+                  <tr>
+                    <th scope="col">Авиакомпания</th>
+                    <th scope="col">Рейсов</th>
+                    <th scope="col">Предстоящих</th>
+                    <th scope="col">Маршрутов</th>
+                    <th scope="col">Мин. цена</th>
+                    <th scope="col">Средняя цена</th>
+                    <th scope="col">Макс. цена</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.rows.map((row) => (
+                    <tr key={row.airline}>
+                      <td>{row.airline}</td>
+                      <td className="tabular-nums">{number.format(row.flights)}</td>
+                      <td className="tabular-nums">{number.format(row.upcoming)}</td>
+                      <td className="tabular-nums">{number.format(row.routes)}</td>
+                      <td className="whitespace-nowrap tabular-nums">
+                        {price(row.minPrice, row.flights)}
+                      </td>
+                      <td className="whitespace-nowrap tabular-nums">
+                        {price(row.avgPrice, row.flights)}
+                      </td>
+                      <td className="whitespace-nowrap tabular-nums">
+                        {price(row.maxPrice, row.flights)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="font-semibold">
+                  <tr>
+                    <td>Итого</td>
+                    <td className="tabular-nums">{number.format(total.flights)}</td>
+                    <td className="tabular-nums">{number.format(total.upcoming)}</td>
+                    <td className="tabular-nums">{number.format(total.routes)}</td>
+                    <td className="whitespace-nowrap tabular-nums">
+                      {price(total.minPrice, total.flights)}
+                    </td>
+                    <td className="whitespace-nowrap tabular-nums">
+                      {price(total.avgPrice, total.flights)}
+                    </td>
+                    <td className="whitespace-nowrap tabular-nums">
+                      {price(total.maxPrice, total.flights)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </Table>
+            </>
+          )}
+        </>
+      );
+    }
 
     case 'airlines': {
       const revenue = result.rows.reduce((sum, row) => sum + row.revenue, 0);

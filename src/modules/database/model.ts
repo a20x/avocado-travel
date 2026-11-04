@@ -8,7 +8,8 @@ import type { DaySpan } from '@/shared/lib/available-days';
 export const DB_REPORTS = {
   airline: 'Рейсы авиакомпании',
   routes: 'Авиакомпания и направление',
-  airlines: 'Сводка по авиакомпаниям',
+  schedule: 'Рейсы по авиакомпаниям',
+  airlines: 'Продажи по авиакомпаниям',
   months: 'Динамика продаж',
   ratings: 'Оценки сайта',
   flights: 'Поиск рейсов',
@@ -21,13 +22,14 @@ const viewKeys = ['input', 'about', ...Object.keys(DB_REPORTS)] as [DbView, ...D
 
 /**
  * Меню вкладки — словами преподавателя, чтобы разделы находились сразу. У раздела один или
- * несколько видов; первый открывается по пункту меню. «Агрегация» объединяет три сводки.
+ * несколько видов; первый открывается по пункту меню. «Агрегация» объединяет четыре сводки,
+ * первая — рейсы по авиакомпаниям: её числа растут сразу после ввода рейсов.
  */
 export const DB_SECTIONS = [
   { label: 'Ввод', views: ['input'] },
   { label: 'Поиск по одному атрибуту', views: ['airline'] },
   { label: 'Поиск по двум атрибутам', views: ['routes'] },
-  { label: 'Агрегация', views: ['airlines', 'months', 'ratings'] },
+  { label: 'Агрегация', views: ['schedule', 'airlines', 'months', 'ratings'] },
   { label: 'Сведения о БД', views: ['about'] },
   { label: 'Поиск рейсов', views: ['flights'] },
 ] as const satisfies ReadonlyArray<{ label: string; views: readonly DbView[] }>;
@@ -133,6 +135,38 @@ export type RouteRow = {
   sold: number;
 };
 
+/** Рейсы авиакомпании: всего, предстоящие, маршруты и цены эконома. Без рейсов — нули. */
+export type ScheduleRow = {
+  airline: string;
+  flights: number;
+  upcoming: number;
+  routes: number;
+  minPrice: number;
+  avgPrice: number;
+  maxPrice: number;
+};
+
+/**
+ * Строка «Итого» для рейсов по авиакомпаниям: суммы рейсов и маршрутов, самая низкая и самая
+ * высокая цена и средняя по всем рейсам (средние авиакомпаний — с весом числа их рейсов).
+ */
+export function scheduleTotal(rows: ScheduleRow[]): Omit<ScheduleRow, 'airline'> {
+  const withFlights = rows.filter((row) => row.flights > 0);
+  const flights = withFlights.reduce((total, row) => total + row.flights, 0);
+  return {
+    flights,
+    upcoming: rows.reduce((total, row) => total + row.upcoming, 0),
+    routes: rows.reduce((total, row) => total + row.routes, 0),
+    minPrice: withFlights.length ? Math.min(...withFlights.map((row) => row.minPrice)) : 0,
+    avgPrice: flights
+      ? Math.round(
+          withFlights.reduce((total, row) => total + row.avgPrice * row.flights, 0) / flights,
+        )
+      : 0,
+    maxPrice: withFlights.length ? Math.max(...withFlights.map((row) => row.maxPrice)) : 0,
+  };
+}
+
 export type AirlineRow = {
   airline: string;
   orders: number;
@@ -174,6 +208,7 @@ export type DbResult =
       nearestDates: string[];
     } & FlightPage)
   | { report: 'routes'; rows: RouteRow[] }
+  | { report: 'schedule'; rows: ScheduleRow[] }
   | { report: 'airlines'; rows: AirlineRow[] }
   | { report: 'months'; rows: MonthRow[] }
   | {
