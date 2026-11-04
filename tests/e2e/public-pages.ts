@@ -15,7 +15,6 @@ export const PUBLIC_PAGES = [
   '/airlines',
   '/news',
   '/news?page=2',
-  '/news?source=external',
   '/news/avocado-travel-otkrylsya',
   '/press',
   '/press?sort=title&category=routes',

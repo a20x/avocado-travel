@@ -9,7 +9,6 @@ export type NavItem = {
 export const MAIN_NAV: NavItem[] = [
   { href: '/', label: 'Рейсы', alsoActiveOn: ['/flights', '/booking'] },
   { href: '/destinations', label: 'Направления' },
-  { href: '/news', label: 'Новости' },
   { href: '/services', label: 'Сервисы' },
   // Статические страницы с правилами (T-42) — отдельным пунктом, чтобы их было видно сразу.
   { href: '/passengers', label: 'Пассажирам' },
@@ -21,6 +20,9 @@ export const MAIN_NAV: NavItem[] = [
 
 /** Пункты меню «Ещё». */
 export const MORE_NAV: NavItem[] = [
+  // Новости сайта (сервис ЛР1) — не в основном меню: рядом с вкладкой «RSS» они выглядели бы
+  // её дублем (замечание преподавателя одногруппнику, Этап 12).
+  { href: '/news', label: 'Новости' },
   { href: '/airlines', label: 'Авиакомпании' },
   { href: '/weather', label: 'Погода' },
   { href: '/forum', label: 'Форум' },

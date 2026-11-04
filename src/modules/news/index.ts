@@ -17,8 +17,6 @@ export {
 } from './model';
 export type {
   ExternalNewsInput,
-  IndustryNewsItem,
-  IndustryNewsPage,
   News,
   NewsCategory,
   NewsError,

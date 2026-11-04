@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { isNavItemActive, MAIN_NAV, MORE_NAV, SITE_CONTENTS } from './navigation';
 
 const flights = MAIN_NAV[0]!;
-const news = MAIN_NAV.find((item) => item.href === '/news')!;
+const news = MORE_NAV.find((item) => item.href === '/news')!;
 
 describe('isNavItemActive', () => {
   it('«Рейсы» активны на главной, в результатах и при оформлении', () => {

@@ -1,20 +1,7 @@
 import 'server-only';
-import {
-  and,
-  count,
-  desc,
-  eq,
-  gt,
-  inArray,
-  isNotNull,
-  lt,
-  lte,
-  ne,
-  sql,
-  type SQL,
-} from 'drizzle-orm';
+import { and, count, desc, eq, gt, inArray, lt, lte, ne, sql, type SQL } from 'drizzle-orm';
 import { db } from '@/server/db';
-import type { ExternalNewsInput, IndustryNewsItem, News, NewsListItem } from '../model';
+import type { ExternalNewsInput, News, NewsListItem } from '../model';
 import { news } from '../schema';
 
 const listColumns = {
@@ -213,32 +200,4 @@ export async function deleteExternalByFeed(feedId: string): Promise<number> {
     .where(and(eq(news.source, 'external'), eq(news.externalFeed, feedId)))
     .returning({ id: news.id });
   return deleted.length;
-}
-
-/** Страница новостей отрасли, свежие сверху, и их общее число. */
-export async function findIndustryNews(paging: {
-  limit: number;
-  offset: number;
-}): Promise<{ items: IndustryNewsItem[]; total: number }> {
-  const where = and(eq(news.source, 'external'), isNotNull(news.externalUrl));
-  const [items, [totals]] = await Promise.all([
-    db
-      .select({
-        id: news.id,
-        title: news.title,
-        summary: news.summary,
-        category: news.category,
-        tags: news.tags,
-        publishedAt: news.publishedAt,
-        externalFeed: news.externalFeed,
-        externalUrl: sql<string>`${news.externalUrl}`,
-      })
-      .from(news)
-      .where(where)
-      .orderBy(desc(news.publishedAt), desc(news.id))
-      .limit(paging.limit)
-      .offset(paging.offset),
-    db.select({ total: count() }).from(news).where(where),
-  ]);
-  return { items, total: totals?.total ?? 0 };
 }

@@ -8,7 +8,6 @@ export { handleImportFeedsCron, importIndustryNews } from './server/import';
 export {
   MAX_UPLOAD_BYTES,
   PREVIEW_ITEMS,
-  getFeedNames,
   getMergedFeed,
   getRssPage,
   handleCombinedExport,
