@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getCurrentUser } from '@/modules/auth/server';
 import { listTopics } from '@/modules/forum/server';
 import { TopicList } from '@/modules/forum/ui';
 import { buttonClasses } from '@/shared/ui/Button';
@@ -16,10 +17,23 @@ export const metadata = pageMetadata({
 
 export default async function ForumPage(props: PageProps<'/forum'>) {
   const params = await props.searchParams;
-  const { items, page, totalPages } = await listTopics({ page: params.page });
+  const [{ items, page, totalPages }, user] = await Promise.all([
+    listTopics({ page: params.page }),
+    getCurrentUser(),
+  ]);
+  const isAdmin = user?.role === 'admin';
 
   return (
     <div className="container-site grid gap-6 py-8">
+      {/* Администратор приходит сюда из админки (карточка «Форум») — и возвращается туда же. */}
+      {isAdmin ? (
+        <p className="grid gap-1">
+          <Link href="/admin">← В админку</Link>
+          <span className="text-sm text-slate">
+            Вы администратор: удалить тему или сообщение можно на странице темы.
+          </span>
+        </p>
+      ) : null}
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="grid max-w-2xl gap-2">
           <h1 className="text-3xl">Форум</h1>
