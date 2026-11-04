@@ -5,7 +5,9 @@ import { Card } from '@/shared/ui/Card';
 import { Input } from '@/shared/ui/Input';
 import type { ExternalFeedStatus } from '../feeds';
 import type { MergedFeedError, MergedFeedResult } from '../server/feeds';
+import { mergedRssHref } from '../rss-tab';
 import { CombinedItem } from './CombinedItem';
+import { RssLink } from './RssLink';
 
 const ERRORS: Record<Exclude<MergedFeedError, 'INVALID_URL'>, string> = {
   NOT_A_FEED:
@@ -46,6 +48,7 @@ function Result({ result }: { result: MergedFeedResult }) {
           <CombinedItem key={`${item.isExternal ? 'feed' : 'site'}:${item.id}`} item={item} />
         ))}
       </div>
+      <RssLink href={mergedRssHref(data.url)}>Эти объединённые новости в формате RSS</RssLink>
     </div>
   );
 }
@@ -113,8 +116,8 @@ export function MergedFeed({
         <Result result={result} />
       ) : (
         <p className="text-slate">
-          Пока адрес не введён, ниже — общая лента: новости сайта вместе с RSS-лентами, которые
-          подключил администратор.
+          Пока адрес не введён, ниже — новости сайта вместе с RSS-лентами, которые подключил
+          администратор.
         </p>
       )}
     </section>

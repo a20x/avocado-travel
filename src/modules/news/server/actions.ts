@@ -49,6 +49,9 @@ export async function saveNewsAction(_: NewsFormState, formData: FormData): Prom
       ? { fieldErrors: { slug: MESSAGES.SLUG_TAKEN }, values }
       : { error: MESSAGES[result.error], values };
   }
+  // Новость написана на вкладке «RSS» — туда же: она уже среди объединённых новостей.
+  // Цель возврата — одна известная, чужой адрес из формы не принимается.
+  if (!id && formData.get('returnTo') === 'rss') redirect('/rss?saved=news');
   redirect(`/admin/news?saved=${encodeURIComponent(result.data.slug)}`);
 }
 

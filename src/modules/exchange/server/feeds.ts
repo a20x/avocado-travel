@@ -285,6 +285,42 @@ export async function handleCombinedExport(request: Request): Promise<Response> 
   );
 }
 
+const MERGED_ERRORS: Record<MergedFeedError, { status: number; text: string }> = {
+  INVALID_URL: { status: 400, text: 'Неверный адрес ленты.' },
+  NOT_A_FEED: { status: 422, text: 'По этому адресу нет ленты RSS или Atom, или сайт не ответил.' },
+  EMPTY: { status: 422, text: 'В ленте нет новостей, которые можно показать.' },
+  TOO_MANY_REQUESTS: { status: 429, text: 'Слишком много запросов подряд. Подождите минуту.' },
+};
+
+/**
+ * `GET /rss/merged?feed=<адрес>` — объединённые новости сайта и введённой ленты в RSS 2.0
+ * (значок RSS под объединёнными новостями, замечание преподавателя по лабе 4). Тот же набор,
+ * что на вкладке; ничего не сохраняется. Открывается в браузере, а не скачивается файлом.
+ */
+export async function handleMergedRss(request: Request): Promise<Response> {
+  const feedUrl = new URL(request.url).searchParams.get('feed') ?? '';
+  const result = await getMergedFeed(feedUrl);
+  if (!result.ok) {
+    const { status, text } = MERGED_ERRORS[result.error];
+    return new Response(result.message ?? text, {
+      status,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
+  }
+  const channel: RssChannel = {
+    title: `Avocado Travel + ${result.data.source}: объединённые новости`,
+    link: `${SITE_URL}/rss?${new URLSearchParams({ feed: result.data.url })}`,
+    description: `Новости сайта Avocado Travel вместе с новостями ленты ${result.data.source}.`,
+    selfUrl: `${SITE_URL}/rss/merged?${new URLSearchParams({ feed: result.data.url })}`,
+  };
+  return new Response(toRss(channel, result.data.items, new Date()), {
+    headers: {
+      'Content-Type': 'application/rss+xml; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
+}
+
 /** `GET /feed.xml` — лента новостей сайта в RSS 2.0 (L4-02), рядом с `/feed.json`. */
 export async function handleRssFeed(): Promise<Response> {
   const latest = await listLatestNews({ source: 'site', limit: FEED_SIZE });
