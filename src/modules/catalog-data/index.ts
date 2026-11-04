@@ -29,7 +29,11 @@ export {
   listTimeZones,
   newAirlineSchema,
   newCitySchema,
+  REFERENCE_RETURNS,
+  referenceReturnHref,
+  referenceReturnSchema,
 } from './model';
+export type { ReferenceReturn } from './model';
 
 /** Схема салона и вместимость самолёта. */
 export { buildCabin, listSeats, parseLayout, seatCapacity, seatClass } from './cabin';

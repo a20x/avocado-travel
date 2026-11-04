@@ -159,6 +159,70 @@ test('админ заводит город, авиакомпанию и рейс
   await expect(page.getByRole('row').filter({ hasText: city })).toHaveCount(0);
 });
 
+test('кнопки «Добавить» у списков формы рейсов возвращают с новым значением; дубли не заводятся', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'админка одна на оба экрана, база общая');
+
+  const suffix = random('абвгдежзиклмнопрстуфх', 6);
+  const city = `Дублеград${suffix}`;
+  const iata = `X${random('ABCDEFGHIJKLMNOPRSTUVWXYZ', 2)}`;
+  const airline = `Дублавиа${suffix}`;
+  const code = `Y${random('ABCDEFGHIJKLMNOPRSTUVWXYZ', 2)}`;
+
+  // «+ Добавить» у авиакомпании → форма авиакомпании → обратно, она уже выбрана.
+  await openAsAdmin(page, '/admin/flights/new');
+  await page.getByRole('link', { name: '+ Добавить авиакомпанию' }).click();
+  await expect(page).toHaveURL('/admin/airlines/new?return=flights-airline');
+  await page.getByLabel('Название').fill(airline);
+  await page.getByLabel('Код', { exact: true }).fill(code);
+  await page.getByLabel('Описание').fill('Проверка кнопки «Добавить» и дублей рейсов.');
+  await page.getByRole('button', { name: 'Добавить авиакомпанию' }).click();
+  await expect(page).toHaveURL(`/admin/flights/new?airline=${code}`);
+  await expect(page.getByLabel('Авиакомпания')).toHaveValue(code);
+
+  // «+ Добавить» у «Куда» → новый город с аэропортом → обратно, аэропорт выбран в «Куда».
+  await page.getByRole('link', { name: '+ Добавить город прилёта' }).click();
+  await expect(page).toHaveURL('/admin/cities/new?return=flights-destination');
+  await fillCity(page, city, iata);
+  await expect(page).toHaveURL(`/admin/flights/new?destination=${iata}`);
+  await expect(page.getByLabel('Куда', { exact: true })).toHaveValue(iata);
+
+  // Рейсы туда и обратно на два дня, затем та же форма ещё раз — дубль.
+  const fillFlights = async () => {
+    await page.getByLabel('Авиакомпания').selectOption(code);
+    await page.getByLabel('Самолёт').selectOption({ label: 'Boeing 737-800' });
+    await page.getByLabel('Откуда').selectOption('SVO');
+    await page.getByLabel('Куда', { exact: true }).selectOption(iata);
+    await page.getByLabel('Первый день').fill(inDays(120));
+    await page.getByLabel('Последний день').fill(inDays(121));
+    await page.getByRole('button', { name: 'Создать рейсы' }).click();
+  };
+  await fillFlights();
+  await expect(page).toHaveURL('/admin/flights?created=4');
+
+  await page.goto('/admin/flights/new');
+  await fillFlights();
+  await expect(
+    page.getByRole('alert').filter({ hasText: /^Все 4 рейса уже заведены/ }),
+  ).toBeVisible();
+  await expect(page).toHaveURL('/admin/flights/new');
+
+  // Убираем за собой.
+  await page.goto(`/admin/flights?airline=${code}`);
+  await confirmDelete(page, `→ ${city} (${iata})`);
+  await expect(page).toHaveURL('/admin/flights?deleted=2');
+  await page.goto(`/admin/flights?airline=${code}`);
+  await confirmDelete(page, `${city} (${iata}) →`);
+  await expect(page).toHaveURL('/admin/flights?deleted=2');
+  await page.goto('/admin/airlines');
+  await confirmDelete(page, airline);
+  await expect(page).toHaveURL('/admin/airlines?deleted=1');
+  await page.goto('/admin/cities');
+  await confirmDelete(page, city);
+  await expect(page).toHaveURL('/admin/cities?deleted=1');
+});
+
 test('страницы справочников в админке — валидный HTML', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'HTML не зависит от ширины экрана');
   await openAsAdmin(page, '/admin');
@@ -172,6 +236,9 @@ test('страницы справочников в админке — валид
     '/admin/airlines/STV/edit',
     '/admin/flights?city=vladivostok',
     '/admin/flights/new',
+    '/admin/flights/new?airline=STV&destination=SVO',
+    '/admin/cities/new?return=flights-origin',
+    '/admin/airlines/new?return=flights-airline',
   ]) {
     await expectValidHtml(page, path);
   }

@@ -112,3 +112,27 @@ export function listTimeZones(): string[] {
     .filter((zone) => zone.includes('/'))
     .sort();
 }
+
+/**
+ * Куда вернуться после нового города или авиакомпании, если форму открыли кнопкой «Добавить»
+ * у списка в форме рейсов: обратно в неё, и новое значение уже выбрано в своём списке.
+ * Только эти три адреса — чужой адрес из формы не примется (нет открытой переадресации).
+ */
+export const REFERENCE_RETURNS = [
+  'flights-airline',
+  'flights-origin',
+  'flights-destination',
+] as const;
+export type ReferenceReturn = (typeof REFERENCE_RETURNS)[number];
+
+/** Значение из формы или адреса → цель возврата; непонятное — без возврата. */
+export const referenceReturnSchema = z
+  .preprocess((value) => (Array.isArray(value) ? value[0] : value), z.enum(REFERENCE_RETURNS))
+  .optional()
+  .catch(undefined);
+
+/** Адрес формы рейсов с новым значением в нужном списке: `/admin/flights/new?origin=MMK`. */
+export function referenceReturnHref(target: ReferenceReturn, value: string): string {
+  const field = target.slice('flights-'.length);
+  return `/admin/flights/new?${new URLSearchParams({ [field]: value })}`;
+}

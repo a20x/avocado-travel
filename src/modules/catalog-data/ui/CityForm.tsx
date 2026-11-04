@@ -6,6 +6,7 @@ import { Card } from '@/shared/ui/Card';
 import { Input } from '@/shared/ui/Input';
 import { Select, type SelectOption } from '@/shared/ui/Select';
 import { Textarea } from '@/shared/ui/Textarea';
+import type { ReferenceReturn } from '../model';
 import { saveCityAction, type ReferenceFormState } from '../server/actions';
 
 export type CityFormValues = {
@@ -28,10 +29,12 @@ type CityFormProps = {
   initial: CityFormValues;
   /** Часовые пояса для списка, по алфавиту, — нужны только новому городу. */
   timezones?: SelectOption[];
+  /** Форму открыли кнопкой «Добавить» из формы рейсов: после сохранения — обратно туда. */
+  returnTo?: ReferenceReturn;
 };
 
 /** Форма города в админке: создание (вместе с первым аэропортом) и правка. */
-export function CityForm({ slug, initial, timezones = [] }: CityFormProps) {
+export function CityForm({ slug, initial, timezones = [], returnTo }: CityFormProps) {
   const [state, formAction, pending] = useActionState<ReferenceFormState, FormData>(
     saveCityAction,
     {},
@@ -44,6 +47,7 @@ export function CityForm({ slug, initial, timezones = [] }: CityFormProps) {
     <Card className="p-4 md:p-6">
       <form action={formAction} noValidate className="grid gap-5 md:grid-cols-2">
         {slug ? <input type="hidden" name="slug" value={slug} /> : null}
+        {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
         {state.error ? (
           <p role="alert" className="rounded-sm bg-error-bg px-4 py-3 text-error md:col-span-2">
             {state.error}

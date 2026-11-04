@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { WEEKDAY_SHORT } from '@/shared/lib/available-days';
+import { plural } from '@/shared/lib/format';
 import { addDays, daysBetween, zonedTimeToUtc } from '@/shared/lib/time';
 import type { flights } from './schema';
 
@@ -119,7 +120,8 @@ export type FlightScheduleError =
   | 'DATE_IN_PAST'
   | 'NO_DATES'
   | 'ROUTE_NOT_FOUND'
-  | 'HAS_TICKETS';
+  | 'HAS_TICKETS'
+  | 'DUPLICATE';
 
 /** Маршрут в таблице админки: рейсы одной авиакомпании между двумя аэропортами. */
 export type AdminRoute = {
@@ -232,4 +234,59 @@ export function nextFlightNumber(code: string, numbers: string[]): number {
     .map((number) => Number(number.slice(code.length + 1)))
     .filter((value) => Number.isInteger(value));
   return used.length > 0 ? Math.max(...used) + 1 : 100;
+}
+
+/** Рейс, уже заведённый в базе, — для проверки дублей. */
+export type ExistingFlight = {
+  number: string;
+  airlineId: number;
+  originId: number;
+  destinationId: number;
+  departsAt: Date;
+};
+
+/** Сколько новых рейсов повторяют существующие и какой из существующих — раньше всех. */
+export type FlightDuplicates = { count: number; total: number; first: ExistingFlight };
+
+/**
+ * Дубли при вводе рейсов: новый рейс повторяет существующий, если у них та же авиакомпания,
+ * те же аэропорты вылета и прилёта и та же минута вылета. Номер не сравнивается — его сервис
+ * выдаёт заново, и повторная отправка той же формы иначе завела бы те же рейсы ещё раз.
+ * Другое время того же дня — не дубль: у авиакомпании бывает несколько рейсов в день.
+ */
+export function findDuplicateFlights(
+  planned: Array<Omit<ExistingFlight, 'number'>>,
+  existing: ExistingFlight[],
+): FlightDuplicates | null {
+  const key = (flight: Omit<ExistingFlight, 'number'>) =>
+    `${flight.airlineId}|${flight.originId}|${flight.destinationId}|${flight.departsAt.getTime()}`;
+  const byKey = new Map(existing.map((flight) => [key(flight), flight]));
+  const matches = planned
+    .map((flight) => byKey.get(key(flight)))
+    .filter((flight): flight is ExistingFlight => flight !== undefined)
+    .sort((a, b) => a.departsAt.getTime() - b.departsAt.getTime());
+  const [first] = matches;
+  return first ? { count: matches.length, total: planned.length, first } : null;
+}
+
+const moscowTime = new Intl.DateTimeFormat('ru-RU', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Europe/Moscow',
+});
+
+/** Сообщение формы о дублях: сколько рейсов повторяются и первый из них — чтобы найти его. */
+export function duplicateMessage({ count, total, first }: FlightDuplicates): string {
+  const [date, time] = moscowTime.format(first.departsAt).split(', ');
+  const flightsWord = (n: number) => plural(n, ['рейс', 'рейса', 'рейсов']);
+  const how =
+    count === total
+      ? total === 1
+        ? 'Этот рейс уже заведён'
+        : `Все ${total} ${flightsWord(total)} уже заведены`
+      : `${count} ${flightsWord(count)} из ${total} уже ${plural(count, ['заведён', 'заведены', 'заведены'])}`;
+  return `${how}: та же авиакомпания, те же аэропорты и время вылета. Первый — ${first.number}, ${date} в ${time} по Москве. Рейсы не добавлены: измените даты, дни недели или время вылета.`;
 }

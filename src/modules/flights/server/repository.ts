@@ -12,6 +12,7 @@ import {
 import { db } from '@/server/db';
 import { flights } from '../schema';
 import type { RouteStatRow } from '../routes';
+import type { ExistingFlight } from '../schedule';
 import type { SearchRoute } from '../model';
 import type { FlightRow } from '../search';
 
@@ -211,6 +212,27 @@ export async function findFlightNumbers(airlineId: number): Promise<string[]> {
     .from(flights)
     .where(eq(flights.airlineId, airlineId));
   return rows.map((row) => row.number);
+}
+
+/**
+ * Рейсы авиакомпании, которые вылетают ровно в эти моменты, — кандидаты в дубли вводимых рейсов.
+ * Сравнение маршрута — в `findDuplicateFlights`.
+ */
+export async function findFlightsAt(
+  airlineId: number,
+  departures: Date[],
+): Promise<ExistingFlight[]> {
+  if (departures.length === 0) return [];
+  return db
+    .select({
+      number: flights.number,
+      airlineId: flights.airlineId,
+      originId: flights.originId,
+      destinationId: flights.destinationId,
+      departsAt: flights.departsAt,
+    })
+    .from(flights)
+    .where(and(eq(flights.airlineId, airlineId), inArray(flights.departsAt, departures)));
 }
 
 export async function insertFlights(rows: NewFlight[]): Promise<void> {

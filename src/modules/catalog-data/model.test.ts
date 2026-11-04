@@ -6,6 +6,8 @@ import {
   listTimeZones,
   newAirlineSchema,
   newCitySchema,
+  referenceReturnHref,
+  referenceReturnSchema,
 } from './model';
 
 const city = {
@@ -90,5 +92,23 @@ describe('форма авиакомпании', () => {
     expect(errorPaths(airlineInputSchema.safeParse({ ...airline, color: 'red' }))).toContain(
       'color',
     );
+  });
+});
+
+describe('кнопка «Добавить» в форме рейсов: возврат после сохранения', () => {
+  it('возвращает в форму рейсов с новым значением в нужном списке', () => {
+    expect(referenceReturnHref('flights-airline', 'NRD')).toBe('/admin/flights/new?airline=NRD');
+    expect(referenceReturnHref('flights-origin', 'MMK')).toBe('/admin/flights/new?origin=MMK');
+    expect(referenceReturnHref('flights-destination', 'MMK')).toBe(
+      '/admin/flights/new?destination=MMK',
+    );
+  });
+
+  it('принимает только свои цели — чужой адрес не станет переадресацией', () => {
+    expect(referenceReturnSchema.parse('flights-origin')).toBe('flights-origin');
+    expect(referenceReturnSchema.parse(['flights-airline', 'x'])).toBe('flights-airline');
+    expect(referenceReturnSchema.parse('https://evil.example')).toBeUndefined();
+    expect(referenceReturnSchema.parse(null)).toBeUndefined();
+    expect(referenceReturnSchema.parse(undefined)).toBeUndefined();
   });
 });

@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState } from 'react';
-import { Button } from '@/shared/ui/Button';
+import { useActionState, type ReactNode } from 'react';
+import { Button, buttonClasses } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { DatePicker } from '@/shared/ui/DatePicker';
 import { Input } from '@/shared/ui/Input';
@@ -17,7 +17,24 @@ type FlightScheduleFormProps = {
   aircraft: SelectOption[];
   /** Сегодня по Москве: раньше рейсы не заводятся. */
   today: string;
+  /** Выбранное заранее — значение, только что добавленное кнопкой «Добавить». */
+  initial?: { airline?: string; origin?: string; destination?: string };
 };
+
+/**
+ * Список и кнопка «Добавить» рядом (замечание преподавателя): кнопка открывает форму нового
+ * значения, после сохранения она возвращает сюда, и новое значение уже выбрано.
+ */
+function WithAdd({ href, what, children }: { href: string; what: string; children: ReactNode }) {
+  return (
+    <div className="flex items-end gap-2">
+      <div className="min-w-0 flex-1">{children}</div>
+      <Link href={href} className={buttonClasses({ variant: 'secondary' })}>
+        + Добавить<span className="sr-only"> {what}</span>
+      </Link>
+    </div>
+  );
+}
 
 /**
  * Форма «Добавить рейсы»: ежедневный рейс в одно время по выбранным дням недели периода,
@@ -28,6 +45,7 @@ export function FlightScheduleForm({
   airports,
   aircraft,
   today,
+  initial = {},
 }: FlightScheduleFormProps) {
   const [state, formAction, pending] = useActionState<FlightScheduleFormState, FormData>(
     createFlightsAction,
@@ -35,7 +53,7 @@ export function FlightScheduleForm({
     '/admin/flights/new',
   );
   const errors = state.fieldErrors ?? {};
-  const value = (field: string, initial = '') => state.values?.[field] ?? initial;
+  const value = (field: string, fallback = '') => state.values?.[field] ?? fallback;
   const weekdays = state.values
     ? value('weekdays').split(',')
     : ['1', '2', '3', '4', '5', '6', '7'];
@@ -52,20 +70,21 @@ export function FlightScheduleForm({
         ) : null}
 
         <p className="text-slate md:col-span-2">
-          Нужного города или авиакомпании нет в списке?{' '}
-          <Link href="/admin/cities/new">Добавить город</Link> ·{' '}
-          <Link href="/admin/airlines/new">Добавить авиакомпанию</Link>
+          Нужного города или авиакомпании нет в списке — нажмите «+ Добавить» рядом с ним. После
+          сохранения вы вернётесь сюда, и новое значение уже будет выбрано.
         </p>
 
         {/* key: после ошибки форма сбрасывается, а список без пересоздания вернулся бы к первому пункту. */}
-        <Select
-          key={`airline-${value('airline')}`}
-          name="airline"
-          label="Авиакомпания"
-          options={[...choose('Выберите авиакомпанию'), ...airlines]}
-          defaultValue={value('airline')}
-          error={errors.airline}
-        />
+        <WithAdd href="/admin/airlines/new?return=flights-airline" what="авиакомпанию">
+          <Select
+            key={`airline-${value('airline', initial.airline)}`}
+            name="airline"
+            label="Авиакомпания"
+            options={[...choose('Выберите авиакомпанию'), ...airlines]}
+            defaultValue={value('airline', initial.airline)}
+            error={errors.airline}
+          />
+        </WithAdd>
         <Select
           key={`aircraft-${value('aircraftModelId')}`}
           name="aircraftModelId"
@@ -74,22 +93,26 @@ export function FlightScheduleForm({
           defaultValue={value('aircraftModelId')}
           error={errors.aircraftModelId}
         />
-        <Select
-          key={`origin-${value('origin')}`}
-          name="origin"
-          label="Откуда"
-          options={[...choose('Выберите аэропорт'), ...airports]}
-          defaultValue={value('origin')}
-          error={errors.origin}
-        />
-        <Select
-          key={`destination-${value('destination')}`}
-          name="destination"
-          label="Куда"
-          options={[...choose('Выберите аэропорт'), ...airports]}
-          defaultValue={value('destination')}
-          error={errors.destination}
-        />
+        <WithAdd href="/admin/cities/new?return=flights-origin" what="город вылета">
+          <Select
+            key={`origin-${value('origin', initial.origin)}`}
+            name="origin"
+            label="Откуда"
+            options={[...choose('Выберите аэропорт'), ...airports]}
+            defaultValue={value('origin', initial.origin)}
+            error={errors.origin}
+          />
+        </WithAdd>
+        <WithAdd href="/admin/cities/new?return=flights-destination" what="город прилёта">
+          <Select
+            key={`destination-${value('destination', initial.destination)}`}
+            name="destination"
+            label="Куда"
+            options={[...choose('Выберите аэропорт'), ...airports]}
+            defaultValue={value('destination', initial.destination)}
+            error={errors.destination}
+          />
+        </WithAdd>
 
         <DatePicker
           name="dateFrom"

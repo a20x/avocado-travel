@@ -5,6 +5,7 @@ import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { Input } from '@/shared/ui/Input';
 import { Textarea } from '@/shared/ui/Textarea';
+import type { ReferenceReturn } from '../model';
 import { saveAirlineAction, type ReferenceFormState } from '../server/actions';
 
 export type AirlineFormValues = {
@@ -15,8 +16,19 @@ export type AirlineFormValues = {
   baggageIncluded: boolean;
 };
 
-/** Форма авиакомпании в админке: создание и правка. Код после создания не меняется. */
-export function AirlineForm({ code, initial }: { code?: string; initial: AirlineFormValues }) {
+/**
+ * Форма авиакомпании в админке: создание и правка. Код после создания не меняется.
+ * `returnTo` — форму открыли кнопкой «Добавить» из формы рейсов: после сохранения — туда.
+ */
+export function AirlineForm({
+  code,
+  initial,
+  returnTo,
+}: {
+  code?: string;
+  initial: AirlineFormValues;
+  returnTo?: ReferenceReturn;
+}) {
   const [state, formAction, pending] = useActionState<ReferenceFormState, FormData>(
     saveAirlineAction,
     {},
@@ -31,6 +43,7 @@ export function AirlineForm({ code, initial }: { code?: string; initial: Airline
     <Card className="p-4 md:p-6">
       <form action={formAction} noValidate className="grid gap-5 md:grid-cols-2">
         {code ? <input type="hidden" name="currentCode" value={code} /> : null}
+        {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
         {state.error ? (
           <p role="alert" className="rounded-sm bg-error-bg px-4 py-3 text-error md:col-span-2">
             {state.error}

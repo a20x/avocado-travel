@@ -8,6 +8,8 @@ import {
   cityInputSchema,
   newAirlineSchema,
   newCitySchema,
+  referenceReturnHref,
+  referenceReturnSchema,
   type CatalogDataError,
 } from '../model';
 import * as service from './service';
@@ -70,17 +72,23 @@ export async function saveCityAction(
   const slug = String(formData.get('slug') ?? '');
   const values = readForm(formData, slug ? CITY_FIELDS : [...CITY_FIELDS, ...AIRPORT_FIELDS]);
 
-  let result;
   if (slug) {
     const parsed = cityInputSchema.safeParse(values);
     if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues), values };
-    result = await service.updateCity(slug, parsed.data);
-  } else {
-    const parsed = newCitySchema.safeParse(values);
-    if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues), values };
-    result = await service.createCity(parsed.data);
+    const result = await service.updateCity(slug, parsed.data);
+    if (!result.ok) return failure(result.error, values);
+    redirect(`/admin/cities?saved=${encodeURIComponent(result.data.slug)}`);
   }
+
+  const parsed = newCitySchema.safeParse(values);
+  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues), values };
+  const result = await service.createCity(parsed.data);
   if (!result.ok) return failure(result.error, values);
+  // Открыли кнопкой «Добавить» из формы рейсов — обратно туда, с аэропортом нового города.
+  const back = referenceReturnSchema.parse(formData.get('returnTo'));
+  if (back === 'flights-origin' || back === 'flights-destination') {
+    redirect(referenceReturnHref(back, parsed.data.iata));
+  }
   redirect(`/admin/cities?saved=${encodeURIComponent(result.data.slug)}`);
 }
 
@@ -111,6 +119,9 @@ export async function saveAirlineAction(
     result = await service.createAirline(parsed.data);
   }
   if (!result.ok) return failure(result.error, values);
+  // Новую авиакомпанию открыли кнопкой «Добавить» из формы рейсов — обратно туда, с ней в списке.
+  const back = currentCode ? undefined : referenceReturnSchema.parse(formData.get('returnTo'));
+  if (back === 'flights-airline') redirect(referenceReturnHref(back, result.data.code));
   redirect(`/admin/airlines?saved=${encodeURIComponent(result.data.code)}`);
 }
 

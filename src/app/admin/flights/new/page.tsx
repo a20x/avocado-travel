@@ -10,13 +10,28 @@ export const metadata: Metadata = { title: 'Новые рейсы — админ
 const byLabel = (a: { label: string }, b: { label: string }) =>
   a.label.localeCompare(b.label, 'ru');
 
-export default async function NewFlightsPage() {
+const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
+
+export default async function NewFlightsPage(props: PageProps<'/admin/flights/new'>) {
   await requireAdmin('/admin/flights/new');
-  const [airlines, airports, models] = await Promise.all([
+  const [params, airlines, airports, models] = await Promise.all([
+    props.searchParams,
     listAirlines(),
     listAirports(),
     listAircraftModels(),
   ]);
+  // Вернулись из формы «Добавить» — новое значение выбрано в своём списке. Чужое — не берём.
+  const pick = (value: string | undefined, known: string[]) =>
+    value && known.includes(value) ? value : undefined;
+  const iatas = airports.map((airport) => airport.iata);
+  const initial = {
+    airline: pick(
+      first(params.airline),
+      airlines.map((airline) => airline.code),
+    ),
+    origin: pick(first(params.origin), iatas),
+    destination: pick(first(params.destination), iatas),
+  };
 
   return (
     <div className="container-site grid gap-6 py-8">
@@ -25,6 +40,7 @@ export default async function NewFlightsPage() {
       </p>
       <h1 className="text-3xl">Новые рейсы</h1>
       <FlightScheduleForm
+        initial={initial}
         today={dateInZone(new Date(), 'Europe/Moscow')}
         airlines={airlines.map((airline) => ({ value: airline.code, label: airline.name }))}
         airports={airports
