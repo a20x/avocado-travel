@@ -99,7 +99,9 @@ test('кабинет без входа ведёт на вход и возвра�
   await expect(page).toHaveURL('/account');
 });
 
-test('админка открывается администратору и скрыта от покупателя', async ({ page }, testInfo) => {
+test('админка открывается администратору, покупателю — объяснение и вход', async ({
+  page,
+}, testInfo) => {
   await page.goto('/admin');
   await expect(page).toHaveURL('/login?next=%2Fadmin');
   await signIn(page, ADMIN.email, ADMIN.password);
@@ -109,10 +111,32 @@ test('админка открывается администратору и ск
   await page.getByRole('main').getByRole('button', { name: 'Выйти' }).click();
   await expect(page).toHaveURL('/');
 
-  // Покупатель на /admin получает 404, как будто раздела нет.
+  // Покупатель на закрытой странице админки — объяснение, а не 404 (преподаватель, вошедший под
+  // своим аккаунтом, не понимал, что нужно войти администратором).
   await registerCustomer(page, 'Борис', `boris-${testInfo.project.name}`);
-  const response = await page.goto('/admin');
-  expect(response?.status()).toBe(404);
+  await page.goto('/admin/cities');
+  await expect(page).toHaveURL('/access-denied?next=%2Fadmin%2Fcities');
+  const main = page.getByRole('main');
+  await expect(
+    main.getByRole('heading', { level: 1, name: 'Только для администратора' }),
+  ).toBeVisible();
+  await expect(main.getByText(/это обычный аккаунт, без прав администратора/)).toBeVisible();
+  await expectValidHtml(page, '/access-denied?next=%2Fadmin%2Fcities');
+
+  // «Выйти и войти как администратор» — выход и вход с возвратом на ту же страницу.
+  await main.getByRole('button', { name: 'Выйти и войти как администратор' }).click();
+  await expect(page).toHaveURL('/login?next=%2Fadmin%2Fcities');
+  await signIn(page, ADMIN.email, ADMIN.password);
+  await expect(page).toHaveURL('/admin/cities');
+
+  // Администратору и гостю страница-объяснение не нужна.
+  await page.goto('/access-denied?next=%2Fadmin%2Fnews');
+  await expect(page).toHaveURL('/admin/news');
+});
+
+test('гость со страницы «Только для администратора» уходит на вход', async ({ page }) => {
+  await page.goto('/access-denied?next=%2Fadmin');
+  await expect(page).toHaveURL('/login?next=%2Fadmin');
 });
 
 test('администратор после входа попадает в админку, оттуда — в кабинет и обратно', async ({

@@ -2,7 +2,14 @@
 
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { afterSignIn, safeReturnPath, signInSchema, signUpSchema, type AuthError } from '../model';
+import {
+  afterSignIn,
+  explicitReturnPath,
+  safeReturnPath,
+  signInSchema,
+  signUpSchema,
+  type AuthError,
+} from '../model';
 import * as service from './service';
 
 /** Состояние формы после отправки: общая ошибка, ошибки полей и введённое — чтобы не набирать заново. */
@@ -53,6 +60,16 @@ export async function signUpAction(_: AuthFormState, formData: FormData): Promis
   if (!result.ok) return { error: MESSAGES[result.error], values };
 
   redirect(safeReturnPath(formData.get('next')));
+}
+
+/**
+ * Выйти и сразу открыть вход с возвратом на `next` — со страницы «Только для администратора»:
+ * обычный пользователь выходит и входит под учётной записью администратора.
+ */
+export async function switchAccountAction(_: null, formData: FormData): Promise<null> {
+  await service.signOut();
+  const next = explicitReturnPath(formData.get('next')) ?? '/admin';
+  redirect(`/login?next=${encodeURIComponent(next)}`);
 }
 
 export async function signOutAction(): Promise<null> {

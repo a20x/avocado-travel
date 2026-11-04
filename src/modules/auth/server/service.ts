@@ -1,13 +1,14 @@
 import 'server-only';
 import { isAPIError } from 'better-auth/api';
 import { headers } from 'next/headers';
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { cache } from 'react';
 import { env } from '@/server/env';
 import { takeRateLimit } from '@/server/rate-limit';
 import { getClientIp } from '@/server/request';
 import { fail, ok, type Result } from '@/shared/lib/result';
 import {
+  accessDeniedHref,
   isRole,
   type AuthError,
   type Role,
@@ -46,10 +47,14 @@ export async function requireUser(returnTo: string): Promise<SessionUser> {
   return user;
 }
 
-/** Администратор — или 404: посторонним незачем знать, что по этому адресу что-то есть. */
+/**
+ * Администратор — или: гостя на вход, обычного пользователя на страницу «Только для
+ * администратора» с кнопкой «Выйти и войти как администратор» (раньше было 404, и преподаватель,
+ * вошедший под своим аккаунтом, не понимал, что делать). После входа — обратно на `returnTo`.
+ */
 export async function requireAdmin(returnTo = '/admin'): Promise<SessionUser> {
   const user = await requireUser(returnTo);
-  if (user.role !== 'admin') notFound();
+  if (user.role !== 'admin') redirect(accessDeniedHref(returnTo));
   return user;
 }
 

@@ -8,7 +8,9 @@
 export { accounts, sessions, users, verifications } from './schema';
 
 export {
+  ACCESS_DENIED_PATH,
   DEFAULT_AFTER_SIGN_IN,
+  accessDeniedHref,
   MAX_PASSWORD_LENGTH,
   MIN_PASSWORD_LENGTH,
   ROLES,
