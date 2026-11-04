@@ -1,33 +1,32 @@
 import { expect, test } from '@playwright/test';
 
-test('«Новости отрасли» — вкладка ленты, ссылки ведут на сайты источников', async ({ page }) => {
+test('«Новости» — только новости сайта, внешние — на вкладке «RSS»', async ({ page }) => {
+  // Замечание преподавателя одногруппнику: «Новости и RSS — одно и то же? Дублирование — это
+  // плохо». Внешних новостей на /news нет, ссылка ведёт к объединённым новостям.
   await page.goto('/news');
-  await page
-    .getByRole('navigation', { name: 'Рубрики' })
-    .getByRole('link', { name: 'Новости отрасли' })
-    .click();
-  await expect(page).toHaveURL('/news?source=external');
-  await expect(page.getByText('Новости авиации и туризма из отраслевых изданий')).toBeVisible();
-
-  // В CI ленты не скачиваются (тесты не зависят от чужих сайтов) — тогда раздел пуст.
-  const cards = page.getByRole('article');
-  if ((await cards.count()) === 0) {
-    await expect(page.getByText('Новости отрасли ещё не загружены')).toBeVisible();
-    return;
-  }
-  const link = cards.first().getByRole('link');
-  await expect(link).toHaveAttribute('target', '_blank');
-  await expect(link).toHaveAttribute('href', /^https?:\/\/(?!localhost)/);
-});
-
-test('текущая вкладка видна целиком и на узком экране', async ({ page }) => {
-  // Последняя вкладка полосы: на телефоне она не помещается, полоса прокручивается к ней сама.
-  await page.goto('/news?source=external');
   await expect(
     page
       .getByRole('navigation', { name: 'Рубрики' })
       .getByRole('link', { name: 'Новости отрасли' }),
-  ).toBeInViewport({ ratio: 0.95 }); // нижний пиксель подчёркивания полоса обрезает всегда
+  ).toHaveCount(0);
+  await expect(page.getByRole('main').getByRole('link', { name: '«RSS»' })).toHaveAttribute(
+    'href',
+    '/rss',
+  );
+  // Старый адрес «Новостей отрасли» — поиск вкладки «RSS» по внешним лентам.
+  await page.goto('/news?source=external');
+  await expect(page).toHaveURL('/rss?view=search&source=external');
+  await expect(page.getByLabel('Источник')).toHaveValue('external');
+});
+
+test('«Новости» — в меню «Ещё», в основном меню их нет рядом с «RSS»', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'основное меню видно на широком экране');
+  await page.goto('/');
+  const menu = page.getByRole('banner').getByRole('navigation', { name: 'Основное меню' });
+  await expect(menu.getByRole('link', { name: 'RSS', exact: true })).toBeVisible();
+  await expect(menu.getByRole('link', { name: 'Новости', exact: true })).toHaveCount(0);
 });
 
 test('задание импорта лент открывается только с секретом', async ({ request }, testInfo) => {

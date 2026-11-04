@@ -40,13 +40,6 @@ export type ExternalNewsInput = Pick<
   'slug' | 'title' | 'summary' | 'category' | 'tags' | 'publishedAt'
 > & { externalUrl: string; externalFeed: string };
 
-export type IndustryNewsItem = Pick<
-  News,
-  'id' | 'title' | 'summary' | 'category' | 'tags' | 'publishedAt' | 'externalFeed'
-> & { externalUrl: string };
-
-export type IndustryNewsPage = { items: IndustryNewsItem[]; page: number; totalPages: number };
-
 /**
  * Форма новости в админке. Дата и время публикации — по Москве, как их видит администратор.
  * Адрес необязателен: пустой соберётся из заголовка.

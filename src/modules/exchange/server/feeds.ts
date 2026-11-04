@@ -161,12 +161,6 @@ export async function getMergedFeed(rawUrl: unknown, now = new Date()): Promise<
   });
 }
 
-/** Названия лент по коду — подпись источника у новостей отрасли на `/news`. */
-export async function getFeedNames(): Promise<Map<string, string>> {
-  const feeds = await repository.findFeeds();
-  return new Map(feeds.map((feed) => [feed.id, feed.name]));
-}
-
 export type AddFeedError = 'INVALID' | 'LIMIT' | 'DUPLICATE' | 'NOT_A_FEED';
 /** У ошибки INVALID — текст из схемы: что именно не так в форме. */
 export type AddFeedResult =

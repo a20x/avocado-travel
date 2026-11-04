@@ -9,7 +9,6 @@ import {
   isNewsCategory,
   newsSearchDocument,
   type ExternalNewsInput,
-  type IndustryNewsPage,
   type News,
   type NewsError,
   type NewsInput,
@@ -91,16 +90,6 @@ export function trimIndustryNews(perFeed: number): Promise<number> {
 /** Удаляет новости отключённой внешней ленты (вкладка «RSS», модуль exchange). */
 export function removeIndustryNewsOfFeed(feedId: string): Promise<number> {
   return repository.deleteExternalByFeed(feedId);
-}
-
-/** Раздел «Новости отрасли»: страница списка, свежие сверху. */
-export async function listIndustryNews(params: { page?: unknown }): Promise<IndustryNewsPage> {
-  const page = pageNumber(params.page);
-  const { items, total } = await repository.findIndustryNews({
-    limit: NEWS_PAGE_SIZE,
-    offset: (page - 1) * NEWS_PAGE_SIZE,
-  });
-  return { items, page, totalPages: Math.max(1, Math.ceil(total / NEWS_PAGE_SIZE)) };
 }
 
 /** Новость по адресу или null — несуществующая и ещё не опубликованная одинаково не видны. */
