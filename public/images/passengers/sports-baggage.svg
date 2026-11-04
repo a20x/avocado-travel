@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" role="img" aria-labelledby="t">
+  <title id="t">Пара лыж и палки, скрещённые за чемоданом</title>
+  <rect width="160" height="120" rx="16" fill="#E8EDF0"/>
+  <path d="M44 16 96 100M58 12 110 96" stroke="#8A5A3B" stroke-width="7" stroke-linecap="round"/><path d="M118 18 70 104M126 24 84 106" stroke="#4A5058" stroke-width="3" stroke-linecap="round"/><rect x="70.0" y="52" width="20" height="14" rx="4" fill="none" stroke="#4A5058" stroke-width="4"/><rect x="56" y="62" width="48" height="36" rx="7" fill="#BFD5A0"/><path d="M70.4 62V98M89.6 62V98" stroke="#3F6420" stroke-width="4"/><circle cx="66" cy="103" r="4" fill="#4A5058"/><circle cx="94" cy="103" r="4" fill="#4A5058"/>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" role="img" aria-labelledby="t">
+  <title id="t">Окно браузера с кнопкой «Подобрать рейсы»</title>
+  <rect width="160" height="120" rx="16" fill="#E8EDF0"/>
+  <rect x="28" y="22" width="104" height="76" rx="8" fill="#FFFFFF"/><path d="M28 30a8 8 0 0 1 8-8h88a8 8 0 0 1 8 8v8H28Z" fill="#B9C0B8"/><circle cx="38" cy="30" r="3" fill="#FFFFFF"/><circle cx="47" cy="30" r="3" fill="#FFFFFF"/><rect x="40" y="48" width="80" height="8" rx="4" fill="#E2ECCF"/><rect x="40" y="62" width="56" height="8" rx="4" fill="#E2ECCF"/><rect x="72" y="78" width="48" height="12" rx="6" fill="#3F6420"/><path d="M104 88 116 108 119 99 128 98Z" fill="#4A5058"/>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" role="img" aria-labelledby="t">
+  <title id="t">Конверт с письмом и зелёной галочкой</title>
+  <rect width="160" height="120" rx="16" fill="#E8EDF0"/>
+  <rect x="26" y="34" width="92" height="62" rx="6" fill="#FFFFFF"/><path d="M26 40 72 72 118 40" fill="none" stroke="#B9C0B8" stroke-width="4" stroke-linejoin="round"/><circle cx="118" cy="36" r="18" fill="#3F6420"/><path d="M110 36 116 42 127 30" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

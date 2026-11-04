@@ -1,3 +1,5 @@
+import { PASSENGER_PAGES, passengerPageHref } from '@/modules/passengers';
+
 /** Дата поиска для проверок: послезавтра — всегда в окне продажи, рейсы ещё не улетели. */
 export const SEARCH_DATE = new Date(Date.now() + 2 * 86_400_000).toISOString().slice(0, 10);
 
@@ -40,6 +42,8 @@ export const PUBLIC_PAGES = [
   '/search',
   '/search?q=багаж ИЛИ море',
   '/help',
+  '/passengers',
+  ...PASSENGER_PAGES.map((page) => passengerPageHref(page.slug)),
   '/login',
   '/register',
 ];

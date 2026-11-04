@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" role="img" aria-labelledby="t">
+  <title id="t">Паспорт с эмблемой-авокадо на обложке</title>
+  <rect width="160" height="120" rx="16" fill="#E8EDF0"/>
+  <rect x="52" y="18" width="62" height="86" rx="7" fill="#3F6420"/><rect x="46" y="18" width="10" height="86" rx="4" fill="#4A5058"/><g transform="translate(65.4 33.849999999999994) scale(0.55)"><path d="M32 61C27 54 11 43 11 26.5C11 14.6 20.4 5 32 5S53 14.6 53 26.5C53 43 37 54 32 61Z" fill="#3F6420"/><path d="M32 61C27 54 11 43 11 26.5C11 14.6 20.4 5 32 5S53 14.6 53 26.5C53 43 37 54 32 61Z" fill="#7FA54A" transform="translate(32 28) scale(.9) translate(-32 -28)"/><ellipse cx="32" cy="29" rx="15.5" ry="18" fill="#E2ECCF"/><circle cx="32" cy="25" r="10" fill="#8A5A3B"/></g><rect x="66" y="82" width="34" height="5" rx="2.5" fill="#BFD5A0"/><rect x="72" y="91" width="22" height="4" rx="2" fill="#BFD5A0"/>
+</svg>

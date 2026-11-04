@@ -4,6 +4,7 @@ import { listCities } from '@/modules/catalog-data/server';
 import { topicHref } from '@/modules/forum';
 import { listTopicLinks } from '@/modules/forum/server';
 import { listNewsLinks } from '@/modules/news/server';
+import { PASSENGER_PAGES, passengerPageHref } from '@/modules/passengers';
 import { SITE_URL } from '@/shared/config/site';
 
 /**
@@ -19,6 +20,7 @@ const SECTIONS = [
   '/analytics',
   '/api/docs',
   '/services',
+  '/passengers',
   '/weather',
   '/xml',
   '/database',
@@ -45,6 +47,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: url(path),
       changeFrequency: 'daily' as const,
       priority: path === '/' ? 1 : 0.8,
+    })),
+    ...PASSENGER_PAGES.map((page) => ({
+      url: url(passengerPageHref(page.slug)),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
     })),
     ...cities.map((city) => ({
       url: url(`/destinations/${city.slug}`),

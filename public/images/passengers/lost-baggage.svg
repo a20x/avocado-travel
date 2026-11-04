@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" role="img" aria-labelledby="t">
+  <title id="t">Чемодан со знаком вопроса</title>
+  <rect width="160" height="120" rx="16" fill="#E8EDF0"/>
+  <rect x="58.0" y="34" width="20" height="14" rx="4" fill="none" stroke="#4A5058" stroke-width="4"/><rect x="40" y="44" width="56" height="44" rx="7" fill="#BFD5A0"/><path d="M56.8 44V88M79.19999999999999 44V88" stroke="#3F6420" stroke-width="4"/><circle cx="50" cy="93" r="4" fill="#4A5058"/><circle cx="86" cy="93" r="4" fill="#4A5058"/><circle cx="114" cy="44" r="20" fill="#8A5A3B"/><text x="114" y="52" font-family="sans-serif" font-size="24" font-weight="700" text-anchor="middle" fill="#FFFFFF">?</text>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" role="img" aria-labelledby="t">
+  <title id="t">Два кресла самолёта: обычное и широкое</title>
+  <rect width="160" height="120" rx="16" fill="#E8EDF0"/>
+  <rect x="30" y="34" width="34" height="48" rx="8" fill="#BFD5A0"/><rect x="26" y="72" width="44" height="14" rx="5" fill="#7FA54A"/><rect x="80" y="26" width="50" height="56" rx="10" fill="#7FA54A"/><rect x="74" y="72" width="62" height="16" rx="6" fill="#3F6420"/><path d="M34 86V98M62 86V98M82 88V100M128 88V100" stroke="#4A5058" stroke-width="4" stroke-linecap="round"/>
+</svg>

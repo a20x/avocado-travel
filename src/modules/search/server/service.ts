@@ -74,6 +74,20 @@ export function indexDocument(doc: SearchDocumentInput): Promise<void> {
   return repository.upsertDocument(doc);
 }
 
+/**
+ * Заменить в индексе статические страницы одного раздела (refId `prefix` и `prefix:…`):
+ * новые добавить, изменённые обновить, исчезнувшие удалить. Документы должны быть
+ * страницами этого раздела — иначе это ошибка в коде вызывающего модуля.
+ */
+export function syncPageDocuments(prefix: string, docs: SearchDocumentInput[]): Promise<void> {
+  for (const doc of docs) {
+    if (doc.kind !== 'page' || (doc.refId !== prefix && !doc.refId.startsWith(`${prefix}:`))) {
+      throw new Error(`Документ ${doc.kind}/${doc.refId} не из раздела ${prefix}`);
+    }
+  }
+  return repository.replacePageDocuments(prefix, docs);
+}
+
 export function removeDocument(kind: SearchKind, refId: string): Promise<void> {
   return repository.deleteDocument(kind, refId);
 }
