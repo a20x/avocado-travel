@@ -27,6 +27,16 @@ test('XML: поиск по всем колонкам, сортировка ще�
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Таблица пресс-релизов (XML)');
   await expect(page.getByText('Найдено: 18 из 18')).toBeVisible();
 
+  // Таблица — раньше пояснений и исходных файлов: до неё не надо листать.
+  const tableFirst = await page.evaluate(() => {
+    const table = document.querySelector('table');
+    const sources = document.getElementById('xml-sources-title');
+    return Boolean(
+      table && sources && table.compareDocumentPosition(sources) & Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+  expect(tableFirst).toBe(true);
+
   const filters = page.getByRole('form', { name: 'Поиск и сортировка' });
   await filters.getByLabel('Поиск по всем колонкам').fill('СОЧИ');
   await filters.getByRole('button', { name: 'Показать' }).click();

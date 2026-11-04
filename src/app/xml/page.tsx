@@ -11,8 +11,8 @@ export const metadata = pageMetadata({
 });
 
 /**
- * Вкладка «XML» (лаба 2, ADR-0010): таблица из XML-файла пресс-релизов, его схема XSD
- * и преобразование XSL. Те же записи в JSON — «Пресс-центр» (`/press`).
+ * Вкладка «XML» (лаба 2, ADR-0010): таблица из XML-файла пресс-релизов, под ней — сам файл,
+ * его схема XSD и преобразование XSL. Те же записи в JSON — «Пресс-центр» (`/press`).
  */
 export default async function XmlPage(props: PageProps<'/xml'>) {
   const view = await getXmlTable(await props.searchParams);
@@ -24,11 +24,11 @@ export default async function XmlPage(props: PageProps<'/xml'>) {
         <p className="text-slate">
           {view.total} {plural(view.total, ['пресс-релиз', 'пресс-релиза', 'пресс-релизов'])} из
           XML-файла: семь полей у каждой записи. Ищите набор символов во всех колонках, выбирайте по
-          категории и автору. Щелчок по заголовку колонки меняет порядок строк.
+          категории и автору. Щелчок по заголовку колонки меняет порядок строк. Сам XML-файл, схема
+          XSD и преобразование XSL — под таблицей.
         </p>
       </header>
 
-      <XmlSources query={view.query} />
       <XmlFilters view={view} />
 
       <div className="grid gap-3">
@@ -37,6 +37,9 @@ export default async function XmlPage(props: PageProps<'/xml'>) {
         </p>
         <XmlTable view={view} />
       </div>
+
+      {/* Пояснения и файлы — под таблицей, чтобы до неё не надо было листать (Этап 11). */}
+      <XmlSources query={view.query} />
     </div>
   );
 }
