@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" role="img" aria-labelledby="t">
+  <title id="t">Взрослый и ребёнок держатся за руки</title>
+  <rect width="160" height="120" rx="16" fill="#E8EDF0"/>
+  <circle cx="62" cy="30" r="11" fill="#8A5A3B"/><path d="M48 50a14 14 0 0 1 28 0V78H48Z" fill="#7FA54A"/><path d="M52 78V104M72 78V104" stroke="#4A5058" stroke-width="7" stroke-linecap="round"/><circle cx="104" cy="54" r="8" fill="#8A5A3B"/><path d="M94 70a10 10 0 0 1 20 0V88H94Z" fill="#BFD5A0"/><path d="M98 88V104M110 88V104" stroke="#4A5058" stroke-width="5" stroke-linecap="round"/><path d="M76 60Q86 66 94 72" fill="none" stroke="#4A5058" stroke-width="5" stroke-linecap="round"/>
+</svg>

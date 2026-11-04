@@ -9,6 +9,7 @@ import {
 import { forumPosts, forumTopics, topicSearchDocument } from '@/modules/forum';
 import { HELP_SECTIONS, helpSearchDocuments } from '@/modules/help';
 import { news, newsSearchDocument } from '@/modules/news';
+import { PASSENGER_PAGES, passengerSearchDocuments } from '@/modules/passengers';
 import { parsePressFile, pressSearchDocuments } from '@/modules/press';
 import { searchDocuments, type SearchDocumentInput } from '@/modules/search';
 import pressFile from '../../content/press/press-releases.json';
@@ -17,7 +18,8 @@ import type { Db } from './db';
 // Поисковый индекс (docs/04-data-model.md, «Поиск по сайту»). Новости и темы форума
 // на сайте индексируют их сервисы при сохранении; демо-данные пишутся в базу напрямую,
 // поэтому здесь индекс собирается заново теми же функциями модулей — плюс страницы сайта
-// с разделами справки и пресс-релизами (их текст лежит в файлах и меняется только вместе с сидом).
+// с разделами справки, страницами «Пассажирам» и пресс-релизами (их текст лежит в файлах).
+// Страницы «Пассажирам» на хостинге ещё и обновляются при запуске сервера (instrumentation.ts).
 
 const page = (refId: string, url: string, title: string, body: string): SearchDocumentInput => ({
   kind: 'page',
@@ -83,6 +85,7 @@ export async function seedSearch(db: Db): Promise<number> {
   const docs = [
     ...STATIC_PAGES,
     ...helpSearchDocuments(HELP_SECTIONS),
+    ...passengerSearchDocuments(PASSENGER_PAGES),
     ...pressSearchDocuments(parsePressFile(pressFile)),
     ...cityPages,
     ...newsRows.map(newsSearchDocument),

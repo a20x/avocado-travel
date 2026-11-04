@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" role="img" aria-labelledby="t">
+  <title id="t">Часы со стрелками и самолёт</title>
+  <rect width="160" height="120" rx="16" fill="#E8EDF0"/>
+  <circle cx="68" cy="64" r="38" fill="#FFFFFF"/><circle cx="68" cy="64" r="38" fill="none" stroke="#7FA54A" stroke-width="6"/><path d="M68 64V40M68 64 84 74" stroke="#4A5058" stroke-width="5" stroke-linecap="round"/><circle cx="68" cy="64" r="4" fill="#8A5A3B"/><g transform="translate(124 30) rotate(-15) scale(0.7)"><path d="M-22 0C-22-3 -18-4 -14-4H18C23-4 26-2 26 0S23 4 18 4H-14C-18 4-22 3-22 0Z" fill="#4A5058"/><path d="M-2-3 8-20H14L8-3ZM-2 3 8 20H14L8 3ZM-18-3-14-12H-10L-12-3Z" fill="#4A5058"/></g>
+</svg>

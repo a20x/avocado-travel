@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" role="img" aria-labelledby="t">
+  <title id="t">След лапы в зелёном круге</title>
+  <rect width="160" height="120" rx="16" fill="#E8EDF0"/>
+  <circle cx="80" cy="60" r="44" fill="#BFD5A0"/><ellipse cx="80" cy="74" rx="18" ry="15" fill="#3F6420"/><ellipse cx="58" cy="54" rx="7" ry="9" fill="#3F6420"/><ellipse cx="72" cy="42" rx="7" ry="9" fill="#3F6420"/><ellipse cx="88" cy="42" rx="7" ry="9" fill="#3F6420"/><ellipse cx="102" cy="54" rx="7" ry="9" fill="#3F6420"/>
+</svg>

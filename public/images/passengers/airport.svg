@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" role="img" aria-labelledby="t">
+  <title id="t">Диспетчерская вышка аэропорта и самолёт</title>
+  <rect width="160" height="120" rx="16" fill="#E8EDF0"/>
+  <rect x="20" y="96" width="120" height="6" rx="3" fill="#B9C0B8"/><path d="M48 96 52 54H68L72 96Z" fill="#BFD5A0"/><path d="M40 40H80L74 56H46Z" fill="#3F6420"/><rect x="46" y="44" width="28" height="6" rx="2" fill="#E2ECCF"/><path d="M60 40V28" stroke="#4A5058" stroke-width="3"/><circle cx="60" cy="26" r="3" fill="#8A5A3B"/><g transform="translate(112 46) rotate(-15) scale(0.9)"><path d="M-22 0C-22-3 -18-4 -14-4H18C23-4 26-2 26 0S23 4 18 4H-14C-18 4-22 3-22 0Z" fill="#4A5058"/><path d="M-2-3 8-20H14L8-3ZM-2 3 8 20H14L8 3ZM-18-3-14-12H-10L-12-3Z" fill="#4A5058"/></g>
+</svg>

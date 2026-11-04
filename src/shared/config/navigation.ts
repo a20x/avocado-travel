@@ -11,6 +11,8 @@ export const MAIN_NAV: NavItem[] = [
   { href: '/destinations', label: 'Направления' },
   { href: '/news', label: 'Новости' },
   { href: '/services', label: 'Сервисы' },
+  // Статические страницы с правилами (T-42) — отдельным пунктом, чтобы их было видно сразу.
+  { href: '/passengers', label: 'Пассажирам' },
   // Вкладки лабораторных 2–4 (ADR-0010): преподаватель находит их сразу, без «Ещё».
   { href: '/xml', label: 'XML' },
   { href: '/database', label: 'БД' },
@@ -52,6 +54,11 @@ export const SITE_CONTENTS: ContentsGroup[] = [
         href: '/airlines',
         label: 'Авиакомпании',
         description: 'Маршруты, флот и багаж в тарифе — в одной таблице',
+      },
+      {
+        href: '/passengers',
+        label: 'Пассажирам',
+        description: 'Покупка и возврат, багаж, дети и животные, аэропорт и полёт',
       },
       {
         href: '/account',

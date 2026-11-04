@@ -1,5 +1,19 @@
 import 'server-only';
-import { and, asc, count, desc, eq, gte, isNull, lte, or, sql, type SQL } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  isNull,
+  like,
+  lte,
+  notInArray,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 import { pageViews } from '@/modules/stats';
 import { db } from '@/server/db';
 import {
@@ -28,6 +42,44 @@ export async function upsertDocument(doc: SearchDocumentInput): Promise<void> {
         updatedAt: new Date(),
       },
     });
+}
+
+/**
+ * Заменить страницы одного раздела: `prefix` — refId оглавления, `prefix:…` — его страницы.
+ * Переданные документы добавляются или обновляются, страницы раздела, которых в списке нет,
+ * удаляются. Всё в одной транзакции: поиск не увидит раздел наполовину обновлённым.
+ */
+export async function replacePageDocuments(
+  prefix: string,
+  docs: SearchDocumentInput[],
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    for (const doc of docs) {
+      await tx
+        .insert(searchDocuments)
+        .values(doc)
+        .onConflictDoUpdate({
+          target: [searchDocuments.kind, searchDocuments.refId],
+          set: {
+            url: doc.url,
+            title: doc.title,
+            body: doc.body,
+            visibleFrom: doc.visibleFrom,
+            updatedAt: new Date(),
+          },
+        });
+    }
+    const keep = docs.map((doc) => doc.refId);
+    await tx
+      .delete(searchDocuments)
+      .where(
+        and(
+          eq(searchDocuments.kind, 'page'),
+          or(eq(searchDocuments.refId, prefix), like(searchDocuments.refId, `${prefix}:%`)),
+          keep.length > 0 ? notInArray(searchDocuments.refId, keep) : undefined,
+        ),
+      );
+  });
 }
 
 export async function deleteDocument(kind: SearchKind, refId: string): Promise<void> {

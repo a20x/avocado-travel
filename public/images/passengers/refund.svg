@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" role="img" aria-labelledby="t">
+  <title id="t">Банковская карта и круговая стрелка возврата</title>
+  <rect width="160" height="120" rx="16" fill="#E8EDF0"/>
+  <rect x="22" y="34" width="84" height="54" rx="8" fill="#FFFFFF"/><rect x="22" y="44" width="84" height="10" fill="#3F6420"/><rect x="32" y="64" width="20" height="13" rx="3" fill="#BFD5A0"/><circle cx="112" cy="78" r="22" fill="#7FA54A"/><path d="M102 78a10 10 0 1 0 4-8" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/><path d="M100 64 106 71 98 73Z" fill="#FFFFFF"/>
+</svg>
