@@ -10,6 +10,7 @@ import { fail, ok, type Result } from '@/shared/lib/result';
 import {
   isRole,
   type AuthError,
+  type Role,
   type SessionUser,
   type SignInInput,
   type SignUpInput,
@@ -67,13 +68,14 @@ export async function signUp(input: SignUpInput): Promise<Result<null, AuthError
   }
 }
 
-export async function signIn(input: SignInInput): Promise<Result<null, AuthError>> {
+export async function signIn(input: SignInInput): Promise<Result<{ role: Role }, AuthError>> {
   if (!(await withinLimit('sign-in', SIGN_IN_LIMIT))) {
     return fail('TOO_MANY_REQUESTS');
   }
   try {
-    await auth.api.signInEmail({ body: input, headers: await headers() });
-    return ok(null);
+    const { user } = await auth.api.signInEmail({ body: input, headers: await headers() });
+    // Роль нужна, чтобы отправить администратора в админку, а покупателя — в кабинет.
+    return ok({ role: isRole(user.role) ? user.role : 'customer' });
   } catch (error) {
     // Не уточняем, что именно не так — почта или пароль: иначе по ответу можно узнать, кто зарегистрирован.
     if (isAPIError(error) && error.body?.code === 'INVALID_EMAIL_OR_PASSWORD') {

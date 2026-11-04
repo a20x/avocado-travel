@@ -108,3 +108,31 @@ test('админка открывается администратору и ск
   const response = await page.goto('/admin');
   expect(response?.status()).toBe(404);
 });
+
+test('администратор после входа попадает в админку, оттуда — в кабинет и обратно', async ({
+  page,
+}) => {
+  // Вход по кнопке «Войти» в шапке: без адреса возврата.
+  await page.goto('/');
+  await page.getByRole('banner').getByRole('link', { name: 'Войти', exact: true }).click();
+  await expect(page).toHaveURL('/login');
+  await signIn(page, ADMIN.email, ADMIN.password);
+  await expect(page).toHaveURL('/admin');
+
+  const main = page.getByRole('main');
+  await main.getByRole('link', { name: 'Личный кабинет' }).click();
+  await expect(page).toHaveURL('/account');
+  await expect(main.getByRole('heading', { level: 1, name: 'Личный кабинет' })).toBeVisible();
+  await main.getByRole('link', { name: '← В админку' }).click();
+  await expect(page).toHaveURL('/admin');
+
+  // Уже вошедший администратор со страницы входа тоже уходит в админку.
+  await page.goto('/login');
+  await expect(page).toHaveURL('/admin');
+});
+
+test('у покупателя в кабинете нет ссылки в админку', async ({ page }, testInfo) => {
+  await registerCustomer(page, 'Вера', `vera-${testInfo.project.name}`);
+  await page.goto('/account');
+  await expect(page.getByRole('link', { name: '← В админку' })).toHaveCount(0);
+});

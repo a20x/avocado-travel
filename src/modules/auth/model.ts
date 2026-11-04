@@ -35,16 +35,35 @@ export type SignUpInput = z.infer<typeof signUpSchema>;
 
 export type AuthError = 'EMAIL_TAKEN' | 'INVALID_CREDENTIALS' | 'TOO_MANY_REQUESTS';
 
-/** Куда вести после входа по умолчанию. */
+/** Куда вести покупателя после входа по умолчанию. */
 export const DEFAULT_AFTER_SIGN_IN = '/account';
 
+/** Раздел пользователя: администратору — админка, покупателю — личный кабинет. */
+export function homeFor(role: Role): string {
+  return role === 'admin' ? '/admin' : DEFAULT_AFTER_SIGN_IN;
+}
+
 /**
- * Адрес возврата после входа из параметра `next`. Только внутренний путь сайта:
- * иначе ссылка вида `/login?next=https://злой-сайт` уводила бы вошедшего пользователя наружу.
+ * Адрес возврата из параметра `next` — или null, если его нет или он не годится. Только
+ * внутренний путь сайта: иначе ссылка вида `/login?next=https://злой-сайт` уводила бы
+ * вошедшего пользователя наружу.
  */
-export function safeReturnPath(next: unknown): string {
-  if (typeof next !== 'string' || !next.startsWith('/')) return DEFAULT_AFTER_SIGN_IN;
+export function explicitReturnPath(next: unknown): string | null {
+  if (typeof next !== 'string' || !next.startsWith('/')) return null;
   // `//site.ru` и `/\site.ru` браузер понимает как адрес другого сайта.
-  if (next.startsWith('//') || next.startsWith('/\\')) return DEFAULT_AFTER_SIGN_IN;
+  if (next.startsWith('//') || next.startsWith('/\\')) return null;
   return next;
+}
+
+/** Адрес возврата после входа: явный `next` или кабинет покупателя. */
+export function safeReturnPath(next: unknown): string {
+  return explicitReturnPath(next) ?? DEFAULT_AFTER_SIGN_IN;
+}
+
+/**
+ * Куда вести после входа: туда, откуда пришёл (`next`), а без него — в раздел пользователя.
+ * Администратор сразу попадает в админку, а не в личный кабинет.
+ */
+export function afterSignIn(next: unknown, role: Role): string {
+  return explicitReturnPath(next) ?? homeFor(role);
 }
