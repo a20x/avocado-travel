@@ -54,8 +54,8 @@ export const TURNAROUND_MINUTES = 90;
 
 const isDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value);
 
-/** Необязательное целое из поля формы: пустое — «посчитать самим». */
-const optionalInt = (min: number, max: number, message: string) =>
+/** Необязательное целое из поля формы: пустое — «посчитать самим» или «не менять». */
+export const optionalInt = (min: number, max: number, message: string) =>
   z
     .string()
     .trim()

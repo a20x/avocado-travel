@@ -53,6 +53,13 @@ test.describe('метаданные и файлы для поисковиков'
     expect(paths.some((path) => path.startsWith('/admin'))).toBe(false);
 
     // Сайт с другим адресом в NEXT_PUBLIC_SITE_URL — проверяем путь на тестовом сервере.
-    for (const path of paths) await expectValidHtml(request, path);
+    // Тесты админки рядом заводят и удаляют города: страница, которой уже нет и в свежей карте
+    // сайта, удалена после получения карты — это не ошибка.
+    const stillListed = async (path: string) =>
+      (await (await request.get('/sitemap.xml')).text()).includes(`${path}</loc>`);
+    for (const path of paths) {
+      if ((await request.get(path)).status() === 404 && !(await stillListed(path))) continue;
+      await expectValidHtml(request, path);
+    }
   });
 });

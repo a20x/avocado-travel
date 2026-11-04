@@ -8,7 +8,7 @@ const FORMS = [
     add: '/admin/flights/new',
     addLabel: 'Добавить рейсы',
     list: '/admin/flights',
-    listLabel: 'Все рейсы',
+    listLabel: 'Все рейсы — правка',
   },
   {
     add: '/admin/cities/new',

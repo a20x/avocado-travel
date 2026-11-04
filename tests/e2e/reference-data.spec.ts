@@ -223,6 +223,96 @@ test('кнопки «Добавить» у списков формы рейсо�
   await expect(page).toHaveURL('/admin/cities?deleted=1');
 });
 
+test('админ правит один рейс и все рейсы маршрута; правка видна из поиска на вкладке «БД»', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'админка одна на оба экрана, база общая');
+
+  // Своя авиакомпания на существующем маршруте Москва → Дубай: города не заводим.
+  const airline = `Прававиа${random('абвгдежзиклмнопрстуфх', 6)}`;
+  const code = `V${random('ABCDEFGHIJKLMNOPRSTUVWXYZ', 2)}`;
+
+  await openAsAdmin(page, '/admin/airlines/new');
+  await page.getByLabel('Название').fill(airline);
+  await page.getByLabel('Код', { exact: true }).fill(code);
+  await page.getByLabel('Описание').fill('Проверка правки рейсов.');
+  await page.getByRole('button', { name: 'Добавить авиакомпанию' }).click();
+  await expect(page).toHaveURL(/\/admin\/airlines\?saved=/);
+  await page.goto(`/admin/flights/new?airline=${code}&origin=SVO&destination=DXB`);
+  await page.getByLabel('Самолёт').selectOption({ label: 'Boeing 737-800' });
+  await page.getByLabel('Первый день').fill(inDays(140));
+  await page.getByLabel('Последний день').fill(inDays(142));
+  await page.getByRole('button', { name: 'Создать рейсы' }).click();
+  await expect(page).toHaveURL('/admin/flights?created=6');
+
+  // Таблица маршрутов → «Рейсы» → список предстоящих рейсов с «Изменить».
+  await page.goto(`/admin/flights?airline=${code}`);
+  await page
+    .getByRole('row')
+    .filter({ hasText: '(SVO) →' })
+    .getByRole('link', { name: /^Рейсы/ })
+    .click();
+  await expect(page).toHaveURL(`/admin/flights/route?airline=${code}&origin=SVO&destination=DXB`);
+  const table = page.getByRole('table', { name: /^Предстоящие рейсы/ });
+  await expect(table.getByRole('row')).toHaveCount(4); // заголовок и 3 рейса
+
+  // Один рейс: время и цена эконома.
+  await table
+    .getByRole('link', { name: /^Изменить рейс/ })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/\/admin\/flights\/[0-9a-f-]{36}\/edit$/);
+  await page.getByLabel('Время вылета').fill('11:15');
+  await page.getByLabel('Цена эконома, ₽').fill('9999');
+  await page.getByRole('button', { name: 'Сохранить рейс' }).click();
+  await expect(page).toHaveURL(/\/admin\/flights\/route\?.*saved=1/);
+  await expect(table.getByRole('row').nth(1)).toContainText('11:15');
+  await expect(table.getByRole('row').nth(1)).toContainText(/9\s999/);
+
+  // Второй рейс в то же время того же дня — дубль, не сохраняется.
+  await table
+    .getByRole('link', { name: /^Изменить рейс/ })
+    .nth(1)
+    .click();
+  await page.getByLabel('Дата вылета').fill(inDays(140));
+  await page.getByLabel('Время вылета').fill('11:15');
+  await page.getByRole('button', { name: 'Сохранить рейс' }).click();
+  await expect(page.getByRole('alert').filter({ hasText: 'уже вылетает' })).toBeVisible();
+  await page.getByRole('link', { name: '← Рейсы маршрута' }).click();
+
+  // Все предстоящие рейсы маршрута: пустая форма — ошибка, цена бизнеса — у всех трёх.
+  await page.getByRole('link', { name: 'Изменить все предстоящие рейсы' }).click();
+  await page.getByRole('button', { name: 'Изменить все предстоящие рейсы' }).click();
+  await expect(page.getByText('Заполните хотя бы одно поле — пустые не меняются')).toBeVisible();
+  await page.getByLabel('Цена бизнеса, ₽').fill('30000');
+  await page.getByRole('button', { name: 'Изменить все предстоящие рейсы' }).click();
+  await expect(page).toHaveURL(/\/admin\/flights\/route\?.*updated=3/);
+  for (const index of [1, 2, 3]) {
+    await expect(table.getByRole('row').nth(index)).toContainText(/30\s000/);
+  }
+
+  // Из поиска на вкладке «БД» администратор переходит к правке рейса.
+  await page.goto(`/database?report=airline&airline=${code}`);
+  const result = page.getByRole('region', { name: 'Результат запроса: Рейсы авиакомпании' });
+  await expect(result.getByRole('link', { name: /^Изменить рейс/ })).toHaveCount(6);
+  await result
+    .getByRole('link', { name: /^Изменить рейс/ })
+    .first()
+    .click();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(`${code} `);
+
+  // Убираем за собой.
+  await page.goto(`/admin/flights?airline=${code}`);
+  await confirmDelete(page, '(SVO) →');
+  await expect(page).toHaveURL('/admin/flights?deleted=3');
+  await page.goto(`/admin/flights?airline=${code}`);
+  await confirmDelete(page, '(DXB) →');
+  await expect(page).toHaveURL('/admin/flights?deleted=3');
+  await page.goto('/admin/airlines');
+  await confirmDelete(page, airline);
+  await expect(page).toHaveURL('/admin/airlines?deleted=1');
+});
+
 test('страницы справочников в админке — валидный HTML', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'HTML не зависит от ширины экрана');
   await openAsAdmin(page, '/admin');
@@ -239,6 +329,8 @@ test('страницы справочников в админке — валид
     '/admin/flights/new?airline=STV&destination=SVO',
     '/admin/cities/new?return=flights-origin',
     '/admin/airlines/new?return=flights-airline',
+    '/admin/flights/route?airline=ALT&origin=SVO&destination=DXB',
+    '/admin/flights/route/edit?airline=ALT&origin=SVO&destination=DXB',
   ]) {
     await expectValidHtml(page, path);
   }
