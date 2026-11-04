@@ -34,6 +34,6 @@ export function rssViewOf(params: Record<string, unknown>): RssView {
 /** Адрес раздела: объединённые новости — сама вкладка. */
 export const rssViewHref = (view: RssView) => (view === 'merged' ? '/rss' : `/rss?view=${view}`);
 
-/** Объединённые новости с введённой лентой в формате RSS — значок RSS под ними. */
-export const mergedRssHref = (feedUrl: string) =>
-  `/rss/merged?${new URLSearchParams({ feed: feedUrl })}`;
+/** Объединённые новости в формате RSS (значок под ними); без адреса — сайт и подключённые ленты. */
+export const mergedRssHref = (feedUrl = '') =>
+  feedUrl ? `/rss/merged?${new URLSearchParams({ feed: feedUrl })}` : '/rss/merged';

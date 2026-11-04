@@ -1,6 +1,6 @@
 import { getCurrentUser } from '@/modules/auth/server';
 import { RSS_VIEWS, rssViewHref, rssViewOf, type RssView } from '@/modules/exchange';
-import { getMergedFeed, getRssPage } from '@/modules/exchange/server';
+import { getMergedFeed, getMergedPreview, getRssPage } from '@/modules/exchange/server';
 import {
   CombinedNews,
   CombinedPreview,
@@ -37,10 +37,11 @@ export default async function RssPage(props: PageProps<'/rss'>) {
   const view: RssView = rssViewOf(searchParams);
   const feedUrl = view === 'merged' ? firstParam(searchParams.feed).trim() : '';
   // Каждому разделу — свои данные: ленту не скачиваем, пока адрес не введён.
-  const [page, user, merged] = await Promise.all([
+  const [page, user, merged, preview] = await Promise.all([
     getRssPage(view === 'search' ? searchParams : {}),
     view === 'input' || view === 'feeds' ? getCurrentUser() : null,
     feedUrl ? getMergedFeed(feedUrl) : Promise.resolve(null),
+    view === 'merged' && !feedUrl ? getMergedPreview() : Promise.resolve(null),
   ]);
   const isAdmin = user?.role === 'admin';
   const now = new Date();
@@ -67,7 +68,7 @@ export default async function RssPage(props: PageProps<'/rss'>) {
       {view === 'merged' ? (
         <>
           <MergedFeed url={feedUrl} result={merged} feeds={page.feeds} />
-          {feedUrl ? null : <CombinedPreview page={page} />}
+          {preview ? <CombinedPreview preview={preview} /> : null}
         </>
       ) : null}
 

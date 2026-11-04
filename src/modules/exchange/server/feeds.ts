@@ -30,6 +30,7 @@ import {
 } from '../feeds';
 import { industryQuota } from '../industry';
 import {
+  MERGED_FEED_ITEMS,
   MERGED_SITE_ITEMS,
   feedItemsToNews,
   feedSourceName,
@@ -111,6 +112,41 @@ export type MergedFeed = {
   received: number;
   skipped: number;
 };
+/** Последние новости сайта для объединённых новостей. */
+async function latestSiteNews(now: Date): Promise<CombinedNewsItem[]> {
+  const site = await repository.findCombinedNews(
+    { q: '', source: 'site', sort: 'new' },
+    { limit: MERGED_SITE_ITEMS, offset: 0 },
+    now,
+  );
+  return site.rows.map(toItem);
+}
+
+/** Объединённые новости без введённой ленты: сайт и подключённые ленты одной страницей. */
+export type MergedPreview = { items: CombinedNewsItem[]; siteCount: number; feedCount: number };
+
+/**
+ * Раздел «Объединённые новости», пока адрес ленты не введён: последние новости сайта и
+ * подключённых RSS-лент из базы — одним списком по убыванию дат, без деления на страницы
+ * (Этап 12). Тот же набор отдаёт значок RSS под ним (`/rss/merged`).
+ */
+export async function getMergedPreview(now = new Date()): Promise<MergedPreview> {
+  const [siteItems, external] = await Promise.all([
+    latestSiteNews(now),
+    repository.findCombinedNews(
+      { q: '', source: 'external', sort: 'new' },
+      { limit: MERGED_FEED_ITEMS, offset: 0 },
+      now,
+    ),
+  ]);
+  const feedItems = external.rows.map(toItem);
+  return {
+    items: mergeNews(siteItems, feedItems),
+    siteCount: siteItems.length,
+    feedCount: feedItems.length,
+  };
+}
+
 export type MergedFeedError = 'INVALID_URL' | 'NOT_A_FEED' | 'EMPTY' | 'TOO_MANY_REQUESTS';
 /** У ошибки INVALID_URL — текст из схемы: что не так с адресом. */
 export type MergedFeedResult =
@@ -144,12 +180,7 @@ export async function getMergedFeed(rawUrl: unknown, now = new Date()): Promise<
   const report = feedItemsToNews(received, source, now);
   if (report.items.length === 0) return fail('EMPTY');
 
-  const site = await repository.findCombinedNews(
-    { q: '', source: 'site', sort: 'new' },
-    { limit: MERGED_SITE_ITEMS, offset: 0 },
-    now,
-  );
-  const siteItems = site.rows.map(toItem);
+  const siteItems = await latestSiteNews(now);
   return ok({
     url,
     source,
@@ -286,13 +317,34 @@ const MERGED_ERRORS: Record<MergedFeedError, { status: number; text: string }> =
   TOO_MANY_REQUESTS: { status: 429, text: 'Слишком много запросов подряд. Подождите минуту.' },
 };
 
+const rssResponse = (channel: RssChannel, items: CombinedNewsItem[]) =>
+  new Response(toRss(channel, items, new Date()), {
+    headers: {
+      'Content-Type': 'application/rss+xml; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
+
 /**
  * `GET /rss/merged?feed=<адрес>` — объединённые новости сайта и введённой ленты в RSS 2.0
- * (значок RSS под объединёнными новостями, замечание преподавателя по лабе 4). Тот же набор,
- * что на вкладке; ничего не сохраняется. Открывается в браузере, а не скачивается файлом.
+ * (значок RSS под объединёнными новостями, замечание преподавателя по лабе 4). Без `feed` —
+ * новости сайта и подключённых лент. Тот же набор и порядок (по убыванию дат), что на вкладке;
+ * ничего не сохраняется. Открывается в браузере, а не скачивается файлом.
  */
 export async function handleMergedRss(request: Request): Promise<Response> {
-  const feedUrl = new URL(request.url).searchParams.get('feed') ?? '';
+  const feedUrl = new URL(request.url).searchParams.get('feed')?.trim() ?? '';
+  if (!feedUrl) {
+    const preview = await getMergedPreview();
+    return rssResponse(
+      {
+        title: 'Avocado Travel: объединённые новости сайта и RSS-лент',
+        link: `${SITE_URL}/rss`,
+        description: 'Новости сайта Avocado Travel вместе с новостями подключённых RSS-лент.',
+        selfUrl: `${SITE_URL}/rss/merged`,
+      },
+      preview.items,
+    );
+  }
   const result = await getMergedFeed(feedUrl);
   if (!result.ok) {
     const { status, text } = MERGED_ERRORS[result.error];
@@ -307,12 +359,7 @@ export async function handleMergedRss(request: Request): Promise<Response> {
     description: `Новости сайта Avocado Travel вместе с новостями ленты ${result.data.source}.`,
     selfUrl: `${SITE_URL}/rss/merged?${new URLSearchParams({ feed: result.data.url })}`,
   };
-  return new Response(toRss(channel, result.data.items, new Date()), {
-    headers: {
-      'Content-Type': 'application/rss+xml; charset=utf-8',
-      'Cache-Control': 'no-store',
-    },
-  });
+  return rssResponse(channel, result.data.items);
 }
 
 /** `GET /feed.xml` — лента новостей сайта в RSS 2.0 (L4-02), рядом с `/feed.json`. */
