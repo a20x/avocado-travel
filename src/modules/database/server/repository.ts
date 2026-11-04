@@ -25,6 +25,7 @@ import { siteRatings } from '@/modules/rating';
 import { pageViews } from '@/modules/stats';
 import { db } from '@/server/db';
 import type {
+  AirlineOption,
   AirlineRow,
   DbPassport,
   FlightRow,
@@ -135,6 +136,21 @@ export async function searchFlights(
 
   const [rows, totals] = await Promise.all([run(rowsQuery), run(totalQuery)]);
   return { rows: rows.rows, total: totals.rows[0]?.total ?? 0, sql: [rows.sql, totals.sql] };
+}
+
+/**
+ * Варианты «Поиска по одному атрибуту»: авиакомпании из таблицы рейсов (а не из справочника),
+ * у которых есть рейсы с `since`, без повторов. Новая авиакомпания попадает сюда с первым рейсом.
+ */
+export function listFlightAirlines(since: Date): Promise<Executed<AirlineOption>> {
+  return run(
+    db
+      .selectDistinct({ code: airlines.code, name: airlines.name })
+      .from(flights)
+      .innerJoin(airlines, eq(airlines.id, flights.airlineId))
+      .where(gte(flights.departsAt, since))
+      .orderBy(asc(airlines.name)),
+  );
 }
 
 /** День вылета по Москве — как его понимают даты формы. */

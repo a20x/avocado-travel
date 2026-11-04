@@ -19,7 +19,7 @@ const optionTexts = (page: Page, label: string) =>
 test('БД: Москва → Владивосток — в списке только авиакомпании, которые туда летают', async ({
   page,
 }) => {
-  await page.goto('/database');
+  await page.goto('/database?report=flights');
   const form = page.getByRole('form', { name: 'Условия запроса' });
   await form.getByLabel('Откуда').selectOption('moscow');
   await form.getByLabel('Куда', { exact: true }).selectOption('vladivostok');
@@ -41,7 +41,7 @@ test('БД: Москва → Владивосток — в списке толь
 });
 
 test('БД: выбор в любом порядке — Стрива не предлагает Владивосток', async ({ page }) => {
-  await page.goto('/database');
+  await page.goto('/database?report=flights');
   const form = page.getByRole('form', { name: 'Условия запроса' });
   await form.getByLabel('Авиакомпания').selectOption({ label: 'Стрива' });
   expect(await optionTexts(page, 'Куда')).not.toContain('Владивосток');

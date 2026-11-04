@@ -67,6 +67,55 @@ function Summary({ count, fetchedAt }: { count: number; fetchedAt: Date }) {
   );
 }
 
+/** Рейсы одной страницы — таблица и переход по страницам; у обоих поисков рейсов она одна. */
+function FlightsTable({
+  query,
+  result,
+}: {
+  query: DbQuery;
+  result: Extract<DbResult, { report: 'airline' | 'flights' }>;
+}) {
+  return (
+    <>
+      <Table caption={`Рейсы, страница ${result.page} из ${result.totalPages}`}>
+        <thead>
+          <tr>
+            <th scope="col">Вылет, МСК</th>
+            <th scope="col">Рейс</th>
+            <th scope="col">Маршрут</th>
+            <th scope="col">Авиакомпания</th>
+            <th scope="col">Самолёт</th>
+            <th scope="col">Эконом</th>
+            <th scope="col">Бизнес</th>
+            <th scope="col">Продано</th>
+          </tr>
+        </thead>
+        <tbody>
+          {result.rows.map((row) => (
+            <tr key={row.id}>
+              <td className="whitespace-nowrap tabular-nums">{departure.format(row.departsAt)}</td>
+              <td className="whitespace-nowrap">{row.number}</td>
+              <td>
+                {row.origin} → {row.destination}
+              </td>
+              <td>{row.airline}</td>
+              <td>{row.aircraft}</td>
+              <td className="whitespace-nowrap tabular-nums">{formatPrice(row.priceEconomy)}</td>
+              <td className="whitespace-nowrap tabular-nums">{formatPrice(row.priceBusiness)}</td>
+              <td className="tabular-nums">{number.format(row.sold)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+      <Pagination
+        page={result.page}
+        totalPages={result.totalPages}
+        href={(page) => dbHref(query, page)}
+      />
+    </>
+  );
+}
+
 /** Результат выбранного запроса: таблица, а у сводок — ещё график и точные значения. */
 export function DbResultView({
   query,
@@ -101,6 +150,14 @@ function ResultBody({
   fetchedAt: Date;
 }) {
   switch (result.report) {
+    case 'airline':
+      return (
+        <>
+          <Summary count={result.total} fetchedAt={fetchedAt} />
+          {result.rows.length === 0 ? <Empty /> : <FlightsTable query={query} result={result} />}
+        </>
+      );
+
     case 'flights':
       return (
         <>
@@ -111,47 +168,7 @@ function ResultBody({
             <Empty />
           ) : (
             <>
-              <Table caption={`Рейсы, страница ${result.page} из ${result.totalPages}`}>
-                <thead>
-                  <tr>
-                    <th scope="col">Вылет, МСК</th>
-                    <th scope="col">Рейс</th>
-                    <th scope="col">Маршрут</th>
-                    <th scope="col">Авиакомпания</th>
-                    <th scope="col">Самолёт</th>
-                    <th scope="col">Эконом</th>
-                    <th scope="col">Бизнес</th>
-                    <th scope="col">Продано</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.rows.map((row) => (
-                    <tr key={row.id}>
-                      <td className="whitespace-nowrap tabular-nums">
-                        {departure.format(row.departsAt)}
-                      </td>
-                      <td className="whitespace-nowrap">{row.number}</td>
-                      <td>
-                        {row.origin} → {row.destination}
-                      </td>
-                      <td>{row.airline}</td>
-                      <td>{row.aircraft}</td>
-                      <td className="whitespace-nowrap tabular-nums">
-                        {formatPrice(row.priceEconomy)}
-                      </td>
-                      <td className="whitespace-nowrap tabular-nums">
-                        {formatPrice(row.priceBusiness)}
-                      </td>
-                      <td className="tabular-nums">{number.format(row.sold)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-              <Pagination
-                page={result.page}
-                totalPages={result.totalPages}
-                href={(page) => dbHref(query, page)}
-              />
+              <FlightsTable query={query} result={result} />
             </>
           )}
         </>

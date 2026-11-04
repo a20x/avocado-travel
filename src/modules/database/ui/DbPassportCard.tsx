@@ -21,7 +21,7 @@ const date = new Intl.DateTimeFormat('ru-RU', {
 const msk = (value: Date | null) => (value ? `${dateTime.format(value)} МСК` : '—');
 
 /**
- * Паспорт базы (раздел «О базе данных»): что в ней хранится, сколько, насколько полно
+ * Паспорт базы (раздел «Сведения о БД»): что в ней хранится, сколько, насколько полно
  * и насколько свежо. Цифры читаются из базы при открытии страницы.
  */
 export function DbPassportCard({ passport }: { passport: DbPassport }) {
@@ -42,7 +42,7 @@ export function DbPassportCard({ passport }: { passport: DbPassport }) {
     >
       <div className="grid gap-2">
         <h2 id="about-title" className="text-2xl">
-          О базе данных Avocado Travel
+          Сведения о базе данных Avocado Travel
         </h2>
         <p>
           База сайта продажи авиабилетов: расписание рейсов, заказы и билеты, справочники городов,
@@ -91,9 +91,10 @@ export function DbPassportCard({ passport }: { passport: DbPassport }) {
           запросов читаются из базы при открытии страницы.
         </p>
         <p>
-          <strong>Автор базы и проекта:</strong> Ермаков Александр, Биз-Б23.{' '}
-          <Link href="/admin">Ввод данных → Админка</Link> (новости, каталог ссылок, реклама — после
-          входа администратора); заказы и билеты появляются, когда посетители бронируют рейсы.
+          <strong>Автор базы и проекта:</strong> Ермаков Александр, Биз-Б23. Рейсы, города и
+          авиакомпании вводятся в разделе <Link href="/database?report=input">«Ввод»</Link>,
+          новости, каталог ссылок и реклама — в <Link href="/admin">админке</Link> (после входа
+          администратора); заказы и билеты появляются, когда посетители бронируют рейсы.
         </p>
       </div>
     </Card>

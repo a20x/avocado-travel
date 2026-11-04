@@ -2,18 +2,64 @@ import { z } from 'zod';
 import type { DaySpan } from '@/shared/lib/available-days';
 
 /**
- * Пять видов запросов вкладки «БД» (лаба 3, L3-02): поиск с постраничным выводом, связанные
- * списки, две сводки с агрегатами и графиками и распределение оценок.
+ * Запросы вкладки «БД» (лаба 3, L3-02): поиск по одному атрибуту, по двум связанным, сводки
+ * с агрегатами и графиками, распределение оценок и поиск рейсов по нескольким условиям.
  */
 export const DB_REPORTS = {
-  flights: 'Поиск рейсов',
+  airline: 'Рейсы авиакомпании',
   routes: 'Авиакомпания и направление',
   airlines: 'Сводка по авиакомпаниям',
   months: 'Динамика продаж',
   ratings: 'Оценки сайта',
+  flights: 'Поиск рейсов',
 } as const;
 export type DbReport = keyof typeof DB_REPORTS;
-const reportKeys = Object.keys(DB_REPORTS) as [DbReport, ...DbReport[]];
+
+/** Что показывает вкладка: запрос или один из разделов без запроса — ввод и сведения о базе. */
+export type DbView = DbReport | 'input' | 'about';
+const viewKeys = ['input', 'about', ...Object.keys(DB_REPORTS)] as [DbView, ...DbView[]];
+
+/**
+ * Меню вкладки — словами преподавателя, чтобы разделы находились сразу. У раздела один или
+ * несколько видов; первый открывается по пункту меню. «Агрегация» объединяет три сводки.
+ */
+export const DB_SECTIONS = [
+  { label: 'Ввод', views: ['input'] },
+  { label: 'Поиск по одному атрибуту', views: ['airline'] },
+  { label: 'Поиск по двум атрибутам', views: ['routes'] },
+  { label: 'Агрегация', views: ['airlines', 'months', 'ratings'] },
+  { label: 'Сведения о БД', views: ['about'] },
+  { label: 'Поиск рейсов', views: ['flights'] },
+] as const satisfies ReadonlyArray<{ label: string; views: readonly DbView[] }>;
+export type DbSection = (typeof DB_SECTIONS)[number];
+
+/** Раздел меню, к которому относится вид. */
+export function sectionOf(view: DbView): DbSection {
+  return DB_SECTIONS.find((section) => (section.views as readonly DbView[]).includes(view))!;
+}
+
+/** Адрес раздела — его первый вид. */
+export const sectionHref = (section: DbSection) => `/database?report=${section.views[0]}`;
+
+export const isReport = (view: DbView): view is DbReport => view in DB_REPORTS;
+
+/** Авиакомпания из таблицы рейсов — вариант списка «Поиска по одному атрибуту». */
+export type AirlineOption = { code: string; name: string };
+
+/**
+ * Варианты по алфавиту (по-русски), без повторов, и выбранный: запрошенный, если он в списке,
+ * иначе первый. Так у поиска по одному атрибуту всегда есть выбор и результат.
+ */
+export function pickAirline(
+  options: AirlineOption[],
+  wanted: string | undefined,
+): { options: AirlineOption[]; selected: string | undefined } {
+  const unique = [...new Map(options.map((option) => [option.code, option])).values()].sort(
+    (a, b) => a.name.localeCompare(b.name, 'ru'),
+  );
+  const selected = unique.some((option) => option.code === wanted) ? wanted : unique[0]?.code;
+  return { options: unique, selected };
+}
 
 /** Порядок строк в поиске рейсов. */
 export const FLIGHT_SORTS = {
@@ -42,7 +88,7 @@ const optional = <T extends z.ZodType>(schema: T) =>
  */
 export const dbQuerySchema = z
   .object({
-    report: z.preprocess(first, z.enum(reportKeys)).catch('flights'),
+    report: z.preprocess(first, z.enum(viewKeys)).catch('airline'),
     from: optional(z.string().regex(/^[a-z-]{2,40}$/)),
     to: optional(z.string().regex(/^[a-z-]{2,40}$/)),
     airline: optional(z.string().regex(/^[A-Z0-9]{2,4}$/)),
@@ -106,16 +152,27 @@ export type RatingRow = { score: number; count: number };
  */
 export type FlightCombo = { from: string; to: string; airline: string } & DaySpan;
 
+/** Найденные рейсы одной страницы. */
+type FlightPage = {
+  rows: FlightRow[];
+  total: number;
+  page: number;
+  totalPages: number;
+};
+
 export type DbResult =
-  | {
+  | ({
+      report: 'airline';
+      /** Авиакомпании, у которых есть рейсы с сегодняшнего дня, — варианты списка. */
+      airlines: AirlineOption[];
+      /** Выбранная авиакомпания; нет — только если рейсов в базе нет совсем. */
+      airline: string | undefined;
+    } & FlightPage)
+  | ({
       report: 'flights';
-      rows: FlightRow[];
-      total: number;
-      page: number;
-      totalPages: number;
       /** Ничего не нашлось в выбранные даты — ближайшие даты с рейсами по тем же условиям. */
       nearestDates: string[];
-    }
+    } & FlightPage)
   | { report: 'routes'; rows: RouteRow[] }
   | { report: 'airlines'; rows: AirlineRow[] }
   | { report: 'months'; rows: MonthRow[] }
@@ -125,7 +182,7 @@ export type DbResult =
       summary: { total: number; average: number; min: number; max: number };
     };
 
-/** Паспорт базы (кнопка «О базе данных»): объём, состав, полнота, актуальность. */
+/** Паспорт базы (раздел «Сведения о БД»): объём, состав, полнота, актуальность. */
 export type DbPassport = {
   sizeBytes: number;
   tables: number;
@@ -197,7 +254,7 @@ export function formatBytes(bytes: number): string {
 }
 
 /** Адрес вкладки «БД» с параметрами — только заполненные, report и page — если не по умолчанию. */
-export function dbHref(query: Partial<DbQuery> & { report: DbReport }, page?: number): string {
+export function dbHref(query: Partial<DbQuery> & { report: DbView }, page?: number): string {
   const params = new URLSearchParams({ report: query.report });
   for (const key of ['from', 'to', 'airline', 'dateFrom', 'dateTo'] as const) {
     const value = query[key];
