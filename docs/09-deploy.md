@@ -116,14 +116,22 @@ pnpm check:russia https://avocado-travel.onrender.com
 | Панель | [admin.alwaysdata.com](https://admin.alwaysdata.com) |
 | Сервер SSH | из панели, раздел SSH; обычно `ssh-avocado-travel.alwaysdata.net` |
 | Работающая версия сайта | `~/apps/avocado/current` → ссылка на `~/apps/avocado/releases/<релиз>` |
-| Прежний каталог ручной выкладки | `~/apps/avocado-travel` — можно удалить, когда сайт переключён на `current` |
-| Журналы сайта | панель → сайт → Logs, или `~/admin/logs/sites/` |
+| Журналы сайта | панель → сайт → Logs, или `~/admin/logs/sites/` (внимание: там все переменные окружения, см. ниже) |
 | Workflow выкладки | `.github/workflows/alwaysdata-deploy.yml` («Сайт на alwaysdata») |
 | Команды на сервере | `scripts/alwaysdata-release.sh` |
 | Доступы для выкладки | секреты репозитория `ALWAYSDATA_*` (GitHub → Settings → Secrets and variables → Actions) |
 | Копия базы Neon на момент переноса | файл `avocado-neon.dump` у автора, не в репозитории |
 
 `~` на сервере — домашний каталог `/home/avocado-travel`.
+
+**В журнале сайта лежат секреты.** При каждом запуске alwaysdata пишет в `~/admin/logs/sites/` строку `Upstream starting: … (env: {…}, cwd: …)` со всеми переменными окружения открытым текстом: `DATABASE_URL` с паролем, `BETTER_AUTH_SECRET`, `CRON_SECRET`, `ADMIN_PASSWORD`. Журнал не пересылать и не вставлять в чаты и issue целиком. Чтобы посмотреть, как запускается сайт, без секретов:
+
+```bash
+grep -h "Upstream" ~/admin/logs/sites/2026/sites-$(date +%Y-%m-%d).log \
+  | sed -E 's/\(env: \{.*\}, cwd:/(env: <скрыто>, cwd:/' | tail -20
+```
+
+Если журнал всё же попал в чужие руки — сменить пароль базы (и `DATABASE_URL`), `BETTER_AUTH_SECRET`, `CRON_SECRET` (и в заданиях cron-job.org) и пароль администратора на сайте.
 
 ### Как устроена выкладка
 
@@ -240,7 +248,16 @@ rm -i ~/private/avocado-neon.dump                                               
 
 В дампе данные пользователей и хэши паролей: хранить в надёжном месте, никогда не класть в репозиторий.
 
-**4. Сайт в панели.** **Web → Sites**: сайт с адресом `avocado-travel.alwaysdata.net`, тип **Node.js**, Working directory `/home/avocado-travel/apps/avocado/current`, Command `node /home/avocado-travel/apps/avocado/current/server.js`. Переменные — из таблицы [«Переменные сайта»](#переменные-сайта-на-alwaysdata). В **Advanced** — Idle time `0`. Включить HTTPS и перенаправление HTTP → HTTPS.
+**4. Сайт в панели.** **Web → Sites**, у сайта `avocado-travel.alwaysdata.net` — значок ⚙️ (изменить). В форме:
+
+- тип **Node.js**;
+- **Command** — `node /home/avocado-travel/apps/avocado/current/server.js`;
+- **Working directory** — `/home/avocado-travel/apps/avocado/current`. Пути полные, от `/home`; опечатка в любом из двух полей — сайт не запускается (см. [«Сайт на alwaysdata»](#сайт-на-alwaysdata));
+- переменные — из таблицы [«Переменные сайта»](#переменные-сайта-на-alwaysdata);
+- **Advanced** — Idle time `0`;
+- **SSL** — галочка **Force HTTPS**: перенаправление `http://` → `https://` (301) делает прокси alwaysdata, код сайта для этого не нужен.
+
+Внизу формы — **Submit**. После сохранения формы alwaysdata перезапускает сайт сам.
 
 **5. Доступы для выкладки.**
 
@@ -365,6 +382,8 @@ pg_dump --host=ХОСТ_ALWAYSDATA --username=ПОЛЬЗОВАТЕЛЬ --dbname=
 | `/api/health` не отвечает | Панель → сайт: запущен ли; журнал сайта. Строка «Неверные переменные окружения» — чего не хватает в Environment |
 | Ошибки при работе с данными, 500 | `/api/health` в базу не ходит — проверить `DATABASE_URL` и что база alwaysdata жива (панель → Databases) |
 | Процесс падает, «out of memory» | Предел 256 МБ памяти бесплатного тарифа |
-| Нет места на диске | `du -sh ~/apps/avocado/releases/* ~/private/*`: старые релизы (выкладка оставляет три), дампы базы, прежний каталог `~/apps/avocado-travel` |
+| Нет места на диске | `du -sh ~/apps/avocado/releases/* ~/private/*`: старые релизы (выкладка оставляет три), дампы базы |
+| 502, «Connection to upstream failed», в журнале `Upstream starting failed: … reason: No such file or directory` | Ошибка в пути в **Command** или **Working directory**. В журнале (команда из [«Где что лежит»](#где-что-лежит)) сверить `cwd:` и путь к `server.js` с `~/apps/avocado/current`. Случилось 4 ноября 2026 года: в Working directory было `apps/avocado-travel/current` вместо `apps/avocado/current` |
+| `http://` открывается без перехода на `https://` | Не включена галочка **Force HTTPS** в разделе SSL настроек сайта |
 | Ссылки, sitemap или RSS ведут на onrender.com | Сборка с чужим `NEXT_PUBLIC_SITE_URL`: проверить `env` в `alwaysdata-deploy.yml` |
 | На alwaysdata нет новости или заказа, которые есть на Render | Так и должно быть: базы отдельные |
