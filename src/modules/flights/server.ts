@@ -7,6 +7,8 @@ export {
   createFlights,
   deleteRoute,
   getFlight,
+  getFlightForEdit,
+  getRouteFlights,
   listAirlineStats,
   listDestinationStats,
   listRoutes,
@@ -15,4 +17,7 @@ export {
   listSchedule,
   listSearchRoutes,
   searchFlights,
+  updateFlight,
+  updateRoute,
 } from './server/service';
+export type { RouteFlightsPage } from './server/service';

@@ -48,4 +48,7 @@ export {
   weekday,
 } from './schedule';
 export type { AdminRoute, FlightScheduleError, FlightScheduleInput } from './schedule';
+/** Правка рейсов в админке. */
+export { adminRouteHref, durationOf, flightEditSchema, routeEditSchema } from './edit';
+export type { FlightEditError, FlightEditView, RouteRef } from './edit';
 export type { SeatInfo, SeatMapRow } from './seat-map';

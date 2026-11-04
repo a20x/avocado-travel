@@ -45,7 +45,7 @@ export default async function DatabasePage(props: PageProps<'/database'>) {
   const linked = view === 'flights' || view === 'routes';
   const [passport, user, combos, cities, airlines] = await Promise.all([
     view === 'about' ? getPassport() : null,
-    view === 'input' ? getCurrentUser() : null,
+    view === 'input' || view === 'airline' || view === 'flights' ? getCurrentUser() : null,
     linked ? getFlightCombos() : [],
     linked ? listCities() : [],
     linked || view === 'months' ? listAirlines() : [],
@@ -100,7 +100,12 @@ export default async function DatabasePage(props: PageProps<'/database'>) {
             airlines={airlines.map((airline) => ({ value: airline.code, label: airline.name }))}
             flightAirlines={result.report === 'airline' ? result.airlines : []}
           />
-          <DbResultView query={query} result={result} fetchedAt={new Date()} />
+          <DbResultView
+            query={query}
+            result={result}
+            fetchedAt={new Date()}
+            isAdmin={user?.role === 'admin'}
+          />
           <SqlBlock queries={page.sql} />
         </section>
       ) : null}

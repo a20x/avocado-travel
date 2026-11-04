@@ -71,9 +71,12 @@ function Summary({ count, fetchedAt }: { count: number; fetchedAt: Date }) {
 function FlightsTable({
   query,
   result,
+  editableAfter,
 }: {
   query: DbQuery;
   result: Extract<DbResult, { report: 'airline' | 'flights' }>;
+  /** Администратору — «Изменить» у рейсов, которые вылетают позже этого момента. */
+  editableAfter?: Date;
 }) {
   return (
     <>
@@ -88,6 +91,11 @@ function FlightsTable({
             <th scope="col">Эконом</th>
             <th scope="col">Бизнес</th>
             <th scope="col">Продано</th>
+            {editableAfter ? (
+              <th scope="col">
+                <span className="sr-only">Правка</span>
+              </th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
@@ -103,6 +111,15 @@ function FlightsTable({
               <td className="whitespace-nowrap tabular-nums">{formatPrice(row.priceEconomy)}</td>
               <td className="whitespace-nowrap tabular-nums">{formatPrice(row.priceBusiness)}</td>
               <td className="tabular-nums">{number.format(row.sold)}</td>
+              {editableAfter ? (
+                <td>
+                  {row.departsAt > editableAfter ? (
+                    <Link href={`/admin/flights/${row.id}/edit`}>
+                      Изменить<span className="sr-only"> рейс {row.number}</span>
+                    </Link>
+                  ) : null}
+                </td>
+              ) : null}
             </tr>
           ))}
         </tbody>
@@ -121,10 +138,13 @@ export function DbResultView({
   query,
   result,
   fetchedAt,
+  isAdmin = false,
 }: {
   query: DbQuery;
   result: DbResult;
   fetchedAt: Date;
+  /** Администратору — ссылка «Изменить» у предстоящих рейсов (правка в админке). */
+  isAdmin?: boolean;
 }) {
   return (
     <Card
@@ -135,7 +155,7 @@ export function DbResultView({
       <h2 id="result-title" className="text-xl">
         Результат запроса: {DB_REPORTS[result.report]}
       </h2>
-      <ResultBody query={query} result={result} fetchedAt={fetchedAt} />
+      <ResultBody query={query} result={result} fetchedAt={fetchedAt} isAdmin={isAdmin} />
     </Card>
   );
 }
@@ -144,17 +164,24 @@ function ResultBody({
   query,
   result,
   fetchedAt,
+  isAdmin,
 }: {
   query: DbQuery;
   result: DbResult;
   fetchedAt: Date;
+  isAdmin: boolean;
 }) {
+  const editableAfter = isAdmin ? fetchedAt : undefined;
   switch (result.report) {
     case 'airline':
       return (
         <>
           <Summary count={result.total} fetchedAt={fetchedAt} />
-          {result.rows.length === 0 ? <Empty /> : <FlightsTable query={query} result={result} />}
+          {result.rows.length === 0 ? (
+            <Empty />
+          ) : (
+            <FlightsTable query={query} result={result} editableAfter={editableAfter} />
+          )}
         </>
       );
 
@@ -168,7 +195,7 @@ function ResultBody({
             <Empty />
           ) : (
             <>
-              <FlightsTable query={query} result={result} />
+              <FlightsTable query={query} result={result} editableAfter={editableAfter} />
             </>
           )}
         </>

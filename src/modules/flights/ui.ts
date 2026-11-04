@@ -4,9 +4,12 @@
  */
 export { AdminRouteTable } from './ui/AdminRouteTable';
 export { FlightCard } from './ui/FlightCard';
+export { FlightEditForm } from './ui/FlightEditForm';
 export { FlightFilters } from './ui/FlightFilters';
 export { FlightListSkeleton } from './ui/FlightListSkeleton';
 export { FlightScheduleForm } from './ui/FlightScheduleForm';
+export { RouteEditForm } from './ui/RouteEditForm';
+export { RouteFlightsTable } from './ui/RouteFlightsTable';
 export { SearchPhrase } from './ui/SearchPhrase';
 export { SearchProblem } from './ui/SearchProblem';
 export { SortLinks } from './ui/SortLinks';

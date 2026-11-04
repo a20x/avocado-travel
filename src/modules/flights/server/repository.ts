@@ -1,5 +1,18 @@
 import 'server-only';
-import { and, count, countDistinct, eq, gte, inArray, lt, or, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  countDistinct,
+  eq,
+  gt,
+  gte,
+  inArray,
+  lt,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { orders, ticketHoldsSeat, tickets } from '@/modules/booking';
 import {
@@ -12,6 +25,7 @@ import {
 import { db } from '@/server/db';
 import { flights } from '../schema';
 import type { RouteStatRow } from '../routes';
+import type { FlightChange, FlightEditView } from '../edit';
 import type { ExistingFlight } from '../schedule';
 import type { SearchRoute } from '../model';
 import type { FlightRow } from '../search';
@@ -221,10 +235,11 @@ export async function findFlightNumbers(airlineId: number): Promise<string[]> {
 export async function findFlightsAt(
   airlineId: number,
   departures: Date[],
-): Promise<ExistingFlight[]> {
+): Promise<Array<ExistingFlight & { id: string }>> {
   if (departures.length === 0) return [];
   return db
     .select({
+      id: flights.id,
       number: flights.number,
       airlineId: flights.airlineId,
       originId: flights.originId,
@@ -373,4 +388,104 @@ export async function findSearchDays(
       ),
     );
   return rows.map((row) => row.day);
+}
+
+/*
+ * Правка рейсов в админке: рейсы с названиями и занятыми местами, обновление.
+ */
+
+/** Места, занятые действующими билетами, на каждом рейсе — все классы. */
+const heldSeatsByFlight = (now: Date) =>
+  db
+    .select({ flightId: tickets.flightId, held: count().as('held') })
+    .from(tickets)
+    .innerJoin(orders, eq(tickets.orderId, orders.id))
+    .where(ticketHoldsSeat(now))
+    .groupBy(tickets.flightId)
+    .as('held_seats');
+
+function selectFlightViews(where: SQL | undefined, now: Date) {
+  const held = heldSeatsByFlight(now);
+  return db
+    .select({
+      id: flights.id,
+      number: flights.number,
+      airlineId: flights.airlineId,
+      originId: flights.originId,
+      destinationId: flights.destinationId,
+      aircraftModelId: flights.aircraftModelId,
+      departsAt: flights.departsAt,
+      arrivesAt: flights.arrivesAt,
+      priceEconomy: flights.priceEconomy,
+      priceBusiness: flights.priceBusiness,
+      originTimezone: origin.timezone,
+      heldSeats: sql<number>`coalesce(${held.held}, 0)`.mapWith(Number),
+      airlineCode: airlines.code,
+      airlineName: airlines.name,
+      originIata: origin.iata,
+      originCity: originCity.name,
+      destinationIata: destination.iata,
+      destinationCity: destinationCity.name,
+      aircraft: sql<string>`${aircraftModels.manufacturer} || ' ' || ${aircraftModels.model}`,
+    })
+    .from(flights)
+    .innerJoin(airlines, eq(flights.airlineId, airlines.id))
+    .innerJoin(aircraftModels, eq(flights.aircraftModelId, aircraftModels.id))
+    .innerJoin(origin, eq(flights.originId, origin.id))
+    .innerJoin(destination, eq(flights.destinationId, destination.id))
+    .innerJoin(originCity, eq(originCity.slug, origin.citySlug))
+    .innerJoin(destinationCity, eq(destinationCity.slug, destination.citySlug))
+    .leftJoin(held, eq(held.flightId, flights.id))
+    .where(where)
+    .orderBy(asc(flights.departsAt))
+    .$dynamic();
+}
+
+/** Рейс для правки. */
+export async function findFlightView(id: string, now: Date): Promise<FlightEditView | undefined> {
+  const [row] = await selectFlightViews(eq(flights.id, id), now);
+  return row;
+}
+
+/** Предстоящие рейсы маршрута по времени вылета; без `paging` — все. */
+export function findUpcomingRouteFlights(
+  route: RouteKey,
+  now: Date,
+  paging?: { limit: number; offset: number },
+): Promise<FlightEditView[]> {
+  const query = selectFlightViews(and(routeWhere(route), gt(flights.departsAt, now)), now);
+  return paging ? query.limit(paging.limit).offset(paging.offset) : query;
+}
+
+/** Рейсов маршрута: предстоящих и уже улетевших. */
+export async function countRouteFlights(
+  route: RouteKey,
+  now: Date,
+): Promise<{ upcoming: number; past: number }> {
+  const [row] = await db
+    .select({
+      upcoming: sql<number>`count(*) filter (where ${flights.departsAt} > ${now})`.mapWith(Number),
+      past: sql<number>`count(*) filter (where ${flights.departsAt} <= ${now})`.mapWith(Number),
+    })
+    .from(flights)
+    .where(routeWhere(route));
+  return row ?? { upcoming: 0, past: 0 };
+}
+
+/** Сохраняет новые значения рейсов — все или ни одного. */
+export async function updateFlights(changes: FlightChange[]): Promise<void> {
+  await db.transaction(async (tx) => {
+    for (const flight of changes) {
+      await tx
+        .update(flights)
+        .set({
+          aircraftModelId: flight.aircraftModelId,
+          departsAt: flight.departsAt,
+          arrivesAt: flight.arrivesAt,
+          priceEconomy: flight.priceEconomy,
+          priceBusiness: flight.priceBusiness,
+        })
+        .where(eq(flights.id, flight.id));
+    }
+  });
 }

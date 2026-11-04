@@ -31,6 +31,18 @@ import {
   findDuplicateFlights,
   type FlightDuplicates,
 } from '../schedule';
+import {
+  findRepeatedFlight,
+  planFlightEdit,
+  planRouteEdit,
+  routeRefSchema,
+  type FlightChange,
+  type FlightEditError,
+  type FlightEditInput,
+  type FlightEditView,
+  type RouteEditInput,
+  type RouteRef,
+} from '../edit';
 import { buildSeatMap } from '../seat-map';
 import {
   summarizeAirlines,
@@ -298,4 +310,142 @@ export async function deleteRoute(route: {
   if (counts.flights === 0) return fail('ROUTE_NOT_FOUND');
   if (counts.tickets > 0) return fail('HAS_TICKETS');
   return ok({ flights: await repository.deleteRoute(key) });
+}
+
+/*
+ * Правка рейсов в админке: один рейс или все предстоящие рейсы маршрута. Ввод проверяют
+ * схемы из edit.ts, права — action; здесь — справочники, база и проверка дублей.
+ */
+
+/** Ошибка «дубли» при правке: сколько рейсов совпали и первый из них. */
+export type EditDuplicateFailure = { ok: false; error: 'DUPLICATE'; duplicates: FlightDuplicates };
+
+/** Маршрут из адреса → ключи в базе и названия; чужое или несуществующее — null. */
+async function resolveRoute(params: Record<string, unknown>) {
+  const parsed = routeRefSchema.safeParse(params);
+  if (!parsed.success) return null;
+  const [airlines, airports] = await Promise.all([listAirlines(), listAirports()]);
+  const airline = airlines.find((item) => item.code === parsed.data.airline);
+  const origin = airports.find((item) => item.iata === parsed.data.origin);
+  const destination = airports.find((item) => item.iata === parsed.data.destination);
+  if (!airline || !origin || !destination) return null;
+  return {
+    ref: parsed.data,
+    key: { airlineId: airline.id, originId: origin.id, destinationId: destination.id },
+    title: {
+      airlineName: airline.name,
+      originCity: origin.city,
+      destinationCity: destination.city,
+    },
+  };
+}
+
+export const ROUTE_FLIGHTS_PAGE_SIZE = 20;
+
+export type RouteFlightsPage = {
+  ref: RouteRef;
+  title: { airlineName: string; originCity: string; destinationCity: string };
+  flights: FlightEditView[];
+  upcoming: number;
+  past: number;
+  page: number;
+  totalPages: number;
+};
+
+/** Страница маршрута в админке: предстоящие рейсы по 20, сколько уже улетело. */
+export async function getRouteFlights(
+  params: Record<string, unknown>,
+  now: Date = new Date(),
+): Promise<RouteFlightsPage | null> {
+  const route = await resolveRoute(params);
+  if (!route) return null;
+  const counts = await repository.countRouteFlights(route.key, now);
+  if (counts.upcoming + counts.past === 0) return null;
+  const totalPages = Math.max(1, Math.ceil(counts.upcoming / ROUTE_FLIGHTS_PAGE_SIZE));
+  const requested = Number(Array.isArray(params.page) ? params.page[0] : params.page);
+  const page = Number.isInteger(requested) ? Math.min(Math.max(requested, 1), totalPages) : 1;
+  const flights = await repository.findUpcomingRouteFlights(route.key, now, {
+    limit: ROUTE_FLIGHTS_PAGE_SIZE,
+    offset: (page - 1) * ROUTE_FLIGHTS_PAGE_SIZE,
+  });
+  return { ref: route.ref, title: route.title, flights, ...counts, page, totalPages };
+}
+
+/** Рейс для формы правки; нет такого — null. */
+export async function getFlightForEdit(
+  id: string,
+  now: Date = new Date(),
+): Promise<FlightEditView | null> {
+  if (!z.uuid().safeParse(id).success) return null;
+  return (await repository.findFlightView(id, now)) ?? null;
+}
+
+/** Дубли после правки: с другими рейсами (правленые не считаются) и между самими правлеными. */
+async function findEditDuplicates(changes: FlightChange[]): Promise<FlightDuplicates | null> {
+  const [first] = changes;
+  if (!first) return null;
+  const ids = new Set(changes.map((flight) => flight.id));
+  const existing = await repository.findFlightsAt(
+    first.airlineId,
+    changes.map((flight) => flight.departsAt),
+  );
+  const duplicates = findDuplicateFlights(
+    changes,
+    existing.filter((flight) => !ids.has(flight.id)),
+  );
+  if (duplicates) return duplicates;
+  const repeated = findRepeatedFlight(changes);
+  return repeated ? { count: 1, total: changes.length, first: repeated } : null;
+}
+
+/** Меняет один рейс; возвращает маршрут — туда админка и вернётся. */
+export async function updateFlight(
+  id: string,
+  input: FlightEditInput,
+  now: Date = new Date(),
+): Promise<
+  Result<{ route: RouteRef }, Exclude<FlightEditError, 'DUPLICATE'>> | EditDuplicateFailure
+> {
+  const flight = await getFlightForEdit(id, now);
+  if (!flight) return fail('NOT_FOUND');
+  const models = await listAircraftModels();
+  if (!models.some((model) => model.id === input.aircraftModelId)) return fail('UNKNOWN_AIRCRAFT');
+  const planned = planFlightEdit(flight, input, now);
+  if (!planned.ok) return fail(planned.error as Exclude<FlightEditError, 'DUPLICATE'>);
+  const duplicates = await findEditDuplicates([planned.data]);
+  if (duplicates) return { ok: false, error: 'DUPLICATE', duplicates };
+  await repository.updateFlights([planned.data]);
+  return ok({
+    route: {
+      airline: flight.airlineCode,
+      origin: flight.originIata,
+      destination: flight.destinationIata,
+    },
+  });
+}
+
+/** Меняет все предстоящие рейсы маршрута; сколько рейсов изменено. */
+export async function updateRoute(
+  params: Record<string, unknown>,
+  input: RouteEditInput,
+  now: Date = new Date(),
+): Promise<
+  | Result<{ route: RouteRef; flights: number }, Exclude<FlightEditError, 'DUPLICATE'>>
+  | EditDuplicateFailure
+> {
+  const route = await resolveRoute(params);
+  if (!route) return fail('NOT_FOUND');
+  if (input.aircraftModelId !== undefined) {
+    const models = await listAircraftModels();
+    if (!models.some((model) => model.id === input.aircraftModelId)) {
+      return fail('UNKNOWN_AIRCRAFT');
+    }
+  }
+  const flights = await repository.findUpcomingRouteFlights(route.key, now);
+  const planned = planRouteEdit(flights, input, now);
+  if (!planned.ok) return fail(planned.error as Exclude<FlightEditError, 'DUPLICATE'>);
+  const duplicates = await findEditDuplicates(planned.data);
+  if (duplicates) return { ok: false, error: 'DUPLICATE', duplicates };
+  await repository.updateFlights(planned.data);
+  return ok({ route: route.ref, flights: planned.data.length });
 }
