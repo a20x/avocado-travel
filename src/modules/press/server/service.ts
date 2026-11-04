@@ -3,12 +3,12 @@ import 'server-only';
 // и проверяется Zod-схемой при первом обращении.
 import pressFile from '../../../../content/press/press-releases.json';
 import pressSchema from '../../../../content/press/press-releases.schema.json';
+import { syncPageDocuments } from '@/modules/search/server';
 import {
-  buildPressView,
+  PRESS_REF_PREFIX,
   parsePressFile,
-  pressQuerySchema,
+  pressSearchDocuments,
   type PressRelease,
-  type PressView,
 } from '../model';
 
 let releases: PressRelease[] | undefined;
@@ -19,12 +19,17 @@ export function loadPressReleases(): PressRelease[] {
   return releases;
 }
 
-/** Страница пресс-центра: параметры адреса → выборка, сортировка и модель отображения. */
-export function getPressView(params: Record<string, unknown>): PressView {
-  return buildPressView(loadPressReleases(), pressQuerySchema.parse(params));
+/**
+ * Пресс-релизы — в поиск по сайту. Вызывается при запуске сервера на хостинге
+ * (src/instrumentation.ts), как страницы «Пассажирам»: сид на боевой базе запускать нельзя,
+ * а адреса релизов переехали со страницы «Пресс-центр» на вкладку «XML». Раздел `press`
+ * заменяется целиком — старая запись «Пресс-центр» удаляется, остальное не трогается.
+ */
+export function indexPressReleases(): Promise<void> {
+  return syncPageDocuments(PRESS_REF_PREFIX, pressSearchDocuments(loadPressReleases()));
 }
 
-/** Исходные данные и схема — для ссылок «посмотреть JSON» на странице (L2-06). */
+/** Исходные данные и схема — тот же набор в JSON, ссылками в «Исходных файлах» вкладки «XML» (L2-06). */
 export function getPressSources(): { data: unknown; schema: unknown } {
   loadPressReleases(); // отдаём только проверенный файл
   return { data: pressFile, schema: pressSchema };

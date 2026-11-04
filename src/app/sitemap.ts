@@ -16,7 +16,6 @@ const SECTIONS = [
   '/destinations',
   '/airlines',
   '/news',
-  '/press',
   '/analytics',
   '/api/docs',
   '/services',

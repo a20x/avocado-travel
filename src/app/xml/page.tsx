@@ -12,7 +12,8 @@ export const metadata = pageMetadata({
 
 /**
  * Вкладка «XML» (лаба 2, ADR-0010): таблица из XML-файла пресс-релизов, под ней — сам файл,
- * его схема XSD и преобразование XSL. Те же записи в JSON — «Пресс-центр» (`/press`).
+ * его схема XSD и преобразование XSL; тот же набор в JSON — ссылкой в «Исходных файлах».
+ * Отдельного «Пресс-центра» нет: `/press` переадресует сюда (Этап 12).
  */
 export default async function XmlPage(props: PageProps<'/xml'>) {
   const view = await getXmlTable(await props.searchParams);

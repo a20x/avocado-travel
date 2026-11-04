@@ -7,12 +7,29 @@ import { XML_COLUMNS, xmlHref, type XmlColumn, type XmlTableView } from '../xml'
 /** Ширина колонок с коротким значением: их текст не переносится. */
 const NOWRAP: XmlColumn[] = ['id', 'date'];
 
+/** Полный текст релиза — раскрывается в строке таблицы (отдельной страницы релиза нет). */
+function FullText({ paragraphs }: { paragraphs: string[] }) {
+  return (
+    <details className="mt-1">
+      <summary className="cursor-pointer text-sm font-semibold text-leaf">Читать полностью</summary>
+      <div className="mt-2 grid gap-2">
+        {paragraphs.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 /**
  * Таблица записей XML-файла. Заголовок колонки — ссылка: первый щелчок сортирует по ней,
- * повторный меняет направление. Текущая сортировка отмечена стрелкой и aria-sort.
+ * повторный меняет направление. Текущая сортировка отмечена стрелкой и aria-sort. У строки —
+ * якорь (`/xml#pr-007`, на него ведут поиск по сайту и старые ссылки «Пресс-центра») и полный
+ * текст под «Читать полностью» — в колонке заголовка или, если она скрыта, в первой видимой.
  */
 export function XmlTable({ view }: { view: XmlTableView }) {
   const { query, columns, rows } = view;
+  const textColumn: XmlColumn | undefined = columns.includes('title') ? 'title' : columns[0];
   if (rows.length === 0) {
     return (
       <Card>
@@ -53,17 +70,14 @@ export function XmlTable({ view }: { view: XmlTableView }) {
       </thead>
       <tbody>
         {rows.map((row) => (
-          <tr key={row.id}>
+          <tr key={row.id} id={row.id} className="scroll-mt-24 target:bg-mist">
             {columns.map((column) => (
               <td
                 key={column}
                 className={NOWRAP.includes(column) ? 'whitespace-nowrap align-top' : 'align-top'}
               >
-                {column === 'title' ? (
-                  <Link href={`/press#${row.id}`}>{row.cells.title}</Link>
-                ) : (
-                  row.cells[column]
-                )}
+                {row.cells[column]}
+                {column === textColumn ? <FullText paragraphs={row.paragraphs} /> : null}
               </td>
             ))}
           </tr>

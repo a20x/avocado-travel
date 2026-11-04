@@ -16,8 +16,6 @@ export const PUBLIC_PAGES = [
   '/news',
   '/news?page=2',
   '/news/avocado-travel-otkrylsya',
-  '/press',
-  '/press?sort=title&category=routes',
   '/analytics',
   '/analytics?from=2026-07-01&to=2026-07-31&airline=KRR&destination=sochi',
   '/api/docs',

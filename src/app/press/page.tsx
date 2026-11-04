@@ -1,31 +1,19 @@
-import { getPressView } from '@/modules/press/server';
-import { PressFilters, PressList, PressSources } from '@/modules/press/ui';
-import { pageMetadata } from '@/shared/lib/metadata';
+import { permanentRedirect } from 'next/navigation';
+import { PRESS_CATEGORIES } from '@/modules/press';
 
-export const metadata = pageMetadata({
-  title: 'Пресс-центр',
-  description:
-    'Пресс-релизы Avocado Travel: новые направления, партнёры, сервис и итоги работы. Сортировка и выборка по категории и автору.',
-  path: '/press',
-});
+const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
 
+/**
+ * Бывший «Пресс-центр» (Этап 12): те же пресс-релизы — на вкладке «XML», без дубля. Старые
+ * ссылки и закладки ведут туда с той же категорией и автором; якорь релиза (`#pr-007`) браузер
+ * переносит сам — открывается его строка в таблице.
+ */
 export default async function PressPage(props: PageProps<'/press'>) {
-  const view = getPressView(await props.searchParams);
-
-  return (
-    <div className="container-site grid gap-6 py-8">
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <header className="grid max-w-2xl gap-2">
-          <h1 className="text-3xl">Пресс-центр</h1>
-          <p className="text-slate">
-            Официальные сообщения Avocado Travel: новые направления, партнёры, изменения в сервисе и
-            итоги работы.
-          </p>
-        </header>
-        <PressSources />
-      </div>
-      <PressFilters view={view} />
-      <PressList view={view} />
-    </div>
-  );
+  const params = await props.searchParams;
+  const target = new URLSearchParams();
+  const category = first(params.category);
+  if (category && Object.hasOwn(PRESS_CATEGORIES, category)) target.set('category', category);
+  const author = first(params.author)?.trim();
+  if (author && author.length <= 60) target.set('author', author);
+  permanentRedirect(target.size > 0 ? `/xml?${target}` : '/xml');
 }

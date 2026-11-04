@@ -1093,7 +1093,7 @@ export const PASSENGER_PAGES: PassengerPage[] = [
     related: ['how-to-buy', 'feedback'],
     links: [
       { href: '/news', label: 'Новости' },
-      { href: '/press', label: 'Пресс-центр' },
+      { href: '/xml', label: 'Пресс-релизы (XML)' },
     ],
   },
 ];

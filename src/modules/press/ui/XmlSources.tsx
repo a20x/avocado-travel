@@ -33,6 +33,12 @@ export function XmlSources({ query }: { query: XmlQuery }) {
           Схема XSD
         </a>
       </div>
+      <p className="text-slate">
+        Те же 18 пресс-релизов в другом формате — для программ:{' '}
+        <a href={PRESS_XML_FILES.json}>press-releases.json</a> и его схема{' '}
+        <a href={PRESS_XML_FILES.jsonSchema}>press-releases.schema.json</a> (JSON Schema). XML
+        собирается из этого файла, их совпадение проверяют тесты.
+      </p>
     </Card>
   );
 }

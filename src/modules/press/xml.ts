@@ -1,7 +1,13 @@
 import { XMLParser } from 'fast-xml-parser';
 import { z } from 'zod';
 import { formatDate } from '@/shared/lib/format';
-import { PRESS_CATEGORIES, pressFileSchema, type PressCategory, type PressRelease } from './model';
+import {
+  PRESS_CATEGORIES,
+  pressFileSchema,
+  pressParagraphs,
+  type PressCategory,
+  type PressRelease,
+} from './model';
 
 /**
  * Пресс-релизы в XML (лаба 2, ADR-0010): тот же набор из 18 записей, что в JSON, —
@@ -14,6 +20,9 @@ export const PRESS_XML_FILES = {
   xsl: '/xml/press-releases.xsl',
   /** Результат XSL-преобразования на сервере — с теми же параметрами, что у таблицы. */
   transform: '/xml/transform',
+  /** Тот же набор в JSON и его JSON Schema — второй формат тех же данных, не отдельный раздел. */
+  json: '/press/press-releases.json',
+  jsonSchema: '/press/press-releases.schema.json',
 } as const;
 
 const escapeXml = (text: string) =>
@@ -115,7 +124,12 @@ export const xmlQuerySchema = z.object({
 });
 export type XmlQuery = z.infer<typeof xmlQuerySchema>;
 
-export type XmlRow = { id: string; cells: Record<XmlColumn, string> };
+export type XmlRow = {
+  id: string;
+  cells: Record<XmlColumn, string>;
+  /** Полный текст по абзацам — «Читать полностью» в строке таблицы. */
+  paragraphs: string[];
+};
 
 export type XmlTableView = {
   rows: XmlRow[];
@@ -190,7 +204,11 @@ export function buildXmlTable(releases: PressRelease[], requested: XmlQuery): Xm
         direction * sortValue(a, query.sort).localeCompare(sortValue(b, query.sort), 'ru') ||
         a.id.localeCompare(b.id),
     )
-    .map((release) => ({ id: release.id, cells: cellsOf(release) }));
+    .map((release) => ({
+      id: release.id,
+      cells: cellsOf(release),
+      paragraphs: pressParagraphs(release.body),
+    }));
 
   return {
     rows,

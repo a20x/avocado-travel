@@ -8,7 +8,7 @@ function prettyJson(value: unknown): Response {
   });
 }
 
-/** Обработчик `src/app/press/press-releases.json`: исходные данные пресс-центра. */
+/** Обработчик `src/app/press/press-releases.json`: пресс-релизы в JSON — второй формат вкладки «XML». */
 export function handlePressData(): Response {
   return prettyJson(getPressSources().data);
 }
