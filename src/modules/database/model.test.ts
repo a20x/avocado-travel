@@ -1,10 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { dbHref, dbQuerySchema, fillScores, formatBytes, formatSql, share } from './model';
+import {
+  DB_SECTIONS,
+  dbHref,
+  dbQuerySchema,
+  fillScores,
+  formatBytes,
+  formatSql,
+  pickAirline,
+  sectionHref,
+  sectionOf,
+  share,
+} from './model';
 
 describe('вкладка «БД»: параметры формы', () => {
-  it('по умолчанию — поиск рейсов без условий, первая страница', () => {
+  it('по умолчанию — поиск по одному атрибуту без условий, первая страница', () => {
     expect(dbQuerySchema.parse({})).toEqual({
-      report: 'flights',
+      report: 'airline',
       sort: 'departure',
       page: 1,
       from: undefined,
@@ -41,6 +52,63 @@ describe('вкладка «БД»: параметры формы', () => {
     const query = dbQuerySchema.parse({ report: 'flights', from: 'moscow', sort: 'sold' });
     expect(dbHref(query, 3)).toBe('/database?report=flights&from=moscow&sort=sold&page=3');
     expect(dbHref({ report: 'ratings' })).toBe('/database?report=ratings');
+  });
+});
+
+describe('вкладка «БД»: меню разделов', () => {
+  it('пункты — словами преподавателя, поиск рейсов — шестым', () => {
+    expect(DB_SECTIONS.map((section) => section.label)).toEqual([
+      'Ввод',
+      'Поиск по одному атрибуту',
+      'Поиск по двум атрибутам',
+      'Агрегация',
+      'Сведения о БД',
+      'Поиск рейсов',
+    ]);
+  });
+
+  it('три сводки — один раздел «Агрегация», его адрес — первая сводка', () => {
+    for (const view of ['airlines', 'months', 'ratings'] as const) {
+      expect(sectionOf(view).label).toBe('Агрегация');
+    }
+    expect(sectionHref(sectionOf('months'))).toBe('/database?report=airlines');
+    expect(sectionOf('routes').label).toBe('Поиск по двум атрибутам');
+  });
+
+  it('разделы без запроса тоже открываются по адресу, неизвестный — поиск по одному атрибуту', () => {
+    expect(dbQuerySchema.parse({ report: 'input' }).report).toBe('input');
+    expect(dbQuerySchema.parse({ report: 'about' }).report).toBe('about');
+    expect(dbQuerySchema.parse({ report: 'drop' }).report).toBe('airline');
+  });
+});
+
+describe('вкладка «БД»: поиск по одному атрибуту', () => {
+  const options = [
+    { code: 'STR', name: 'Стрива' },
+    { code: 'ALT', name: 'Альтэйра' },
+    { code: 'STR', name: 'Стрива' },
+    { code: 'LST', name: 'Ластавиа' },
+  ];
+
+  it('варианты — без повторов и по алфавиту', () => {
+    expect(pickAirline(options, undefined).options.map((option) => option.name)).toEqual([
+      'Альтэйра',
+      'Ластавиа',
+      'Стрива',
+    ]);
+  });
+
+  it('выбрана запрошенная авиакомпания, если она в списке, иначе — первая', () => {
+    expect(pickAirline(options, 'LST').selected).toBe('LST');
+    expect(pickAirline(options, 'NOP').selected).toBe('ALT');
+    expect(pickAirline(options, undefined).selected).toBe('ALT');
+    expect(pickAirline([], 'LST').selected).toBeUndefined();
+  });
+
+  it('адрес следующей страницы сохраняет авиакомпанию', () => {
+    expect(dbHref({ report: 'airline', airline: 'LST' }, 2)).toBe(
+      '/database?report=airline&airline=LST&page=2',
+    );
   });
 });
 

@@ -1,20 +1,49 @@
 import { expect, test } from '@playwright/test';
 
-test('БД: паспорт базы и пять видов запросов', async ({ page }) => {
+test('БД: меню разделов словами преподавателя, первым — поиск по одному атрибуту', async ({
+  page,
+}) => {
   await page.goto('/database');
-  const about = page.getByRole('region', { name: 'О базе данных Avocado Travel' });
+  const menu = page.getByRole('navigation', { name: 'Разделы базы данных' }).getByRole('link');
+  await expect(menu).toHaveText([
+    'Ввод',
+    'Поиск по одному атрибуту',
+    'Поиск по двум атрибутам',
+    'Агрегация',
+    'Сведения о БД',
+    'Поиск рейсов',
+  ]);
+  await expect(menu.nth(1)).toHaveAttribute('aria-current', 'page');
+
+  // Сразу — результат: в списке выбрана первая авиакомпания, её рейсы найдены.
+  const result = page.getByRole('region', { name: 'Результат запроса: Рейсы авиакомпании' });
+  await expect(result.getByRole('table').getByRole('row')).toHaveCount(21);
+  const sql = page.getByRole('group').filter({ hasText: 'SQL этих запросов' });
+  await expect(sql.locator('pre').first()).toContainText('select distinct');
+
+  await menu.getByText('Сведения о БД').click();
+  const about = page.getByRole('region', { name: 'Сведения о базе данных Avocado Travel' });
   await expect(about.getByText('Объём базы')).toBeVisible();
   await expect(about.getByText(/^Состав:/)).toBeVisible();
   await expect(about.getByText(/^Полнота:/)).toBeVisible();
   await expect(about.getByText(/^Актуальность:/)).toBeVisible();
 
-  const tabs = page.getByRole('navigation', { name: 'Вид запроса' }).getByRole('link');
-  await expect(tabs).toHaveCount(5);
-  await expect(tabs.first()).toHaveAttribute('aria-current', 'page');
+  await menu.getByText('Ввод', { exact: true }).click();
+  const input = page.getByRole('region', { name: 'Ввод данных' });
+  await expect(input.getByRole('link', { name: 'Добавить рейсы' })).toHaveAttribute(
+    'href',
+    '/admin/flights/new',
+  );
+  await expect(input.getByRole('link', { name: 'Войти как администратор' })).toBeVisible();
+
+  await menu.getByText('Агрегация').click();
+  await expect(
+    page.getByRole('navigation', { name: 'Вид агрегации' }).getByRole('link'),
+  ).toHaveText(['Сводка по авиакомпаниям', 'Динамика продаж', 'Оценки сайта']);
 });
 
 test('БД: поиск рейсов по условиям, постранично, с текстом SQL', async ({ page }) => {
-  await page.goto('/database');
+  await page.goto('/database?report=flights');
   const form = page.getByRole('form', { name: 'Условия запроса' });
   await form.getByLabel('Откуда').selectOption('moscow');
   await form.getByLabel('Сортировка').selectOption('sold');

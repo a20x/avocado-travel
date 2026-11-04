@@ -1,10 +1,11 @@
 import 'server-only';
 import { nearestDates } from '@/shared/lib/available-days';
-import { addDays, zonedTimeToUtc } from '@/shared/lib/time';
+import { addDays, dateInZone, zonedTimeToUtc } from '@/shared/lib/time';
 import {
   FLIGHTS_PAGE_SIZE,
   dbQuerySchema,
   fillScores,
+  pickAirline,
   type DbPassport,
   type DbQuery,
   type DbResult,
@@ -25,7 +26,8 @@ function rangeOf(query: DbQuery): repository.Range {
 
 export type DatabasePage = {
   query: DbQuery;
-  result: DbResult;
+  /** Нет у разделов без запроса — «Ввод» и «Сведения о БД». */
+  result: DbResult | null;
   /** Текст выполненных запросов — для блока «SQL этого запроса». */
   sql: SqlText[];
 };
@@ -34,11 +36,47 @@ export type DatabasePage = {
  * Запрос вкладки «БД» по параметрам адреса (лаба 3): форма → проверка Zod → запрос к базе.
  * Ничего не меняет — только чтение.
  */
-export async function runDatabaseQuery(params: Record<string, unknown>): Promise<DatabasePage> {
-  const query = dbQuerySchema.parse(params);
-  const range = rangeOf(query);
+export async function runDatabaseQuery(
+  params: Record<string, unknown>,
+  now: Date = new Date(),
+): Promise<DatabasePage> {
+  const parsed = dbQuerySchema.parse(params);
+  const range = rangeOf(parsed);
+  let query = parsed;
 
   switch (query.report) {
+    case 'input':
+    case 'about':
+      return { query, result: null, sql: [] };
+    case 'airline': {
+      // Рейсы с начала сегодняшнего дня по Москве: в списке только авиакомпании, у которых
+      // они есть, поэтому результат не бывает пустым.
+      const since = zonedTimeToUtc(dateInZone(now, ZONE), '00:00', ZONE);
+      const list = await repository.listFlightAirlines(since);
+      const { options, selected } = pickAirline(list.rows, query.airline);
+      query = { ...query, airline: selected };
+      const page = query.page;
+      const found = selected
+        ? await repository.searchFlights(
+            { airline: selected, range: { start: since } },
+            'departure',
+            { limit: FLIGHTS_PAGE_SIZE, offset: (page - 1) * FLIGHTS_PAGE_SIZE },
+          )
+        : { rows: [], total: 0, sql: [] };
+      return {
+        query,
+        result: {
+          report: 'airline',
+          airlines: options,
+          airline: selected,
+          rows: found.rows,
+          total: found.total,
+          page,
+          totalPages: Math.max(1, Math.ceil(found.total / FLIGHTS_PAGE_SIZE)),
+        },
+        sql: [list.sql, ...found.sql],
+      };
+    }
     case 'flights': {
       const page = query.page;
       const filter = { from: query.from, to: query.to, airline: query.airline };
@@ -92,7 +130,7 @@ export async function runDatabaseQuery(params: Record<string, unknown>): Promise
   }
 }
 
-/** Паспорт базы (раздел «О базе данных»). */
+/** Паспорт базы (раздел «Сведения о БД»). */
 export function getPassport(): Promise<DbPassport> {
   return repository.readPassport();
 }

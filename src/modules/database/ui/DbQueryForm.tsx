@@ -3,15 +3,24 @@ import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { LinkedSelects } from '@/shared/ui/LinkedSelects';
 import { Select, type SelectOption } from '@/shared/ui/Select';
-import { FLIGHT_SORTS, type DbQuery, type FlightCombo, type FlightSort } from '../model';
+import {
+  FLIGHT_SORTS,
+  type AirlineOption,
+  type DbQuery,
+  type DbReport,
+  type FlightCombo,
+  type FlightSort,
+} from '../model';
 import { FlightQueryFields } from './FlightQueryFields';
 
 /** Что делает каждый запрос — подпись над формой. */
-const DESCRIPTIONS: Record<DbQuery['report'], string> = {
+const DESCRIPTIONS: Record<DbReport, string> = {
+  airline:
+    'Поиск по одному атрибуту — авиакомпании. В списке только авиакомпании, у которых в таблице рейсов есть рейсы с сегодняшнего дня, по алфавиту, — поэтому результат есть всегда. Рейсы — от ближайших, по 20 на страницу.',
   flights:
     'Рейсы с условиями по городам, авиакомпании и дате вылета, по 20 на страницу. Списки связаны — в них только сочетания, для которых есть рейсы. «Продано» — места, занятые действующими билетами.',
   routes:
-    'Маршруты выбранной авиакомпании и цены эконома на них: минимальная, средняя и максимальная. Списки связаны — в них только сочетания, для которых есть рейсы.',
+    'Поиск по двум атрибутам — авиакомпании и направлению. Маршруты выбранной авиакомпании и цены эконома на них: минимальная, средняя и максимальная. Списки связаны — в них только сочетания, для которых есть рейсы.',
   airlines:
     'Оплаченные билеты по авиакомпаниям за период оформления: заказы, билеты, выручка, средняя и максимальная цена билета.',
   months: 'Заказы, билеты и выручка по месяцам оформления — по всем авиакомпаниям или по одной.',
@@ -24,18 +33,23 @@ const DESCRIPTIONS: Record<DbQuery['report'], string> = {
  * по ссылке, и всё работает без JavaScript. Поля — только нужные выбранному запросу.
  */
 export function DbQueryForm({
+  report,
   query,
   cities,
   airlines,
   combos,
+  flightAirlines,
 }: {
+  /** Вид запроса — без разделов «Ввод» и «Сведения о БД»: у них формы нет. */
+  report: DbReport;
   query: DbQuery;
   cities: SelectOption[];
   airlines: SelectOption[];
   /** Сочетания «откуда — куда — авиакомпания», для которых есть рейсы: для связанных списков. */
   combos: FlightCombo[];
+  /** Варианты поиска по одному атрибуту — авиакомпании из таблицы рейсов. */
+  flightAirlines: AirlineOption[];
 }) {
-  const { report } = query;
   const withDates = report === 'airlines' || report === 'months';
   const linked = report === 'flights' || report === 'routes';
   const sort = (
@@ -61,6 +75,19 @@ export function DbQueryForm({
 
       {report === 'ratings' ? null : (
         <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {report === 'airline' ? (
+            <Select
+              name="airline"
+              label="Авиакомпания"
+              defaultValue={query.airline ?? ''}
+              required
+              options={flightAirlines.map((airline) => ({
+                value: airline.code,
+                label: airline.name,
+              }))}
+            />
+          ) : null}
+
           {report === 'flights' ? (
             <FlightQueryFields
               cities={cities}
@@ -118,7 +145,7 @@ export function DbQueryForm({
         </div>
       )}
 
-      {report === 'ratings' ? null : (
+      {report === 'ratings' || report === 'airline' ? null : (
         <p className="text-sm text-slate">Пустые поля не ограничивают выборку.</p>
       )}
       <div className="flex flex-wrap items-center gap-4">

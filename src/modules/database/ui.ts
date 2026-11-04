@@ -1,4 +1,5 @@
 /** Вход компонентов модуля database (ADR-0008). */
+export { DbInputCard } from './ui/DbInputCard';
 export { DbPassportCard } from './ui/DbPassportCard';
 export { DbQueryForm } from './ui/DbQueryForm';
 export { DbResultView } from './ui/DbResultView';

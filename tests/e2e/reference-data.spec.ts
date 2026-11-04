@@ -80,8 +80,23 @@ test('админ заводит город, авиакомпанию и рейс
   await page.getByRole('button', { name: 'Создать рейсы' }).click();
   await expect(page).toHaveURL('/admin/flights?created=14');
 
-  // Новые значения — в выпадающих списках вкладки «БД», по алфавиту.
+  // Поиск по одному атрибуту: новая авиакомпания — в списке по алфавиту, находит свои рейсы.
   await page.goto('/database');
+  const single = page.getByRole('form', { name: 'Условия запроса' });
+  const singleLabels = await single.getByLabel('Авиакомпания').locator('option').allTextContents();
+  expect(singleLabels).toContain(airline);
+  expect(singleLabels).toEqual([...singleLabels].sort((a, b) => a.localeCompare(b, 'ru')));
+  await single.getByLabel('Авиакомпания').selectOption({ label: airline });
+  await single.getByRole('button', { name: 'Выполнить запрос' }).click();
+  await expect(
+    page
+      .getByRole('region', { name: 'Результат запроса: Рейсы авиакомпании' })
+      .getByRole('table')
+      .getByRole('row'),
+  ).toHaveCount(15); // заголовок и 14 рейсов
+
+  // Новые значения — в выпадающих списках поиска рейсов, по алфавиту.
+  await page.goto('/database?report=flights');
   const form = page.getByRole('form', { name: 'Условия запроса' });
   const from = form.getByLabel('Откуда');
   const labels = (await from.locator('option').allTextContents()).slice(1);
