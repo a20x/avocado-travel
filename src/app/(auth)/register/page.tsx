@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { safeReturnPath } from '@/modules/auth';
+import { afterSignIn, explicitReturnPath, safeReturnPath } from '@/modules/auth';
 import { getCurrentUser } from '@/modules/auth/server';
 import { AuthForm } from '@/modules/auth/ui';
 import { pageMetadata } from '@/shared/lib/metadata';
@@ -19,7 +19,8 @@ export const metadata: Metadata = {
 export default async function RegisterPage(props: PageProps<'/register'>) {
   const { next } = await props.searchParams;
   const returnTo = safeReturnPath(next);
-  if (await getCurrentUser()) redirect(returnTo);
+  const user = await getCurrentUser();
+  if (user) redirect(afterSignIn(explicitReturnPath(next), user.role));
 
   return (
     <AuthCard title="Регистрация">
@@ -29,7 +30,12 @@ export default async function RegisterPage(props: PageProps<'/register'>) {
       </p>
       <AuthForm mode="sign-up" next={returnTo} />
       <p className="text-slate">
-        Уже есть аккаунт? <Link href={`/login?next=${encodeURIComponent(returnTo)}`}>Войдите</Link>
+        Уже есть аккаунт?{' '}
+        <Link
+          href={explicitReturnPath(next) ? `/login?next=${encodeURIComponent(returnTo)}` : '/login'}
+        >
+          Войдите
+        </Link>
       </p>
     </AuthCard>
   );

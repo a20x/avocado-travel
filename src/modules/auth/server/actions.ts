@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { safeReturnPath, signInSchema, signUpSchema, type AuthError } from '../model';
+import { afterSignIn, safeReturnPath, signInSchema, signUpSchema, type AuthError } from '../model';
 import * as service from './service';
 
 /** Состояние формы после отправки: общая ошибка, ошибки полей и введённое — чтобы не набирать заново. */
@@ -41,7 +41,7 @@ export async function signInAction(_: AuthFormState, formData: FormData): Promis
   const result = await service.signIn(parsed.data);
   if (!result.ok) return { error: MESSAGES[result.error], values };
 
-  redirect(safeReturnPath(formData.get('next')));
+  redirect(afterSignIn(formData.get('next'), result.data.role));
 }
 
 export async function signUpAction(_: AuthFormState, formData: FormData): Promise<AuthFormState> {

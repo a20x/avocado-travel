@@ -65,6 +65,12 @@ export default async function AccountPage(props: PageProps<'/account'>) {
 
   return (
     <div className="container-site grid gap-6 py-8">
+      {/* Администратор приходит в кабинет из админки — и возвращается туда же. */}
+      {user.role === 'admin' ? (
+        <p>
+          <Link href="/admin">← В админку</Link>
+        </p>
+      ) : null}
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl">Личный кабинет</h1>

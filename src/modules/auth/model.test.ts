@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { isRole, safeReturnPath, signInSchema, signUpSchema } from './model';
+import {
+  afterSignIn,
+  explicitReturnPath,
+  homeFor,
+  isRole,
+  safeReturnPath,
+  signInSchema,
+  signUpSchema,
+} from './model';
 
 describe('адрес возврата после входа', () => {
   it('пропускает внутренние пути вместе с параметрами', () => {
@@ -13,6 +21,25 @@ describe('адрес возврата после входа', () => {
     expect(safeReturnPath('/\\evil.example')).toBe('/account');
     expect(safeReturnPath(undefined)).toBe('/account');
     expect(safeReturnPath(['/a', '/b'])).toBe('/account');
+  });
+});
+
+describe('куда вести после входа', () => {
+  it('без адреса возврата — в раздел пользователя: администратора в админку', () => {
+    expect(homeFor('admin')).toBe('/admin');
+    expect(homeFor('customer')).toBe('/account');
+    expect(afterSignIn(undefined, 'admin')).toBe('/admin');
+    expect(afterSignIn(null, 'customer')).toBe('/account');
+  });
+
+  it('явный адрес возврата важнее роли: администратор возвращается, откуда пришёл', () => {
+    expect(afterSignIn('/rss', 'admin')).toBe('/rss');
+    expect(afterSignIn('/booking?flight=1', 'customer')).toBe('/booking?flight=1');
+  });
+
+  it('чужой сайт в адресе возврата не считается адресом', () => {
+    expect(explicitReturnPath('//evil.example')).toBeNull();
+    expect(afterSignIn('https://evil.example', 'admin')).toBe('/admin');
   });
 });
 
