@@ -8,17 +8,32 @@ import {
   uniqueEmail,
 } from './helpers';
 
-/** В шапке видна кнопка входа или раздела пользователя (на телефоне — внутри меню). */
+/** В шапке сразу, без открытия меню, видна кнопка входа или раздела пользователя. */
 async function expectAccountButton(page: Page, name: string) {
-  const header = page.getByRole('banner');
-  const menu = header.locator('summary[aria-label="Меню"]');
-  const isMobile = await menu.isVisible();
-  if (isMobile) await menu.click();
-  await expect(
-    header.getByRole('link', { name, exact: true }).locator('visible=true'),
-  ).toBeVisible();
-  // Открытое меню закрывает страницу — сворачиваем обратно.
-  if (isMobile) await menu.click();
+  await expect(page.getByRole('banner').getByRole('link', { name, exact: true })).toBeVisible();
+}
+
+// Замечание преподавателя по лабе 1: на окне уже 1024 px кнопки прятались в меню.
+for (const width of [320, 800, 1100, 1280]) {
+  test(`вход и регистрация видны в шапке без меню при ширине ${width} px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    for (const path of ['/', '/news']) {
+      await page.goto(path);
+      const header = page.getByRole('banner');
+      for (const [name, href] of [
+        ['Войти', '/login'],
+        ['Регистрация', '/register'],
+      ] as const) {
+        const link = header.getByRole('link', { name, exact: true });
+        await expect(link).toBeVisible();
+        await expect(link).toHaveAttribute('href', href);
+        await expect(link).toBeInViewport({ ratio: 1 });
+      }
+      // Шапка не шире экрана: ничего не уехало вбок.
+      const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+      expect(scrollWidth).toBeLessThanOrEqual(width);
+    }
+  });
 }
 
 for (const path of ['/login', '/register']) {
