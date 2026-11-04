@@ -72,7 +72,7 @@ test('RSS: ленты подключает только администрато
 }) => {
   await page.goto('/rss');
   const feeds = page.getByRole('region', { name: 'Внешние RSS-ленты' });
-  await expect(feeds.getByText('Подключать и отключать ленты может администратор')).toBeVisible();
+  await expect(feeds.getByText(/может только администратор/)).toBeVisible();
   await expect(feeds.getByLabel('Адрес RSS-ленты')).toHaveCount(0);
 
   await page.goto('/login?next=%2Frss');
@@ -82,4 +82,31 @@ test('RSS: ленты подключает только администрато
   await feeds.getByLabel('Название источника').fill('Своя лента');
   await feeds.getByRole('button', { name: 'Подключить ленту' }).click();
   await expect(feeds.getByRole('alert')).toContainText('По адресу нет ленты RSS или Atom');
+});
+
+test('RSS: объединённые новости — первый блок вкладки, поле для адреса любой ленты', async ({
+  page,
+}) => {
+  // Замечание преподавателя по лабе 4: форма ввода любой RSS-ленты и страница, где новости
+  // сайта объединены с новостями этой ленты, — без входа и первой на вкладке.
+  await page.goto('/rss');
+  const merged = page.getByRole('region', { name: /^Объединённые новости/ });
+  await expect(page.getByRole('heading', { level: 2 }).first()).toHaveText(
+    'Объединённые новости: сайт + любая RSS-лента',
+  );
+  const field = merged.getByLabel('Адрес RSS-ленты');
+  await expect(field).toBeVisible();
+
+  // Адрес внутренней сети сайт не скачивает (защита от SSRF) — понятная ошибка, а не сбой.
+  await field.fill('http://127.0.0.1:3000/feed.xml');
+  await merged.getByRole('button', { name: 'Объединить' }).click();
+  await expect(page).toHaveURL(/\/rss\?feed=http%3A%2F%2F127\.0\.0\.1%3A3000%2Ffeed\.xml#merged$/);
+  await expect(merged.getByRole('alert')).toContainText('По этому адресу нет ленты RSS или Atom');
+  await expect(field).toHaveValue('http://127.0.0.1:3000/feed.xml');
+});
+
+test('RSS: объединённые новости — неверный адрес объясняется', async ({ page }) => {
+  await page.goto('/rss?feed=ftp%3A%2F%2Fexample.com%2Frss#merged');
+  const merged = page.getByRole('region', { name: /^Объединённые новости/ });
+  await expect(merged.getByRole('alert')).toContainText('https://example.com/rss.xml');
 });

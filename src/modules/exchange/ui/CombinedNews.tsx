@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { plural } from '@/shared/lib/format';
-import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
@@ -17,15 +16,7 @@ import {
 } from '../combined';
 import type { ExternalFeedStatus } from '../feeds';
 import type { RssPage } from '../server/feeds';
-
-const published = new Intl.DateTimeFormat('ru-RU', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  timeZone: 'Europe/Moscow',
-});
+import { CombinedItem } from './CombinedItem';
 
 /** Выгрузка с теми же фильтрами, что у списка, — без номера страницы: выгружается всё. */
 const exportHref = (query: CombinedQuery, format: ExchangeFormat) =>
@@ -73,11 +64,11 @@ export function CombinedNews({ page }: { page: RssPage }) {
     <section aria-labelledby="combined-title" className="grid gap-4">
       <div className="grid gap-1">
         <h2 id="combined-title" className="text-2xl">
-          Общая лента новостей
+          Общая лента: новости сайта и подключённых RSS-лент
         </h2>
         <p className="text-slate">
-          Новости Avocado Travel и подключённых лент вместе. Внешние новости открываются на сайте
-          источника.
+          Новости Avocado Travel из базы и новости RSS-лент, которые подключил администратор, —
+          вместе на одной странице. Внешние новости открываются на сайте источника.
         </p>
       </div>
 
@@ -147,25 +138,7 @@ export function CombinedNews({ page }: { page: RssPage }) {
       ) : (
         <div className="grid gap-3">
           {page.items.map((item) => (
-            <Card as="article" key={item.id} className="grid gap-2 p-5">
-              <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate">
-                <Badge>{item.source}</Badge>
-                <time dateTime={item.publishedAt.toISOString()}>
-                  {published.format(item.publishedAt)}
-                </time>
-              </p>
-              <h3 className="text-lg">
-                {item.isExternal ? (
-                  <a href={item.url} target="_blank" rel="noopener noreferrer">
-                    {item.title}
-                    <span className="sr-only"> (откроется на сайте источника)</span>
-                  </a>
-                ) : (
-                  <Link href={new URL(item.url).pathname}>{item.title}</Link>
-                )}
-              </h3>
-              <p className="text-slate">{item.summary}</p>
-            </Card>
+            <CombinedItem key={item.id} item={item} />
           ))}
         </div>
       )}
