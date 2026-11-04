@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   basePrices,
   distanceKm,
+  duplicateMessage,
+  findDuplicateFlights,
   flightMinutes,
   flightScheduleSchema,
   nextFlightNumber,
@@ -172,5 +174,60 @@ describe('расписание', () => {
   it('номер рейса — следующий после самого большого, у новой авиакомпании — с сотого', () => {
     expect(nextFlightNumber('LST', ['LST 1000', 'LST 1017', 'LST 1003'])).toBe(1018);
     expect(nextFlightNumber('NRD', [])).toBe(100);
+  });
+});
+
+describe('дубли вводимых рейсов', () => {
+  const at = (iso: string) => new Date(iso);
+  const flight = (
+    departsAt: string,
+    over: Partial<{ originId: number; airlineId: number }> = {},
+  ) => ({
+    airlineId: 1,
+    originId: 10,
+    destinationId: 20,
+    departsAt: at(departsAt),
+    ...over,
+  });
+  const existing = [
+    { ...flight('2027-02-13T07:00:00Z'), number: 'NRD 100' },
+    { ...flight('2027-02-12T07:00:00Z'), number: 'NRD 100' },
+  ];
+
+  it('та же авиакомпания, маршрут и минута вылета — дубль, номер не важен', () => {
+    const result = findDuplicateFlights(
+      [
+        flight('2027-02-12T07:00:00Z'),
+        flight('2027-02-13T07:00:00Z'),
+        flight('2027-02-14T07:00:00Z'),
+      ],
+      existing,
+    );
+    expect(result).toEqual({ count: 2, total: 3, first: existing[1] });
+  });
+
+  it('другое время того же дня, другая авиакомпания или обратное направление — не дубль', () => {
+    expect(
+      findDuplicateFlights(
+        [
+          flight('2027-02-12T09:00:00Z'),
+          flight('2027-02-12T07:00:00Z', { airlineId: 2 }),
+          { ...flight('2027-02-12T07:00:00Z'), originId: 20, destinationId: 10 },
+        ],
+        existing,
+      ),
+    ).toBeNull();
+  });
+
+  it('сообщение называет число совпадений и первый рейс по Москве', () => {
+    expect(duplicateMessage({ count: 2, total: 3, first: existing[1]! })).toBe(
+      '2 рейса из 3 уже заведены: та же авиакомпания, те же аэропорты и время вылета. Первый — NRD 100, 12.02.2027 в 10:00 по Москве. Рейсы не добавлены: измените даты, дни недели или время вылета.',
+    );
+    expect(duplicateMessage({ count: 14, total: 14, first: existing[1]! })).toMatch(
+      /^Все 14 рейсов уже заведены: /,
+    );
+    expect(duplicateMessage({ count: 1, total: 1, first: existing[1]! })).toMatch(
+      /^Этот рейс уже заведён: /,
+    );
   });
 });

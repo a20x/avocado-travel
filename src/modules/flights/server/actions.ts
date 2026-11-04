@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/modules/auth/server';
 import type { ActionState } from '@/shared/ui/ActionForm';
-import { flightScheduleSchema, type FlightScheduleError } from '../schedule';
+import { duplicateMessage, flightScheduleSchema, type FlightScheduleError } from '../schedule';
 import * as service from './service';
 
 export type FlightScheduleFormState = {
@@ -22,6 +22,7 @@ const MESSAGES: Record<FlightScheduleError, string> = {
   NO_DATES: 'В выбранном периоде нет отмеченных дней недели — ни одного рейса не получилось.',
   ROUTE_NOT_FOUND: 'Рейсов этого маршрута уже нет — возможно, их удалили.',
   HAS_TICKETS: 'На рейсы маршрута проданы билеты — такие рейсы удалить нельзя.',
+  DUPLICATE: 'Такие рейсы уже заведены. Измените даты, дни недели или время вылета.',
 };
 
 /** Ошибка, которая относится к одному полю, показывается под ним. */
@@ -68,6 +69,9 @@ export async function createFlightsAction(
   }
 
   const result = await service.createFlights(parsed.data);
+  if (!result.ok && result.error === 'DUPLICATE') {
+    return { error: duplicateMessage(result.duplicates), values };
+  }
   if (!result.ok) {
     const field = FIELD_OF[result.error];
     return field

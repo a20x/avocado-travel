@@ -28,6 +28,8 @@ import {
   type AdminRoute,
   type FlightScheduleError,
   type FlightScheduleInput,
+  findDuplicateFlights,
+  type FlightDuplicates,
 } from '../schedule';
 import { buildSeatMap } from '../seat-map';
 import {
@@ -206,11 +208,19 @@ export async function getFlight(
 /** Даты в форме рейсов — по Москве, как у остальной админки. */
 const ADMIN_TIMEZONE = 'Europe/Moscow';
 
-/** Заводит рейсы по расписанию (и обратные, если отмечено); сколько рейсов создано. */
+/** Ошибка «дубли»: сколько рейсов повторяют существующие и первый из них — для сообщения. */
+export type DuplicateFailure = { ok: false; error: 'DUPLICATE'; duplicates: FlightDuplicates };
+
+/**
+ * Заводит рейсы по расписанию (и обратные, если отмечено); сколько рейсов создано.
+ * Если хоть один рейс повторяет уже заведённый — не заводит ни одного (DUPLICATE).
+ */
 export async function createFlights(
   input: FlightScheduleInput,
   now: Date = new Date(),
-): Promise<Result<{ flights: number }, FlightScheduleError>> {
+): Promise<
+  Result<{ flights: number }, Exclude<FlightScheduleError, 'DUPLICATE'>> | DuplicateFailure
+> {
   const [airlines, airports, models] = await Promise.all([
     listAirlines(),
     listAirports(),
@@ -238,6 +248,13 @@ export async function createFlights(
     prices: schedulePrices(input, km),
   });
   if (rows.length === 0) return fail('NO_DATES');
+
+  const existing = await repository.findFlightsAt(
+    airline.id,
+    rows.map((row) => row.departsAt),
+  );
+  const duplicates = findDuplicateFlights(rows, existing);
+  if (duplicates) return { ok: false, error: 'DUPLICATE', duplicates };
 
   await repository.insertFlights(rows);
   return ok({ flights: rows.length });
