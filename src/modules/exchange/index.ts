@@ -81,3 +81,12 @@ export {
 export type { IndustryNewsDraft } from './industry';
 export { decodeFeed, parseFeed } from './rss';
 export type { FeedItem } from './rss';
+export {
+  MERGED_FEED_ITEMS,
+  MERGED_SITE_ITEMS,
+  feedItemsToNews,
+  feedSourceName,
+  feedUrlSchema,
+  mergeNews,
+} from './merge';
+export type { FeedPreviewReport } from './merge';

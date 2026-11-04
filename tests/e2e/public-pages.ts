@@ -36,6 +36,7 @@ export const PUBLIC_PAGES = [
   '/database?report=ratings',
   '/rss',
   '/rss?source=site&sort=title',
+  '/rss?feed=ftp%3A%2F%2Fexample.com%2Frss',
   '/weather?q=Париж',
   '/weather?city=2988507',
   '/links',

@@ -1,6 +1,9 @@
 import 'server-only';
 import { NEWS_CATEGORIES, isNewsCategory } from '@/modules/news';
 import { listLatestNews, removeIndustryNewsOfFeed, trimIndustryNews } from '@/modules/news/server';
+import { env } from '@/server/env';
+import { takeRateLimit } from '@/server/rate-limit';
+import { getClientIp } from '@/server/request';
 import { SITE_URL } from '@/shared/config/site';
 import { fail, ok, type Result } from '@/shared/lib/result';
 import {
@@ -26,6 +29,13 @@ import {
   type IndustryCategory,
 } from '../feeds';
 import { industryQuota } from '../industry';
+import {
+  MERGED_SITE_ITEMS,
+  feedItemsToNews,
+  feedSourceName,
+  feedUrlSchema,
+  mergeNews,
+} from '../merge';
 import { parseFeed, type FeedItem } from '../rss';
 import { downloadFeed, importFeed, importIndustryNews, type FeedImportResult } from './import';
 import * as repository from './repository';
@@ -88,6 +98,67 @@ export async function getRssPage(
     composition,
     feeds,
   };
+}
+
+export type MergedFeed = {
+  url: string;
+  source: string;
+  items: CombinedNewsItem[];
+  /** Сколько в списке записей ленты и новостей сайта. */
+  feedCount: number;
+  siteCount: number;
+  /** Сколько записей в ленте всего и сколько не показано (без ссылки, про настоящие авиакомпании). */
+  received: number;
+  skipped: number;
+};
+export type MergedFeedError = 'INVALID_URL' | 'NOT_A_FEED' | 'EMPTY' | 'TOO_MANY_REQUESTS';
+/** У ошибки INVALID_URL — текст из схемы: что не так с адресом. */
+export type MergedFeedResult =
+  { ok: true; data: MergedFeed } | { ok: false; error: MergedFeedError; message?: string };
+
+/** Чужой сайт скачивается по каждому запросу — не чаще 10 раз в минуту с одного адреса. */
+const MERGE_LIMIT = { limit: 10, windowMs: 60_000 };
+
+/**
+ * Объединённые новости по введённому адресу (замечание преподавателя по лабе 4): скачать ленту
+ * с защитой от адресов внутренней сети (downloadFeed), разобрать на записи и перемешать
+ * с последними новостями сайта. Ничего не сохраняется.
+ */
+export async function getMergedFeed(rawUrl: unknown, now = new Date()): Promise<MergedFeedResult> {
+  const parsed = feedUrlSchema.safeParse(typeof rawUrl === 'string' ? rawUrl : '');
+  if (!parsed.success) {
+    return { ...fail('INVALID_URL'), message: parsed.error.issues[0]?.message };
+  }
+  const url = parsed.data;
+  const allowed =
+    env.RATE_LIMIT_DISABLED || takeRateLimit(`merge:${await getClientIp()}`, MERGE_LIMIT);
+  if (!allowed) return fail('TOO_MANY_REQUESTS');
+
+  let received: FeedItem[];
+  try {
+    received = parseFeed(await downloadFeed(url));
+  } catch {
+    return fail('NOT_A_FEED');
+  }
+  const source = feedSourceName(url);
+  const report = feedItemsToNews(received, source, now);
+  if (report.items.length === 0) return fail('EMPTY');
+
+  const site = await repository.findCombinedNews(
+    { q: '', source: 'site', sort: 'new' },
+    { limit: MERGED_SITE_ITEMS, offset: 0 },
+    now,
+  );
+  const siteItems = site.rows.map(toItem);
+  return ok({
+    url,
+    source,
+    items: mergeNews(siteItems, report.items),
+    feedCount: report.items.length,
+    siteCount: siteItems.length,
+    received: received.length,
+    skipped: report.skippedInvalid + report.skippedAirline,
+  });
 }
 
 /** Названия лент по коду — подпись источника у новостей отрасли на `/news`. */

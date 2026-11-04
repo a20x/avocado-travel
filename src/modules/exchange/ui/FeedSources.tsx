@@ -110,8 +110,10 @@ export function FeedSources({ feeds, isAdmin }: { feeds: ExternalFeedStatus[]; i
         </div>
       ) : (
         <p className="text-sm text-slate">
-          Подключать и отключать ленты может администратор —{' '}
-          <Link href="/login?next=%2Frss">войти</Link>.
+          Подключать ленты насовсем (с сохранением новостей в базу) может только администратор —{' '}
+          <Link href="/login?next=%2Frss">войти под его учётной записью</Link>. Посмотреть любую
+          ленту вместе с новостями сайта может каждый — в блоке{' '}
+          <a href="#merged">«Объединённые новости»</a> в начале страницы.
         </p>
       )}
     </Card>
