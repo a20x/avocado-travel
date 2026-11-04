@@ -35,6 +35,17 @@ export type SignUpInput = z.infer<typeof signUpSchema>;
 
 export type AuthError = 'EMAIL_TAKEN' | 'INVALID_CREDENTIALS' | 'TOO_MANY_REQUESTS';
 
+/**
+ * Страница «Только для администратора»: сюда ведёт закрытая страница админки, если вошёл
+ * обычный пользователь. Раньше он получал 404 и не понимал, что нужно войти под другим аккаунтом.
+ */
+export const ACCESS_DENIED_PATH = '/access-denied';
+
+/** Адрес страницы «Только для администратора» с возвратом на `returnTo` после входа. */
+export function accessDeniedHref(returnTo: string): string {
+  return `${ACCESS_DENIED_PATH}?next=${encodeURIComponent(returnTo)}`;
+}
+
 /** Куда вести покупателя после входа по умолчанию. */
 export const DEFAULT_AFTER_SIGN_IN = '/account';
 

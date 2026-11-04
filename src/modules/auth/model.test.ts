@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  accessDeniedHref,
   afterSignIn,
   explicitReturnPath,
   homeFor,
@@ -58,5 +59,11 @@ describe('формы входа и регистрации', () => {
   it('знает только свои роли', () => {
     expect(isRole('admin')).toBe(true);
     expect(isRole('root')).toBe(false);
+  });
+});
+
+describe('страница «Только для администратора»', () => {
+  it('ведёт с возвратом на закрытую страницу', () => {
+    expect(accessDeniedHref('/admin/cities')).toBe('/access-denied?next=%2Fadmin%2Fcities');
   });
 });
