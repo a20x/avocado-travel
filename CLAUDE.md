@@ -49,6 +49,10 @@
 - Копировать интерфейсные решения существующих сервисов продажи билетов — см. `docs/06-design.md`.
 - Коммитить в `main` напрямую.
 
+## Хостинг и деплой
+
+Сайт работает в двух копиях из `main`: Render + Neon (`https://avocado-travel.onrender.com`) и alwaysdata со своей базой (`https://avocado-travel.alwaysdata.net`, выкладка — workflow «Сайт на alwaysdata»). На любой вопрос или проблему с хостингом, выкладкой, cron-заданиями или боевыми базами сначала прочитай `docs/09-deploy.md` целиком: там карта площадок, устройство выкладки, ручные действия и таблицы «признак → причина». Решения — ADR-0009 и ADR-0012.
+
 ## Команды
 
 `pnpm dev`, `pnpm check` (всё сразу), `pnpm test`, `pnpm test:e2e`, `pnpm db:up`, `pnpm db:migrate`, `pnpm db:seed`, `pnpm db:reset`. Полный список — `docs/07-conventions.md`.
