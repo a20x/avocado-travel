@@ -4,12 +4,15 @@ import { addDays, dateInZone, zonedTimeToUtc } from '@/shared/lib/time';
 import {
   FLIGHTS_PAGE_SIZE,
   dbQuerySchema,
+  clampToSales,
   fillScores,
   pickAirline,
+  salesPeriod,
   type DbPassport,
   type DbQuery,
   type DbResult,
   type FlightCombo,
+  type SalesSpan,
   type SqlText,
 } from '../model';
 import * as repository from './repository';
@@ -30,6 +33,8 @@ export type DatabasePage = {
   result: DbResult | null;
   /** Текст выполненных запросов — для блока «SQL этого запроса». */
   sql: SqlText[];
+  /** Периоды продаж авиакомпаний — границы календаря в сводках продаж (только у них). */
+  salesSpans?: SalesSpan[];
 };
 
 /**
@@ -115,13 +120,30 @@ export async function runDatabaseQuery(
       const found = await repository.summarizeSchedule(now);
       return { query, result: { report: 'schedule', rows: found.rows }, sql: [found.sql] };
     }
-    case 'airlines': {
-      const found = await repository.summarizeAirlines(range);
-      return { query, result: { report: 'airlines', rows: found.rows }, sql: [found.sql] };
-    }
+    case 'airlines':
     case 'months': {
-      const found = await repository.summarizeMonths(range, query.airline);
-      return { query, result: { report: 'months', rows: found.rows }, sql: [found.sql] };
+      // Даты — в периоде продаж (у «Динамики» по выбранной авиакомпании): вне его пусто.
+      const salesSpans = await repository.listSalesSpans();
+      const airline = query.report === 'months' ? query.airline : undefined;
+      const period = salesPeriod(salesSpans, airline);
+      query = clampToSales(query, period);
+      const clamped = rangeOf(query);
+      if (query.report === 'airlines') {
+        const found = await repository.summarizeAirlines(clamped);
+        return {
+          query,
+          result: { report: 'airlines', rows: found.rows, period },
+          sql: [found.sql],
+          salesSpans,
+        };
+      }
+      const found = await repository.summarizeMonths(clamped, airline);
+      return {
+        query,
+        result: { report: 'months', rows: found.rows, period },
+        sql: [found.sql],
+        salesSpans,
+      };
     }
     case 'ratings': {
       const found = await repository.summarizeRatings();

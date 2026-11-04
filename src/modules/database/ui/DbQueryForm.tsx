@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Button } from '@/shared/ui/Button';
-import { Input } from '@/shared/ui/Input';
 import { LinkedSelects } from '@/shared/ui/LinkedSelects';
 import { Select, type SelectOption } from '@/shared/ui/Select';
 import {
@@ -10,8 +9,10 @@ import {
   type DbReport,
   type FlightCombo,
   type FlightSort,
+  type SalesSpan,
 } from '../model';
 import { FlightQueryFields } from './FlightQueryFields';
+import { SalesQueryFields } from './SalesQueryFields';
 
 /** Что делает каждый запрос — подпись над формой. */
 const DESCRIPTIONS: Record<DbReport, string> = {
@@ -41,6 +42,7 @@ export function DbQueryForm({
   airlines,
   combos,
   flightAirlines,
+  salesSpans = [],
 }: {
   /** Вид запроса — без разделов «Ввод» и «Сведения о БД»: у них формы нет. */
   report: DbReport;
@@ -51,6 +53,8 @@ export function DbQueryForm({
   combos: FlightCombo[];
   /** Варианты поиска по одному атрибуту — авиакомпании из таблицы рейсов. */
   flightAirlines: AirlineOption[];
+  /** Периоды продаж авиакомпаний — границы календаря в сводках продаж. */
+  salesSpans?: SalesSpan[];
 }) {
   const withDates = report === 'airlines' || report === 'months';
   // У этих запросов условий нет: форма — описание и кнопка.
@@ -121,30 +125,15 @@ export function DbQueryForm({
             />
           ) : null}
 
-          {report === 'months' ? (
-            <Select
-              name="airline"
-              label="Авиакомпания"
-              defaultValue={query.airline ?? ''}
-              options={[{ value: '', label: 'Все авиакомпании' }, ...airlines]}
-            />
-          ) : null}
-
           {withDates ? (
-            <>
-              <Input
-                name="dateFrom"
-                type="date"
-                label="Заказы с даты"
-                defaultValue={query.dateFrom ?? ''}
-              />
-              <Input
-                name="dateTo"
-                type="date"
-                label="По дату включительно"
-                defaultValue={query.dateTo ?? ''}
-              />
-            </>
+            <SalesQueryFields
+              key={`${query.airline ?? ''}-${query.dateFrom ?? ''}-${query.dateTo ?? ''}`}
+              spans={salesSpans}
+              airlines={report === 'months' ? airlines : undefined}
+              airline={query.airline}
+              dateFrom={query.dateFrom}
+              dateTo={query.dateTo}
+            />
           ) : null}
         </div>
       )}

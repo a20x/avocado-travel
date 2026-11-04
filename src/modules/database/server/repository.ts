@@ -34,6 +34,7 @@ import type {
   FlightCombo,
   RatingRow,
   RouteRow,
+  SalesSpan,
   ScheduleRow,
   SqlText,
 } from '../model';
@@ -295,6 +296,28 @@ export async function summarizeAirlines(range: Range): Promise<Executed<AirlineR
       .groupBy(airlines.name)
       .orderBy(desc(sum(tickets.price))),
   );
+}
+
+/** День оформления заказа по Москве — как его понимают даты формы сводок. */
+const orderDay = sql<string>`to_char(${orders.createdAt} at time zone 'Europe/Moscow', 'YYYY-MM-DD')`;
+
+/**
+ * Первый и последний день продаж каждой авиакомпании (оплаченные действующие билеты): границы
+ * календаря в сводках, чтобы нельзя было выбрать период без продаж.
+ */
+export function listSalesSpans(): Promise<SalesSpan[]> {
+  return db
+    .select({
+      airline: airlines.code,
+      first: sql<string>`min(${orderDay})`,
+      last: sql<string>`max(${orderDay})`,
+    })
+    .from(tickets)
+    .innerJoin(orders, eq(orders.id, tickets.orderId))
+    .innerJoin(flights, eq(flights.id, tickets.flightId))
+    .innerJoin(airlines, eq(airlines.id, flights.airlineId))
+    .where(paidTicketsWhere({}))
+    .groupBy(airlines.code);
 }
 
 /** 4. Динамика продаж: заказы, билеты и выручка по месяцам (месяц — по Москве). */

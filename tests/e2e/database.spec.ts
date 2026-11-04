@@ -101,3 +101,37 @@ test('БД: сводки с графиком и точными значения�
   await expect(page.getByText('Средняя оценка')).toBeVisible();
   await expect(page.getByText(/^\d+ \/ 5$/).first()).toBeAttached();
 });
+
+test('БД: даты сводок — только в периоде продаж, пустого результата из-за дат нет', async ({
+  page,
+}) => {
+  // Период целиком после продаж — сервер подтягивает его к последнему дню продаж.
+  await page.goto('/database?report=airlines&dateFrom=2035-01-01&dateTo=2035-02-01');
+  const form = page.getByRole('form', { name: 'Условия запроса' });
+  const from = form.getByLabel('Заказы с даты');
+  const to = form.getByLabel('По дату включительно');
+  const last = await from.getAttribute('max');
+  expect(last).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  expect(await from.getAttribute('min')).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  await expect(from).toHaveValue(last!);
+  await expect(to).toHaveValue(last!);
+  await expect(
+    form.getByText(/^Продажи есть с .+ по .+ — даты выбираются в этих границах\.$/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('table', { name: 'Точные значения: продажи по авиакомпаниям' }).getByRole('row'),
+  ).not.toHaveCount(1);
+
+  // «Динамика»: в списке только авиакомпании с продажами, у каждой — свой период.
+  await page.goto('/database?report=months');
+  const months = page.getByRole('form', { name: 'Условия запроса' });
+  const options = await months.getByLabel('Авиакомпания').locator('option').allTextContents();
+  expect(options[0]).toBe('Все авиакомпании');
+  expect(options.length).toBeGreaterThan(1);
+  await months.getByLabel('Авиакомпания').selectOption({ index: 1 });
+  await expect(months.getByText(/^Продажи есть с /)).toBeVisible();
+  await months.getByRole('button', { name: 'Выполнить запрос' }).click();
+  await expect(
+    page.getByRole('table', { name: 'Точные значения: продажи по месяцам' }).getByRole('row'),
+  ).not.toHaveCount(1);
+});

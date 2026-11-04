@@ -33,6 +33,38 @@ function Empty() {
   );
 }
 
+/**
+ * Сводка продаж пуста: в выбранные дни продаж не было (даты внутри периода продаж, но,
+ * например, в этот день у авиакомпании не купили ни одного билета). Вместо «Ничего не нашлось» —
+ * ссылка на весь период с продажами: пустой страницы преподаватель не увидит.
+ */
+function NoSales({
+  query,
+  period,
+}: {
+  query: DbQuery;
+  period: { first: string; last: string } | null;
+}) {
+  return (
+    <EmptyState
+      image="/images/illustrations/no-results.svg"
+      title="В эти дни продаж не было"
+      text={
+        period
+          ? `Продажи есть с ${formatDate(period.first, { year: true })} по ${formatDate(period.last, { year: true })}.`
+          : 'Продаж пока нет.'
+      }
+      action={
+        period ? (
+          <Link href={dbHref({ ...query, dateFrom: undefined, dateTo: undefined })}>
+            Показать весь период с продажами
+          </Link>
+        ) : undefined
+      }
+    />
+  );
+}
+
 /** В выбранные даты рейсов нет — ссылки на ближайшие дни, когда по тем же условиям летаем. */
 function NearestDates({ query, dates }: { query: DbQuery; dates: string[] }) {
   return (
@@ -315,7 +347,7 @@ function ResultBody({
         <>
           <Summary count={result.rows.length} fetchedAt={fetchedAt} />
           {result.rows.length === 0 ? (
-            <Empty />
+            <NoSales query={query} period={result.period} />
           ) : (
             <>
               <h3 className="text-lg">Выручка по авиакомпаниям</h3>
@@ -366,7 +398,7 @@ function ResultBody({
         <>
           <Summary count={result.rows.length} fetchedAt={fetchedAt} />
           {result.rows.length === 0 ? (
-            <Empty />
+            <NoSales query={query} period={result.period} />
           ) : (
             <>
               <h3 className="text-lg">Выручка по месяцам</h3>
