@@ -34,21 +34,13 @@ function SiteSearch({ id, name, className }: { id: string; name: string; classNa
 }
 
 /** Вход или, если пользователь уже вошёл, — его раздел: кабинет покупателя или админка. */
-function AccountLink({
-  href,
-  label,
-  fullWidth = false,
-}: {
-  href: string;
-  label: string;
-  fullWidth?: boolean;
-}) {
+function AccountLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
       className={cn(
-        buttonClasses({ variant: 'secondary', fullWidth }),
-        !fullWidth && 'px-3! text-sm!',
+        buttonClasses({ variant: 'secondary' }),
+        'px-2.5! text-sm! whitespace-nowrap sm:px-3!',
       )}
     >
       {label}
@@ -66,14 +58,24 @@ export async function SiteHeader() {
 
   return (
     <header className="relative border-b border-line bg-white">
-      <div className="container-site flex h-16 items-center gap-6 lg:h-auto lg:flex-wrap lg:gap-y-2 lg:py-3 xl:grid xl:grid-cols-[minmax(0,1fr)_max-content_minmax(0,1fr)]">
+      <div className="container-site flex h-16 items-center gap-3 lg:h-auto lg:gap-x-6 lg:flex-wrap lg:gap-y-2 lg:py-3 xl:grid xl:grid-cols-[minmax(0,1fr)_max-content_minmax(0,1fr)]">
         <Link href="/" className="flex-1 lg:flex-none xl:col-start-1 xl:row-start-1">
+          {/* Уже 640 px — только знак: рядом должны поместиться кнопки входа и меню. */}
+          <Image
+            src="/images/brand/logo-mark.svg"
+            alt="Avocado Travel — на главную"
+            width={36}
+            height={36}
+            priority
+            className="sm:hidden"
+          />
           <Image
             src="/images/brand/logo.svg"
             alt="Avocado Travel — на главную"
             width={178}
             height={36}
             priority
+            className="hidden sm:block"
           />
         </Link>
 
@@ -83,7 +85,8 @@ export async function SiteHeader() {
           name="Поиск по сайту"
           className="hidden min-w-56 flex-1 lg:block xl:col-start-2 xl:row-start-1 xl:w-full"
         />
-        <div className="hidden shrink-0 items-center gap-2 lg:flex xl:col-start-3 xl:row-start-1 xl:justify-self-end">
+        {/* Вход и регистрация видны при любой ширине, без открытия меню (замечание по лабе 1). */}
+        <div className="flex shrink-0 items-center gap-2 xl:col-start-3 xl:row-start-1 xl:justify-self-end">
           <AccountLink {...account} />
           {!user && <AccountLink href="/register" label="Регистрация" />}
         </div>
@@ -93,8 +96,6 @@ export async function SiteHeader() {
           <div className="absolute inset-x-0 top-16 z-20 grid gap-4 border-b border-line bg-white p-4 shadow-card">
             <SiteSearch id="site-search-mobile" name="Поиск по сайту (мобильное меню)" />
             <MobileNavList />
-            <AccountLink {...account} fullWidth />
-            {!user && <AccountLink href="/register" label="Регистрация" fullWidth />}
           </div>
         </MobileMenu>
       </div>
