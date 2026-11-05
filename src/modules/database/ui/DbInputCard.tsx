@@ -1,6 +1,10 @@
 import Link from 'next/link';
+import { withBack } from '@/shared/lib/return-path';
 import { buttonClasses } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
+
+/** Этот раздел: формы и списки возвращаются сюда со стрелки и после сохранения. */
+const INPUT_PATH = '/database?report=input';
 
 /** Формы ввода в админке: добавить записи и их список. */
 const FORMS = [
@@ -51,10 +55,10 @@ export function DbInputCard({ isAdmin }: { isAdmin: boolean }) {
       <ul className="grid gap-3 sm:grid-cols-3">
         {FORMS.map((form) => (
           <li key={form.add} className="grid content-start gap-2">
-            <Link href={form.add} className={buttonClasses()}>
+            <Link href={withBack(form.add, INPUT_PATH)} className={buttonClasses()}>
               {form.addLabel}
             </Link>
-            <Link href={form.list} className="justify-self-center">
+            <Link href={withBack(form.list, INPUT_PATH)} className="justify-self-center">
               {form.listLabel}
             </Link>
           </li>

@@ -32,7 +32,7 @@ test('БД: меню разделов словами преподавателя,
   const input = page.getByRole('region', { name: 'Ввод данных' });
   await expect(input.getByRole('link', { name: 'Добавить рейсы' })).toHaveAttribute(
     'href',
-    '/admin/flights/new',
+    '/admin/flights/new?back=%2Fdatabase%3Freport%3Dinput',
   );
   await expect(input.getByRole('link', { name: 'Войти как администратор' })).toBeVisible();
 

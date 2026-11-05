@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/modules/auth/server';
+import { returnPath, withParams } from '@/shared/lib/return-path';
 import type { ActionState } from '@/shared/ui/ActionForm';
 import {
   airlineInputSchema,
@@ -111,6 +112,7 @@ export async function saveCityAction(
   // Права — в каждом action: страница админки уже проверила, но запрос можно отправить и в обход неё.
   await requireAdmin();
   const slug = String(formData.get('slug') ?? '');
+  const back = returnPath(formData.get('back'));
   const values = readForm(formData, slug ? CITY_FIELDS : [...CITY_FIELDS, ...AIRPORT_FIELDS]);
 
   if (slug) {
@@ -118,7 +120,7 @@ export async function saveCityAction(
     if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues), values };
     const result = await service.updateCity(slug, parsed.data);
     if (!result.ok) return failure(result.error, values);
-    redirect(`/admin/cities?saved=${encodeURIComponent(result.data.slug)}`);
+    redirect(withParams(back ?? '/admin/cities', { saved: result.data.slug }));
   }
 
   const parsed = newCitySchema.safeParse(values);
@@ -131,18 +133,18 @@ export async function saveCityAction(
     return { saved: { value: result.data.slug, label: parsed.data.name } };
   }
   // Открыли кнопкой «Добавить» из формы рейсов — обратно туда, с аэропортом нового города.
-  const back = referenceReturnSchema.parse(formData.get('returnTo'));
-  if (back === 'flights-origin' || back === 'flights-destination') {
-    redirect(referenceReturnHref(back, parsed.data.iata));
+  const target = referenceReturnSchema.parse(formData.get('returnTo'));
+  if (target === 'flights-origin' || target === 'flights-destination') {
+    redirect(referenceReturnHref(target, parsed.data.iata, back));
   }
-  redirect(`/admin/cities?saved=${encodeURIComponent(result.data.slug)}`);
+  redirect(withParams(back ?? '/admin/cities', { saved: result.data.slug }));
 }
 
 export async function deleteCityAction(_: ActionState, formData: FormData): Promise<ActionState> {
   await requireAdmin();
   const result = await service.deleteCity(String(formData.get('slug') ?? ''));
   if (!result.ok) return { error: MESSAGES[result.error] };
-  redirect('/admin/cities?deleted=1');
+  redirect(withParams(returnPath(formData.get('back')) ?? '/admin/cities', { deleted: 1 }));
 }
 
 /** Авиакомпания: с `currentCode` в форме — правка, без — новая. */
@@ -152,6 +154,7 @@ export async function saveAirlineAction(
 ): Promise<ReferenceFormState> {
   await requireAdmin();
   const currentCode = String(formData.get('currentCode') ?? '');
+  const back = returnPath(formData.get('back'));
   const values = readForm(formData, AIRLINE_FIELDS);
 
   let result;
@@ -166,9 +169,9 @@ export async function saveAirlineAction(
   }
   if (!result.ok) return failure(result.error, values);
   // Новую авиакомпанию открыли кнопкой «Добавить» из формы рейсов — обратно туда, с ней в списке.
-  const back = currentCode ? undefined : referenceReturnSchema.parse(formData.get('returnTo'));
-  if (back === 'flights-airline') redirect(referenceReturnHref(back, result.data.code));
-  redirect(`/admin/airlines?saved=${encodeURIComponent(result.data.code)}`);
+  const target = currentCode ? undefined : referenceReturnSchema.parse(formData.get('returnTo'));
+  if (target === 'flights-airline') redirect(referenceReturnHref(target, result.data.code, back));
+  redirect(withParams(back ?? '/admin/airlines', { saved: result.data.code }));
 }
 
 export async function deleteAirlineAction(
@@ -178,5 +181,5 @@ export async function deleteAirlineAction(
   await requireAdmin();
   const result = await service.deleteAirline(String(formData.get('code') ?? ''));
   if (!result.ok) return { error: MESSAGES[result.error] };
-  redirect('/admin/airlines?deleted=1');
+  redirect(withParams(returnPath(formData.get('back')) ?? '/admin/airlines', { deleted: 1 }));
 }

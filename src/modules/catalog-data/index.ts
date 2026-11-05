@@ -34,7 +34,7 @@ export {
   referenceReturnHref,
   referenceReturnSchema,
 } from './model';
-export type { ReferenceKind, ReferenceLists, ReferenceReturn } from './model';
+export type { AddableReferenceKind, ReferenceKind, ReferenceLists, ReferenceReturn } from './model';
 
 /** Схема салона и вместимость самолёта. */
 export { buildCabin, listSeats, parseLayout, seatCapacity, seatClass } from './cabin';

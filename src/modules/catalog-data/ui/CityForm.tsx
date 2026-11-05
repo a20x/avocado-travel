@@ -4,7 +4,7 @@ import { useActionState } from 'react';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { Input } from '@/shared/ui/Input';
-import type { SelectOption } from '@/shared/ui/Select';
+import { Select, type SelectOption } from '@/shared/ui/Select';
 import { Textarea } from '@/shared/ui/Textarea';
 import type { ReferenceLists, ReferenceReturn } from '../model';
 import { saveCityAction, type ReferenceFormState } from '../server/actions';
@@ -48,12 +48,14 @@ type CityFormProps = {
   lists: ReferenceLists;
   /** Форму открыли кнопкой «Добавить» из формы рейсов: после сохранения — обратно туда. */
   returnTo?: ReferenceReturn;
+  /** Откуда пришли: туда форма вернёт после сохранения. */
+  back?: string;
   /** Форма в окне кнопки «Добавить» в форме авиакомпании: сохранение без перехода на другую страницу. */
   inline?: { onSaved: (option: SelectOption) => void; onCancel: () => void };
 };
 
 /** Форма города в админке: создание (вместе с первым аэропортом) и правка. */
-export function CityForm({ slug, initial, lists, returnTo, inline }: CityFormProps) {
+export function CityForm({ slug, initial, lists, returnTo, back, inline }: CityFormProps) {
   const [state, formAction, pending] = useActionState<ReferenceFormState, FormData>(
     inline
       ? async (previous, formData) => {
@@ -74,6 +76,7 @@ export function CityForm({ slug, initial, lists, returnTo, inline }: CityFormPro
     <form action={formAction} noValidate className="grid gap-5 md:grid-cols-2">
       {slug ? <input type="hidden" name="slug" value={slug} /> : null}
       {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
+      {back ? <input type="hidden" name="back" value={back} /> : null}
       {inline ? <input type="hidden" name="inline" value="1" /> : null}
       {state.error ? (
         <p role="alert" className="rounded-sm bg-error-bg px-4 py-3 text-error md:col-span-2">
@@ -98,11 +101,16 @@ export function CityForm({ slug, initial, lists, returnTo, inline }: CityFormPro
         defaultValue={value('country')}
         error={errors.country}
       />
-      <ReferenceValueSelect
-        kind="world_part"
+      {/* Части света — закрытый список, пополнять нечем. key: см. Select — выбор после ошибки. */}
+      <Select
+        key={`worldPart-${value('worldPart')}`}
         name="worldPart"
+        label="Часть света"
         idPrefix={idPrefix}
-        values={lists.world_part}
+        options={[
+          { value: '', label: 'Выберите часть света' },
+          ...lists.world_part.map((part) => ({ value: part, label: part })),
+        ]}
         defaultValue={value('worldPart')}
         error={errors.worldPart}
       />

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { plural } from '@/shared/lib/format';
+import { withBack } from '@/shared/lib/return-path';
 import { buttonClasses } from '@/shared/ui/Button';
 import { ConfirmButton } from '@/shared/ui/ConfirmButton';
 import { Table } from '@/shared/ui/Table';
@@ -11,7 +12,9 @@ const flightsLabel = (count: number) =>
   `${count.toLocaleString('ru-RU')} ${plural(count, ['рейс', 'рейса', 'рейсов'])}`;
 
 /** Города в админке по алфавиту: аэропорты, число рейсов, правка и удаление. */
-export function CityTable({ cities }: { cities: CityAdminRow[] }) {
+export function CityTable({ cities, back }: { cities: CityAdminRow[]; back?: string }) {
+  // Правка и удаление вернут в этот список, а он — туда, откуда пришли в него.
+  const here = withBack('/admin/cities', back);
   return (
     <Table caption="Города по алфавиту">
       <thead>
@@ -39,7 +42,7 @@ export function CityTable({ cities }: { cities: CityAdminRow[] }) {
             <td>
               <div className="flex items-center justify-end gap-1 whitespace-nowrap">
                 <Link
-                  href={`/admin/cities/${city.slug}/edit`}
+                  href={withBack(`/admin/cities/${city.slug}/edit`, here)}
                   className={buttonClasses({ variant: 'ghost' })}
                 >
                   Изменить<span className="sr-only">: {city.name}</span>
@@ -57,6 +60,7 @@ export function CityTable({ cities }: { cities: CityAdminRow[] }) {
                   permalink="/admin/cities"
                 >
                   <input type="hidden" name="slug" value={city.slug} />
+                  <input type="hidden" name="back" value={here} />
                 </ConfirmButton>
               </div>
             </td>
@@ -68,7 +72,8 @@ export function CityTable({ cities }: { cities: CityAdminRow[] }) {
 }
 
 /** Авиакомпании в админке по алфавиту: число рейсов, правка и удаление. */
-export function AirlineTable({ airlines }: { airlines: AirlineAdminRow[] }) {
+export function AirlineTable({ airlines, back }: { airlines: AirlineAdminRow[]; back?: string }) {
+  const here = withBack('/admin/airlines', back);
   return (
     <Table caption="Авиакомпании по алфавиту">
       <thead>
@@ -101,7 +106,7 @@ export function AirlineTable({ airlines }: { airlines: AirlineAdminRow[] }) {
             <td>
               <div className="flex items-center justify-end gap-1 whitespace-nowrap">
                 <Link
-                  href={`/admin/airlines/${airline.code}/edit`}
+                  href={withBack(`/admin/airlines/${airline.code}/edit`, here)}
                   className={buttonClasses({ variant: 'ghost' })}
                 >
                   Изменить<span className="sr-only">: {airline.name}</span>
@@ -119,6 +124,7 @@ export function AirlineTable({ airlines }: { airlines: AirlineAdminRow[] }) {
                   permalink="/admin/airlines"
                 >
                   <input type="hidden" name="code" value={airline.code} />
+                  <input type="hidden" name="back" value={here} />
                 </ConfirmButton>
               </div>
             </td>

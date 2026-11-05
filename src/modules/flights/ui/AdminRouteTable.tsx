@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { withBack } from '@/shared/lib/return-path';
 import { formatDate, plural } from '@/shared/lib/format';
 import { dateInZone } from '@/shared/lib/time';
 import { Badge } from '@/shared/ui/Badge';
@@ -15,7 +16,9 @@ const day = (at: Date) => formatDate(dateInZone(at, 'Europe/Moscow'), { year: tr
  * предстоящих рейсов с правкой каждого, «Изменить» — правка всех предстоящих рейсов сразу.
  * Удалить можно маршрут без билетов — например, заведённый по ошибке.
  */
-export function AdminRouteTable({ routes }: { routes: AdminRoute[] }) {
+export function AdminRouteTable({ routes, back }: { routes: AdminRoute[]; back?: string }) {
+  // Удаление вернёт в этот список, а он — туда, откуда пришли в него.
+  const here = withBack('/admin/flights', back);
   return (
     <Table caption="Маршруты по алфавиту городов">
       <thead>
@@ -73,6 +76,7 @@ export function AdminRouteTable({ routes }: { routes: AdminRoute[] }) {
                       <input type="hidden" name="airline" value={route.airlineCode} />
                       <input type="hidden" name="origin" value={route.originIata} />
                       <input type="hidden" name="destination" value={route.destinationIata} />
+                      <input type="hidden" name="back" value={here} />
                     </ConfirmButton>
                   )}
                 </div>

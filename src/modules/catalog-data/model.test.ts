@@ -99,6 +99,9 @@ describe('форма авиакомпании', () => {
 
 describe('кнопка «Добавить» в форме рейсов: возврат после сохранения', () => {
   it('возвращает в форму рейсов с новым значением в нужном списке', () => {
+    expect(referenceReturnHref('flights-airline', 'NRD', '/database?report=input')).toBe(
+      '/admin/flights/new?airline=NRD&back=%2Fdatabase%3Freport%3Dinput',
+    );
     expect(referenceReturnHref('flights-airline', 'NRD')).toBe('/admin/flights/new?airline=NRD');
     expect(referenceReturnHref('flights-origin', 'MMK')).toBe('/admin/flights/new?origin=MMK');
     expect(referenceReturnHref('flights-destination', 'MMK')).toBe(
@@ -138,8 +141,11 @@ describe('новое значение списка из окна «Добави�
     );
   });
 
-  it('не принимает чужой вид списка', () => {
+  it('не принимает чужой вид списка и новые части света', () => {
     expect(newReferenceValueSchema.safeParse({ kind: 'users', value: 'Иван' }).success).toBe(false);
+    expect(
+      newReferenceValueSchema.safeParse({ kind: 'world_part', value: 'Атлантида' }).success,
+    ).toBe(false);
   });
 });
 
