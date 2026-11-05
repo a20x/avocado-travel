@@ -15,6 +15,8 @@ import {
   type CityInput,
   type NewAirlineInput,
   type NewCityInput,
+  type NewReferenceValue,
+  type ReferenceLists,
 } from '../model';
 import * as repository from './repository';
 
@@ -59,6 +61,27 @@ export function listAircraftModels(): Promise<AircraftModel[]> {
   return repository.findAllAircraftModels();
 }
 
+/** Значения выпадающих списков форм: каждое один раз, по алфавиту. */
+export async function getReferenceLists(): Promise<ReferenceLists> {
+  const lists: ReferenceLists = { country: [], world_part: [], timezone: [], airline_type: [] };
+  for (const { kind, value } of await repository.findReferenceValues()) {
+    if (kind in lists) lists[kind as keyof ReferenceLists].push(value);
+  }
+  for (const list of Object.values(lists)) list.sort((a, b) => a.localeCompare(b, 'ru'));
+  return lists;
+}
+
+/**
+ * Новое значение списка. Такое уже есть, даже написанное иначе, — возвращается оно:
+ * дублей в списке не бывает, а форма просто выберет нужное значение.
+ */
+export async function addReferenceValue({ kind, value }: NewReferenceValue): Promise<string> {
+  const existing = await repository.findReferenceValue(kind, value);
+  if (existing) return existing;
+  await repository.insertReferenceValue(kind, value);
+  return value;
+}
+
 /*
  * Правка справочников в админке. Права проверяет action, ввод — схемы Zod из model.ts.
  * Город и авиакомпанию с рейсами удалить нельзя: на рейсы ссылаются билеты и отчёты.
@@ -71,6 +94,7 @@ export async function listCitiesForAdmin(): Promise<CityAdminRow[]> {
     slug: city.slug,
     name: city.name,
     country: city.country,
+    worldPart: city.worldPart,
     airports: city.airports.map((airport) => airport.iata),
     flights: flights.get(city.slug) ?? 0,
   }));
@@ -80,8 +104,34 @@ export async function listCitiesForAdmin(): Promise<CityAdminRow[]> {
 export async function getCityForEdit(slug: string): Promise<(CityInput & { slug: string }) | null> {
   const city = await repository.findCityBySlug(slug);
   if (!city) return null;
-  const { name, nameFrom, nameTo, country, description } = city;
-  return { slug, name, nameFrom, nameTo, country, description };
+  const { name, nameFrom, nameTo, country, worldPart, description } = city;
+  return { slug, name, nameFrom, nameTo, country, worldPart, description };
+}
+
+/** Значения из списков формы города есть в справочнике: запрос можно отправить и в обход формы. */
+async function checkCityLists(input: {
+  country: string;
+  worldPart: string;
+  timezone?: string;
+}): Promise<CatalogDataError | null> {
+  if (!(await repository.referenceValueExists('country', input.country))) return 'UNKNOWN_COUNTRY';
+  if (!(await repository.referenceValueExists('world_part', input.worldPart))) {
+    return 'UNKNOWN_WORLD_PART';
+  }
+  if (input.timezone && !(await repository.referenceValueExists('timezone', input.timezone))) {
+    return 'UNKNOWN_TIMEZONE';
+  }
+  return null;
+}
+
+/** То же для формы авиакомпании. */
+async function checkAirlineLists(input: AirlineInput): Promise<CatalogDataError | null> {
+  if (!(await repository.referenceValueExists('country', input.country))) return 'UNKNOWN_COUNTRY';
+  if (!(await repository.referenceValueExists('airline_type', input.carrierType))) {
+    return 'UNKNOWN_CARRIER_TYPE';
+  }
+  if (!(await repository.findCityBySlug(input.baseCitySlug))) return 'UNKNOWN_BASE_CITY';
+  return null;
 }
 
 async function reindexCity(slug: string): Promise<void> {
@@ -97,6 +147,8 @@ export async function createCity(
     return fail('CITY_EXISTS');
   }
   if (await repository.findAirportByIata(input.iata)) return fail('IATA_TAKEN');
+  const unknown = await checkCityLists(input);
+  if (unknown) return fail(unknown);
 
   const { iata, airportName, lat, lon, timezone, ...city } = input;
   await repository.insertCity({ slug, ...city }, { iata, name: airportName, lat, lon, timezone });
@@ -110,6 +162,8 @@ export async function updateCity(
 ): Promise<Result<{ slug: string }, CatalogDataError>> {
   const sameName = await repository.findCityByName(input.name);
   if (sameName && sameName.slug !== slug) return fail('CITY_EXISTS');
+  const unknown = await checkCityLists(input);
+  if (unknown) return fail(unknown);
   if (!(await repository.updateCity(slug, input))) return fail('NOT_FOUND');
   await reindexCity(slug);
   return ok({ slug });
@@ -117,6 +171,7 @@ export async function updateCity(
 
 export async function deleteCity(slug: string): Promise<Result<null, CatalogDataError>> {
   if ((await repository.countFlightsOfCity(slug)) > 0) return fail('HAS_FLIGHTS');
+  if ((await repository.countAirlinesBasedIn(slug)) > 0) return fail('HAS_AIRLINES');
   if (!(await repository.deleteCity(slug))) return fail('NOT_FOUND');
   await removeDocument('page', `city:${slug}`);
   return ok(null);
@@ -124,15 +179,20 @@ export async function deleteCity(slug: string): Promise<Result<null, CatalogData
 
 /** Авиакомпании для таблицы админки: число рейсов. */
 export async function listAirlinesForAdmin(): Promise<AirlineAdminRow[]> {
-  const [airlines, flights] = await Promise.all([
+  const [airlines, flights, cities] = await Promise.all([
     listAirlines(),
     repository.countFlightsByAirline(),
+    repository.findAllCities(),
   ]);
-  return airlines.map(({ code, name, color, logo }) => ({
+  const cityName = new Map(cities.map((city) => [city.slug, city.name]));
+  return airlines.map(({ code, name, color, logo, country, carrierType, baseCitySlug }) => ({
     code,
     name,
     color,
     logo,
+    country,
+    carrierType,
+    baseCity: cityName.get(baseCitySlug) ?? baseCitySlug,
     flights: flights.get(code) ?? 0,
   }));
 }
@@ -143,8 +203,8 @@ export async function getAirlineForEdit(
 ): Promise<(AirlineInput & { code: string }) | null> {
   const airline = await repository.findAirlineByCode(code);
   if (!airline) return null;
-  const { name, color, description, baggageIncluded } = airline;
-  return { code, name, color, description, baggageIncluded };
+  const { name, color, description, baggageIncluded, country, carrierType, baseCitySlug } = airline;
+  return { code, name, color, description, baggageIncluded, country, carrierType, baseCitySlug };
 }
 
 export async function createAirline(
@@ -152,6 +212,8 @@ export async function createAirline(
 ): Promise<Result<{ code: string }, CatalogDataError>> {
   if (await repository.findAirlineByCode(input.code)) return fail('CODE_TAKEN');
   if (await repository.findAirlineByName(input.name)) return fail('NAME_TAKEN');
+  const unknown = await checkAirlineLists(input);
+  if (unknown) return fail(unknown);
   await repository.insertAirline({ ...input, logo: DEFAULT_AIRLINE_LOGO });
   return ok({ code: input.code });
 }
@@ -162,6 +224,8 @@ export async function updateAirline(
 ): Promise<Result<{ code: string }, CatalogDataError>> {
   const sameName = await repository.findAirlineByName(input.name);
   if (sameName && sameName.code !== code) return fail('NAME_TAKEN');
+  const unknown = await checkAirlineLists(input);
+  if (unknown) return fail(unknown);
   if (!(await repository.updateAirline(code, input))) return fail('NOT_FOUND');
   return ok({ code });
 }

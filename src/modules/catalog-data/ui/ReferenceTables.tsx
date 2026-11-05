@@ -18,6 +18,7 @@ export function CityTable({ cities }: { cities: CityAdminRow[] }) {
         <tr>
           <th scope="col">Город</th>
           <th scope="col">Страна</th>
+          <th scope="col">Часть света</th>
           <th scope="col">Аэропорты</th>
           <th scope="col">Рейсы</th>
           <th scope="col">
@@ -32,6 +33,7 @@ export function CityTable({ cities }: { cities: CityAdminRow[] }) {
               <Link href={`/destinations/${city.slug}`}>{city.name}</Link>
             </td>
             <td>{city.country}</td>
+            <td>{city.worldPart}</td>
             <td>{city.airports.join(', ')}</td>
             <td className="whitespace-nowrap">{flightsLabel(city.flights)}</td>
             <td>
@@ -73,6 +75,9 @@ export function AirlineTable({ airlines }: { airlines: AirlineAdminRow[] }) {
         <tr>
           <th scope="col">Авиакомпания</th>
           <th scope="col">Код</th>
+          <th scope="col">Страна</th>
+          <th scope="col">Тип</th>
+          <th scope="col">Базовый город</th>
           <th scope="col">Рейсы</th>
           <th scope="col">
             <span className="sr-only">Действия</span>
@@ -89,6 +94,9 @@ export function AirlineTable({ airlines }: { airlines: AirlineAdminRow[] }) {
               </span>
             </td>
             <td>{airline.code}</td>
+            <td>{airline.country}</td>
+            <td>{airline.carrierType}</td>
+            <td>{airline.baseCity}</td>
             <td className="whitespace-nowrap">{flightsLabel(airline.flights)}</td>
             <td>
               <div className="flex items-center justify-end gap-1 whitespace-nowrap">

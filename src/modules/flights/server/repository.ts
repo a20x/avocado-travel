@@ -268,6 +268,16 @@ const ticketsByFlight = db
 
 export type AdminRouteFilter = { city?: string; airline?: string };
 
+/** Какие авиакомпании летают между какими городами — для связанных списков фильтра в админке. */
+export function findAdminRouteCombos() {
+  return db
+    .selectDistinct({ airline: airlines.code, from: origin.citySlug, to: destination.citySlug })
+    .from(flights)
+    .innerJoin(airlines, eq(flights.airlineId, airlines.id))
+    .innerJoin(origin, eq(flights.originId, origin.id))
+    .innerJoin(destination, eq(flights.destinationId, destination.id));
+}
+
 /** Маршруты «авиакомпания: аэропорт → аэропорт»: число рейсов, период, проданные билеты. */
 export function findAdminRoutes(filter: AdminRouteFilter) {
   return db

@@ -12,16 +12,37 @@ export type AircraftModel = typeof aircraftModels.$inferSelect;
 
 /** Ожидаемые ошибки правки справочников. */
 export type CatalogDataError =
-  'NOT_FOUND' | 'CITY_EXISTS' | 'IATA_TAKEN' | 'CODE_TAKEN' | 'NAME_TAKEN' | 'HAS_FLIGHTS';
+  | 'NOT_FOUND'
+  | 'CITY_EXISTS'
+  | 'IATA_TAKEN'
+  | 'CODE_TAKEN'
+  | 'NAME_TAKEN'
+  | 'HAS_FLIGHTS'
+  | 'HAS_AIRLINES'
+  | 'UNKNOWN_COUNTRY'
+  | 'UNKNOWN_WORLD_PART'
+  | 'UNKNOWN_TIMEZONE'
+  | 'UNKNOWN_CARRIER_TYPE'
+  | 'UNKNOWN_BASE_CITY';
+
+/** Какие выпадающие списки форм хранятся в таблице `reference_values` (ADR-0013). */
+export const REFERENCE_KINDS = ['country', 'world_part', 'timezone', 'airline_type'] as const;
+export type ReferenceKind = (typeof REFERENCE_KINDS)[number];
+/** Значения всех списков: каждое один раз, по алфавиту. */
+export type ReferenceLists = Record<ReferenceKind, string[]>;
 
 /** Строка таблицы городов в админке. */
-export type CityAdminRow = Pick<CityRecord, 'slug' | 'name' | 'country'> & {
+export type CityAdminRow = Pick<CityRecord, 'slug' | 'name' | 'country' | 'worldPart'> & {
   airports: string[];
   flights: number;
 };
 
 /** Строка таблицы авиакомпаний в админке. */
-export type AirlineAdminRow = Pick<Airline, 'code' | 'name' | 'color' | 'logo'> & {
+export type AirlineAdminRow = Pick<
+  Airline,
+  'code' | 'name' | 'color' | 'logo' | 'country' | 'carrierType'
+> & {
+  baseCity: string;
   flights: number;
 };
 
@@ -36,6 +57,12 @@ export function isTimeZone(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+/** Самое короткое написание пояса: `asia/tokyo` → `Asia/Tokyo`. */
+function canonicalTimeZone(value: string): string {
+  const zone = new Intl.DateTimeFormat('en-US', { timeZone: value }).resolvedOptions().timeZone;
+  return zone.includes('/') ? zone : value;
 }
 
 const text = (label: string, min: number, max: number) =>
@@ -67,6 +94,29 @@ const coordinate = (label: string, limit: number) =>
         .max(limit, `От −${limit} до ${limit}`),
     );
 
+/** Значение, выбранное в выпадающем списке: пустое — ничего не выбрано. */
+const choice = (message: string) => z.string().trim().min(1, message).max(80, message);
+
+/** Новое значение списка из формы кнопки «Добавить». Часовой пояс должен существовать на самом деле. */
+export const newReferenceValueSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('timezone'),
+    value: z
+      .string()
+      .trim()
+      .refine(isTimeZone, 'Такого часового пояса нет. Формат: Asia/Tokyo')
+      .transform(canonicalTimeZone),
+  }),
+  z.object({
+    kind: z.enum(['country', 'world_part', 'airline_type']),
+    value: text('Значение', 2, 50).refine(
+      (value) => /\p{L}/u.test(value),
+      'Значение должно содержать буквы',
+    ),
+  }),
+]);
+export type NewReferenceValue = z.infer<typeof newReferenceValueSchema>;
+
 /** Форма города: то, что можно поменять и после создания. */
 export const cityInputSchema = z.object({
   name: text('Название', 2, 50).refine(
@@ -75,7 +125,8 @@ export const cityInputSchema = z.object({
   ),
   nameFrom: text('Форма «из …»', 2, 60),
   nameTo: text('Форма «в …»', 2, 60),
-  country: text('Страна', 2, 50),
+  country: choice('Выберите страну'),
+  worldPart: choice('Выберите часть света'),
   description: z.string().trim().max(1000, 'Описание — до 1000 символов'),
 });
 export type CityInput = z.infer<typeof cityInputSchema>;
@@ -97,6 +148,9 @@ export const airlineInputSchema = z.object({
   description: text('Описание', 10, 300),
   // Флажок формы: отмеченный присылает «on», снятый не присылает ничего.
   baggageIncluded: z.string().transform((value) => value === 'on'),
+  country: choice('Выберите страну'),
+  carrierType: choice('Выберите тип авиакомпании'),
+  baseCitySlug: choice('Выберите базовый город'),
 });
 export type AirlineInput = z.infer<typeof airlineInputSchema>;
 
@@ -105,13 +159,6 @@ export const newAirlineSchema = airlineInputSchema.extend({
   code: code('Код — три латинские буквы, например NRD'),
 });
 export type NewAirlineInput = z.infer<typeof newAirlineSchema>;
-
-/** Часовые пояса IANA для списка формы, по алфавиту. */
-export function listTimeZones(): string[] {
-  return Intl.supportedValuesOf('timeZone')
-    .filter((zone) => zone.includes('/'))
-    .sort();
-}
 
 /**
  * Куда вернуться после нового города или авиакомпании, если форму открыли кнопкой «Добавить»

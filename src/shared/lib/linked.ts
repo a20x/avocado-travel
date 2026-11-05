@@ -32,3 +32,27 @@ export function linkedOptions<T extends object, O extends { value: string }>(
   const allowed = new Set(matchingCombos(combos, selected, field).map((combo) => combo[field]));
   return options.filter((option) => allowed.has(option.value as T[Key<T>]));
 }
+
+/**
+ * Выбор, который точно даёт записи: значения проверяются в порядке `order`, и то, что с уже
+ * принятыми не даёт ни одной записи, снимается. Так даже выбор из старой ссылки или сделанный
+ * до загрузки скрипта страницы не приводит к пустому результату.
+ */
+export function repairSelection<T extends object>(
+  combos: T[],
+  selected: Selection<Key<T>>,
+  order: Array<Key<T>>,
+): { selection: Selection<Key<T>>; dropped: boolean } {
+  const selection: Selection<Key<T>> = {};
+  let dropped = false;
+  for (const field of order) {
+    const value = selected[field];
+    if (!value) continue;
+    if (matchingCombos(combos, { ...selection, [field]: value }).length > 0) {
+      selection[field] = value;
+    } else {
+      dropped = true;
+    }
+  }
+  return { selection, dropped };
+}

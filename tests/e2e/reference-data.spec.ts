@@ -14,6 +14,7 @@ const inDays = (days: number) =>
 
 async function fillCity(page: Page, name: string, iata: string) {
   await page.getByLabel('Название города').fill(name);
+  await page.getByLabel('Часть света').selectOption({ label: 'Европа' });
   await page.getByLabel('Откуда: «из …»').fill(`${name}а`);
   await page.getByLabel('Куда: «в …»').fill(name);
   await page.getByLabel('Код аэропорта').fill(iata);
@@ -21,6 +22,12 @@ async function fillCity(page: Page, name: string, iata: string) {
   await page.getByLabel('Широта').fill('68,78');
   await page.getByLabel('Долгота').fill('32.75');
   await page.getByRole('button', { name: 'Добавить город' }).click();
+}
+
+/** Списки новой авиакомпании; страна по умолчанию — Россия. */
+async function chooseAirlineLists(page: Page) {
+  await page.getByLabel('Тип авиакомпании').selectOption({ label: 'Лоукост' });
+  await page.getByLabel('Базовый город').selectOption('moscow');
 }
 
 async function confirmDelete(page: Page, row: string) {
@@ -59,6 +66,7 @@ test('админ заводит город, авиакомпанию и рейс
   await page.getByLabel('Название').fill(airline);
   await page.getByLabel('Код', { exact: true }).fill(code.toLowerCase());
   await page.getByLabel('Описание').fill('Тестовые рейсы для проверки справочников.');
+  await chooseAirlineLists(page);
   await page.getByRole('button', { name: 'Добавить авиакомпанию' }).click();
   await expect(page).toHaveURL(/\/admin\/airlines\?saved=/);
   await expect(page.getByRole('row').filter({ hasText: airline })).toContainText(code);
@@ -177,6 +185,7 @@ test('кнопки «Добавить» у списков формы рейсо�
   await page.getByLabel('Название').fill(airline);
   await page.getByLabel('Код', { exact: true }).fill(code);
   await page.getByLabel('Описание').fill('Проверка кнопки «Добавить» и дублей рейсов.');
+  await chooseAirlineLists(page);
   await page.getByRole('button', { name: 'Добавить авиакомпанию' }).click();
   await expect(page).toHaveURL(`/admin/flights/new?airline=${code}`);
   await expect(page.getByLabel('Авиакомпания')).toHaveValue(code);
@@ -223,6 +232,159 @@ test('кнопки «Добавить» у списков формы рейсо�
   await expect(page).toHaveURL('/admin/cities?deleted=1');
 });
 
+test('списки форм города и авиакомпании: «+ Добавить» и новые значения в поиске', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'админка одна на оба экрана, база общая');
+
+  const suffix = random('абвгдежзиклмнопрстуфх', 6);
+  const country = `Страна${suffix}`;
+  const part = `Материк${suffix}`;
+  const type = `Тип${suffix}`;
+  const city = `Списокград${suffix}`;
+  const base = `Базоград${suffix}`;
+  const airline = `Списокавиа${suffix}`;
+  const code = `W${random('ABCDEFGHIJKLMNOPRSTUVWXYZ', 2)}`;
+  const iata = `J${random('ABCDEFGHIJKLMNOPRSTUVWXYZ', 2)}`;
+  const baseIata = `K${random('ABCDEFGHIJKLMNOPRSTUVWXYZ', 2)}`;
+
+  /** Открывает окно кнопки «+ Добавить», сохраняет значение; окно закрывается. */
+  const addValue = async (button: string, value: string) => {
+    await page.getByRole('button', { name: `+ Добавить ${button}` }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('textbox').fill(value);
+    await dialog.getByRole('button', { name: 'Сохранить' }).click();
+    await expect(dialog).toHaveCount(0);
+  };
+
+  // Форма города: введённое название остаётся, пока добавляются значения списков.
+  await openAsAdmin(page, '/admin/cities/new');
+  await page.getByLabel('Название города').fill(city);
+
+  // Пустое значение и несуществующий часовой пояс не сохраняются.
+  await page.getByRole('button', { name: '+ Добавить страну' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Сохранить' }).click();
+  await expect(page.getByRole('dialog').getByRole('textbox')).toHaveAccessibleDescription(
+    /от 2 символов/,
+  );
+  await page.getByRole('dialog').getByRole('button', { name: 'Отмена' }).click();
+  await page.getByRole('button', { name: '+ Добавить часовой пояс' }).click();
+  await page.getByRole('dialog').getByRole('textbox').fill('Обнинск');
+  await page.getByRole('dialog').getByRole('button', { name: 'Сохранить' }).click();
+  await expect(page.getByRole('dialog').getByRole('textbox')).toHaveAccessibleDescription(
+    /Такого часового пояса нет/,
+  );
+  await page.getByRole('dialog').getByRole('button', { name: 'Отмена' }).click();
+
+  // Новое значение сразу выбрано и стоит в списке по алфавиту.
+  await addValue('страну', country);
+  await expect(page.getByLabel('Страна')).toHaveValue(country);
+  await expect(page.getByLabel('Название города')).toHaveValue(city);
+  const countries = await page.getByLabel('Страна').locator('option').allTextContents();
+  expect(countries.slice(1)).toEqual(
+    [...countries.slice(1)].sort((a, b) => a.localeCompare(b, 'ru')),
+  );
+
+  // То же значение другими буквами — не дубль, выбирается уже имеющееся.
+  await addValue('страну', country.toUpperCase());
+  await expect(page.getByLabel('Страна')).toHaveValue(country);
+  await expect(page.getByLabel('Страна').locator('option', { hasText: country })).toHaveCount(1);
+
+  await addValue('часть света', part);
+  await expect(page.getByLabel('Часть света')).toHaveValue(part);
+
+  // Ошибка в форме не сбрасывает новое значение в списке.
+  await page.getByRole('button', { name: 'Добавить город' }).click();
+  await expect(page.getByLabel('Код аэропорта')).toHaveAccessibleDescription(/три латинские/);
+  await expect(page.getByLabel('Страна')).toHaveValue(country);
+  await expect(page.getByLabel('Часть света')).toHaveValue(part);
+
+  await page.getByLabel('Откуда: «из …»').fill(`${city}а`);
+  await page.getByLabel('Куда: «в …»').fill(city);
+  await page.getByLabel('Код аэропорта').fill(iata);
+  await page.getByLabel('Название аэропорта').fill(`${city} Центральный`);
+  await page.getByLabel('Широта').fill('68,78');
+  await page.getByLabel('Долгота').fill('32.75');
+  await page.getByRole('button', { name: 'Добавить город' }).click();
+  await expect(page).toHaveURL(/\/admin\/cities\?saved=/);
+  await expect(page.getByRole('row').filter({ hasText: city })).toContainText(part);
+
+  // Новая страна — в списках формы авиакомпании. «+ Добавить» у базового города: вся форма города
+  // в окне, новый город выбран, введённое в форме авиакомпании на месте.
+  await page.goto('/admin/airlines/new');
+  await expect(page.getByLabel('Страна').locator('option', { hasText: country })).toHaveCount(1);
+  await page.getByLabel('Название', { exact: true }).fill(airline);
+  await addValue('тип авиакомпании', type);
+  await page.getByRole('button', { name: '+ Добавить базовый город' }).click();
+  const cityDialog = page.getByRole('dialog', { name: 'Новый город' });
+  await cityDialog.getByLabel('Название города').fill(base);
+  await cityDialog.getByLabel('Часть света').selectOption({ label: 'Азия' });
+  await cityDialog.getByLabel('Откуда: «из …»').fill(`${base}а`);
+  await cityDialog.getByLabel('Куда: «в …»').fill(base);
+  await cityDialog.getByLabel('Код аэропорта').fill(baseIata);
+  await cityDialog.getByLabel('Название аэропорта').fill(`${base} Центральный`);
+  await cityDialog.getByLabel('Широта').fill('43');
+  await cityDialog.getByLabel('Долгота').fill('132');
+  await cityDialog.getByRole('button', { name: 'Добавить город' }).click();
+  await expect(cityDialog).toHaveCount(0);
+  await expect(page.getByLabel('Базовый город').locator('option:checked')).toHaveText(base);
+  await expect(page.getByLabel('Название', { exact: true })).toHaveValue(airline);
+  await expect(page.getByLabel('Тип авиакомпании')).toHaveValue(type);
+
+  await page.getByLabel('Страна').selectOption({ label: country });
+  await page.getByLabel('Код', { exact: true }).fill(code);
+  await page.getByLabel('Описание').fill('Проверка списков авиакомпании.');
+  await page.getByRole('button', { name: 'Добавить авиакомпанию' }).click();
+  await expect(page).toHaveURL(/\/admin\/airlines\?saved=/);
+  await expect(page.getByRole('row').filter({ hasText: airline })).toContainText(base);
+
+  // Поиск по двум атрибутам: новые значения в списках сразу, без рейсов; результат есть всегда.
+  const search = page.getByRole('form', { name: 'Условия запроса' });
+  await page.goto('/database?report=countryCity');
+  await search.getByLabel('Страна').selectOption({ label: country });
+  await expect(search.getByLabel('Город').locator('option')).toHaveText(['Все города', city]);
+  await search.getByRole('button', { name: 'Выполнить запрос' }).click();
+  await expect(page.getByRole('table', { name: 'Города по выбранным условиям' })).toContainText(
+    iata,
+  );
+
+  await page.goto('/database?report=partZone');
+  await search.getByLabel('Часть света').selectOption({ label: part });
+  await search.getByRole('button', { name: 'Выполнить запрос' }).click();
+  await expect(page.getByRole('table', { name: 'Города по выбранным условиям' })).toContainText(
+    city,
+  );
+
+  await page.goto('/database?report=countryAirline');
+  await search.getByLabel('Страна').selectOption({ label: country });
+  await expect(search.getByLabel('Авиакомпания').locator('option')).toHaveText([
+    'Все авиакомпании',
+    airline,
+  ]);
+
+  await page.goto('/database?report=typeAirline');
+  await search.getByLabel('Тип авиакомпании').selectOption({ label: type });
+  await search.getByRole('button', { name: 'Выполнить запрос' }).click();
+  await expect(
+    page.getByRole('table', { name: 'Авиакомпании по выбранным условиям' }),
+  ).toContainText(airline);
+
+  // Базовый город авиакомпании не удалить, пока она есть.
+  await page.goto('/admin/cities');
+  await confirmDelete(page, base);
+  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('базовый у авиакомпании');
+
+  // Убираем за собой.
+  await page.goto('/admin/airlines');
+  await confirmDelete(page, airline);
+  await expect(page).toHaveURL('/admin/airlines?deleted=1');
+  for (const name of [city, base]) {
+    await page.goto('/admin/cities');
+    await confirmDelete(page, name);
+    await expect(page).toHaveURL('/admin/cities?deleted=1');
+  }
+});
+
 test('админ правит один рейс и все рейсы маршрута; правка видна из поиска на вкладке «БД»', async ({
   page,
 }, testInfo) => {
@@ -236,6 +398,7 @@ test('админ правит один рейс и все рейсы маршр�
   await page.getByLabel('Название').fill(airline);
   await page.getByLabel('Код', { exact: true }).fill(code);
   await page.getByLabel('Описание').fill('Проверка правки рейсов.');
+  await chooseAirlineLists(page);
   await page.getByRole('button', { name: 'Добавить авиакомпанию' }).click();
   await expect(page).toHaveURL(/\/admin\/airlines\?saved=/);
   await page.goto(`/admin/flights/new?airline=${code}&origin=SVO&destination=DXB`);

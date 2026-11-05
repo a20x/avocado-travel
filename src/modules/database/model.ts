@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { DaySpan } from '@/shared/lib/available-days';
+import { SLUG_PATTERN } from '@/shared/lib/slug';
 
 /**
  * Запросы вкладки «БД» (лаба 3, L3-02): поиск по одному атрибуту, по двум связанным, сводки
@@ -8,6 +9,10 @@ import type { DaySpan } from '@/shared/lib/available-days';
 export const DB_REPORTS = {
   airline: 'Рейсы авиакомпании',
   routes: 'Авиакомпания и направление',
+  countryCity: 'Страна и город',
+  partZone: 'Часть света и часовой пояс',
+  countryAirline: 'Страна и авиакомпания',
+  typeAirline: 'Тип и авиакомпания',
   schedule: 'Рейсы по авиакомпаниям',
   airlines: 'Продажи по авиакомпаниям',
   months: 'Динамика продаж',
@@ -23,16 +28,29 @@ const viewKeys = ['input', 'about', ...Object.keys(DB_REPORTS)] as [DbView, ...D
 /**
  * Меню вкладки — словами преподавателя, чтобы разделы находились сразу. У раздела один или
  * несколько видов; первый открывается по пункту меню. «Агрегация» объединяет четыре сводки,
- * первая — рейсы по авиакомпаниям: её числа растут сразу после ввода рейсов.
+ * первая — рейсы по авиакомпаниям: её числа растут сразу после ввода рейсов. «Поиск по двум
+ * атрибутам» — по рейсам и по справочникам: там новые значения видны сразу после сохранения.
  */
 export const DB_SECTIONS = [
   { label: 'Ввод', views: ['input'] },
   { label: 'Поиск по одному атрибуту', views: ['airline'] },
-  { label: 'Поиск по двум атрибутам', views: ['routes'] },
-  { label: 'Агрегация', views: ['schedule', 'airlines', 'months', 'ratings'] },
+  {
+    label: 'Поиск по двум атрибутам',
+    viewsLabel: 'Вид поиска',
+    views: ['routes', 'countryCity', 'partZone', 'countryAirline', 'typeAirline'],
+  },
+  {
+    label: 'Агрегация',
+    viewsLabel: 'Вид агрегации',
+    views: ['schedule', 'airlines', 'months', 'ratings'],
+  },
   { label: 'Сведения о БД', views: ['about'] },
   { label: 'Поиск рейсов', views: ['flights'] },
-] as const satisfies ReadonlyArray<{ label: string; views: readonly DbView[] }>;
+] as const satisfies ReadonlyArray<{
+  label: string;
+  viewsLabel?: string;
+  views: readonly DbView[];
+}>;
 export type DbSection = (typeof DB_SECTIONS)[number];
 
 /** Раздел меню, к которому относится вид. */
@@ -44,6 +62,83 @@ export function sectionOf(view: DbView): DbSection {
 export const sectionHref = (section: DbSection) => `/database?report=${section.views[0]}`;
 
 export const isReport = (view: DbView): view is DbReport => view in DB_REPORTS;
+
+/** Подпись и пункт «без условия» полей поиска по справочникам. */
+export const DIRECTORY_FIELDS = {
+  country: { label: 'Страна', anyLabel: 'Все страны' },
+  city: { label: 'Город', anyLabel: 'Все города' },
+  part: { label: 'Часть света', anyLabel: 'Все части света' },
+  zone: { label: 'Часовой пояс', anyLabel: 'Все часовые пояса' },
+  airline: { label: 'Авиакомпания', anyLabel: 'Все авиакомпании' },
+  type: { label: 'Тип авиакомпании', anyLabel: 'Все типы' },
+} as const;
+export type DirectoryField = keyof typeof DIRECTORY_FIELDS;
+
+/**
+ * Поиск по двум атрибутам в справочниках (ADR-0013): списки строятся из самих городов и
+ * авиакомпаний, а не из рейсов, поэтому новый город или авиакомпания видны сразу, ещё без рейсов.
+ */
+export const DIRECTORY_REPORTS = {
+  countryCity: { source: 'cities', fields: ['country', 'city'] },
+  partZone: { source: 'cities', fields: ['part', 'zone'] },
+  countryAirline: { source: 'airlines', fields: ['country', 'airline'] },
+  typeAirline: { source: 'airlines', fields: ['type', 'airline'] },
+} as const satisfies Record<
+  string,
+  { source: 'cities' | 'airlines'; fields: readonly [DirectoryField, DirectoryField] }
+>;
+export type DirectoryReport = keyof typeof DIRECTORY_REPORTS;
+export const isDirectoryReport = (report: string): report is DirectoryReport =>
+  report in DIRECTORY_REPORTS;
+
+/** Списки поиска по справочникам: сочетания для связи и варианты каждого поля по алфавиту. */
+export type DirectoryChoices = {
+  combos: Array<Record<string, string>>;
+  options: Record<string, Array<{ value: string; label: string }>>;
+};
+
+/**
+ * Из строк справочника — списки двух полей, без повторов и по алфавиту (по-русски). `names` —
+ * названия для полей, где значение — адрес или код: «moscow» → «Москва», «LST» → «Ластавиа».
+ */
+export function directoryChoices(
+  rows: Array<Partial<Record<DirectoryField, string>>>,
+  fields: readonly DirectoryField[],
+  names: Record<string, string>,
+): DirectoryChoices {
+  const combos = new Map<string, Record<string, string>>();
+  const options: DirectoryChoices['options'] = {};
+  for (const field of fields) {
+    const values = [...new Set(rows.flatMap((row) => row[field] ?? []))];
+    options[field] = values
+      .map((value) => ({ value, label: names[value] ?? value }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'ru'));
+  }
+  for (const row of rows) {
+    const combo = Object.fromEntries(fields.map((field) => [field, row[field] ?? '']));
+    combos.set(JSON.stringify(combo), combo);
+  }
+  return { combos: [...combos.values()], options };
+}
+
+/** Строка результата поиска по справочнику городов. */
+export type DirectoryCityRow = {
+  city: string;
+  country: string;
+  part: string;
+  airports: string;
+  zones: string;
+};
+
+/** Строка результата поиска по справочнику авиакомпаний. */
+export type DirectoryAirlineRow = {
+  airline: string;
+  code: string;
+  country: string;
+  type: string;
+  baseCity: string;
+  baggageIncluded: boolean;
+};
 
 /** Авиакомпания из таблицы рейсов — вариант списка «Поиска по одному атрибуту». */
 export type AirlineOption = { code: string; name: string };
@@ -91,9 +186,15 @@ const optional = <T extends z.ZodType>(schema: T) =>
 export const dbQuerySchema = z
   .object({
     report: z.preprocess(first, z.enum(viewKeys)).catch('airline'),
-    from: optional(z.string().regex(/^[a-z-]{2,40}$/)),
-    to: optional(z.string().regex(/^[a-z-]{2,40}$/)),
+    from: optional(z.string().regex(SLUG_PATTERN)),
+    to: optional(z.string().regex(SLUG_PATTERN)),
     airline: optional(z.string().regex(/^[A-Z0-9]{2,4}$/)),
+    // Поиск по справочникам: значения списков уходят в базу параметрами запроса.
+    country: optional(z.string().max(80)),
+    city: optional(z.string().regex(SLUG_PATTERN)),
+    part: optional(z.string().max(80)),
+    zone: optional(z.string().max(80)),
+    type: optional(z.string().max(80)),
     dateFrom: optional(z.iso.date()),
     dateTo: optional(z.iso.date()),
     sort: z
@@ -208,6 +309,16 @@ export type DbResult =
       nearestDates: string[];
     } & FlightPage)
   | { report: 'routes'; rows: RouteRow[] }
+  | {
+      report: 'countryCity' | 'partZone';
+      rows: DirectoryCityRow[];
+      choices: DirectoryChoices;
+    }
+  | {
+      report: 'countryAirline' | 'typeAirline';
+      rows: DirectoryAirlineRow[];
+      choices: DirectoryChoices;
+    }
   | { report: 'schedule'; rows: ScheduleRow[] }
   | {
       report: 'airlines';

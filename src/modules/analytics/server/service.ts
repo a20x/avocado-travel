@@ -1,5 +1,6 @@
 import 'server-only';
 import { seatCapacity } from '@/modules/catalog-data';
+import { repairSelection } from '@/shared/lib/linked';
 import { addDays, dateInZone, zonedTimeToUtc } from '@/shared/lib/time';
 import {
   ANALYTICS_TIMEZONE,
@@ -22,7 +23,14 @@ export async function getAnalytics(
   params: Record<string, unknown>,
   now: Date = new Date(),
 ): Promise<AnalyticsReport> {
-  const filter = parseAnalyticsFilter(params, dateInZone(now, ANALYTICS_TIMEZONE));
+  const parsed = parseAnalyticsFilter(params, dateInZone(now, ANALYTICS_TIMEZONE));
+  // Сочетание без продаж (старая ссылка, выбор до загрузки скрипта) не даёт пустых отчётов.
+  const { selection } = repairSelection(
+    await repository.findSalesPairs(),
+    { airline: parsed.airline, destination: parsed.destination },
+    ['airline', 'destination'],
+  );
+  const filter = { ...parsed, airline: selection.airline, destination: selection.destination };
   const scope = {
     range: {
       start: zonedTimeToUtc(filter.from, '00:00', ANALYTICS_TIMEZONE),

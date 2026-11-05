@@ -1,4 +1,11 @@
-import { aircraftModels, airlines, airports, cities } from '@/modules/catalog-data';
+import {
+  aircraftModels,
+  airlines,
+  airports,
+  cities,
+  referenceValues,
+  type ReferenceKind,
+} from '@/modules/catalog-data';
 import type { Db } from './db';
 
 type NewCity = typeof cities.$inferInsert;
@@ -13,24 +20,24 @@ const RU = 'Россия';
 // Новые города администратор заводит в админке (/admin/cities).
 // prettier-ignore
 const CITIES: NewCity[] = [
-  { slug: 'moscow', name: 'Москва', nameFrom: 'Москвы', nameTo: 'Москву', country: RU, image: '/images/destinations/moscow.svg', description: 'Столица и главный узел нашей сети: отсюда есть прямые рейсы во все города. Три аэропорта — Шереметьево, Внуково и Домодедово, поэтому при покупке билета стоит смотреть, из какого именно вылетает рейс.' },
-  { slug: 'saint-petersburg', name: 'Санкт-Петербург', nameFrom: 'Санкт-Петербурга', nameTo: 'Санкт-Петербург', country: RU, image: '/images/destinations/saint-petersburg.svg', description: 'Город белых ночей, разводных мостов и Эрмитажа. Пулково — второй по числу рейсов аэропорт сети: прямые перелёты в крупные города России и за рубеж.' },
-  { slug: 'kaliningrad', name: 'Калининград', nameFrom: 'Калининграда', nameTo: 'Калининград', country: RU, image: '/images/destinations/kaliningrad.svg', description: 'Самый западный регион страны: Балтийское море, Куршская коса и янтарь. Из-за расположения добраться сюда проще всего самолётом.' },
-  { slug: 'sochi', name: 'Сочи', nameFrom: 'Сочи', nameTo: 'Сочи', country: RU, image: '/images/destinations/sochi.svg', description: 'Курорт на два сезона: летом — море, зимой — горнолыжная Красная Поляна. Рейсы в Сочи есть почти из всех городов сети.' },
-  { slug: 'kazan', name: 'Казань', nameFrom: 'Казани', nameTo: 'Казань', country: RU, image: '/images/destinations/kazan.svg', description: 'Столица Татарстана, где рядом стоят мечеть Кул-Шариф и Благовещенский собор. Удобна для поездки на выходные: из Москвы лететь меньше двух часов.' },
-  { slug: 'vladivostok', name: 'Владивосток', nameFrom: 'Владивостока', nameTo: 'Владивосток', country: RU, image: '/images/destinations/vladivostok.svg', description: 'Город на берегу Тихого океана в конце Транссиба. Самый дальний город сети внутри страны — девять часов полёта из Москвы.' },
-  { slug: 'yekaterinburg', name: 'Екатеринбург', nameFrom: 'Екатеринбурга', nameTo: 'Екатеринбург', country: RU, image: '/images/destinations/yekaterinburg.svg', description: 'Столица Урала на границе Европы и Азии. Деловой город с конструктивистской архитектурой и прямыми рейсами в Сочи и Дубай.' },
-  { slug: 'novosibirsk', name: 'Новосибирск', nameFrom: 'Новосибирска', nameTo: 'Новосибирск', country: RU, image: '/images/destinations/novosibirsk.svg', description: 'Крупнейший город Сибири и пересадочный узел на востоке сети. Отсюда летают в Пекин, Ташкент и соседние сибирские города.' },
-  { slug: 'samara', name: 'Самара', nameFrom: 'Самары', nameTo: 'Самару', country: RU, image: '/images/destinations/samara.svg', description: 'Волжский город с самой длинной в стране набережной. Рейсы в Москву каждый день и в Сочи несколько раз в неделю.' },
-  { slug: 'ufa', name: 'Уфа', nameFrom: 'Уфы', nameTo: 'Уфу', country: RU, image: '/images/destinations/ufa.svg', description: 'Столица Башкортостана на высоком берегу реки Белой. Рядом — Уральские горы и десятки озёр.' },
-  { slug: 'krasnoyarsk', name: 'Красноярск', nameFrom: 'Красноярска', nameTo: 'Красноярск', country: RU, image: '/images/destinations/krasnoyarsk.svg', description: 'Город на Енисее рядом с заповедником «Столбы». Прямые рейсы в Москву, Новосибирск и Иркутск.' },
-  { slug: 'irkutsk', name: 'Иркутск', nameFrom: 'Иркутска', nameTo: 'Иркутск', country: RU, image: '/images/destinations/irkutsk.svg', description: 'Ворота к Байкалу: до озера около часа на машине. Связан рейсами с Москвой, Красноярском и Владивостоком.' },
-  { slug: 'mineralnye-vody', name: 'Минеральные Воды', nameFrom: 'Минеральных Вод', nameTo: 'Минеральные Воды', country: RU, image: '/images/destinations/mineralnye-vody.svg', description: 'Воздушные ворота Кавказских Минеральных Вод — Пятигорска, Кисловодска и Ессентуков. Сюда едут на лечение и в горы.' },
-  { slug: 'istanbul', name: 'Стамбул', nameFrom: 'Стамбула', nameTo: 'Стамбул', country: 'Турция', image: '/images/destinations/istanbul.svg', description: 'Город на двух континентах по берегам Босфора. Летаем из Москвы, Санкт-Петербурга и Казани.' },
-  { slug: 'dubai', name: 'Дубай', nameFrom: 'Дубая', nameTo: 'Дубай', country: 'ОАЭ', image: '/images/destinations/dubai.svg', description: 'Небоскрёбы, пустыня и тёплое море круглый год. Самый популярный зарубежный курорт в нашей сети.' },
-  { slug: 'yerevan', name: 'Ереван', nameFrom: 'Еревана', nameTo: 'Ереван', country: 'Армения', image: '/images/destinations/yerevan.svg', description: 'Один из древнейших городов мира с видом на Арарат. Перелёт из Москвы — около трёх часов.' },
-  { slug: 'tashkent', name: 'Ташкент', nameFrom: 'Ташкента', nameTo: 'Ташкент', country: 'Узбекистан', image: '/images/destinations/tashkent.svg', description: 'Столица Узбекистана: восточные базары, голубые купола и плов. Отсюда удобно ехать в Самарканд и Бухару.' },
-  { slug: 'beijing', name: 'Пекин', nameFrom: 'Пекина', nameTo: 'Пекин', country: 'Китай', image: '/images/destinations/beijing.svg', description: 'Столица Китая: Запретный город, храм Неба и Великая стена в часе езды. Летаем из Москвы и Новосибирска.' },
+  { slug: 'moscow', name: 'Москва', nameFrom: 'Москвы', nameTo: 'Москву', country: RU, worldPart: 'Европа', image: '/images/destinations/moscow.svg', description: 'Столица и главный узел нашей сети: отсюда есть прямые рейсы во все города. Три аэропорта — Шереметьево, Внуково и Домодедово, поэтому при покупке билета стоит смотреть, из какого именно вылетает рейс.' },
+  { slug: 'saint-petersburg', name: 'Санкт-Петербург', nameFrom: 'Санкт-Петербурга', nameTo: 'Санкт-Петербург', country: RU, worldPart: 'Европа', image: '/images/destinations/saint-petersburg.svg', description: 'Город белых ночей, разводных мостов и Эрмитажа. Пулково — второй по числу рейсов аэропорт сети: прямые перелёты в крупные города России и за рубеж.' },
+  { slug: 'kaliningrad', name: 'Калининград', nameFrom: 'Калининграда', nameTo: 'Калининград', country: RU, worldPart: 'Европа', image: '/images/destinations/kaliningrad.svg', description: 'Самый западный регион страны: Балтийское море, Куршская коса и янтарь. Из-за расположения добраться сюда проще всего самолётом.' },
+  { slug: 'sochi', name: 'Сочи', nameFrom: 'Сочи', nameTo: 'Сочи', country: RU, worldPart: 'Европа', image: '/images/destinations/sochi.svg', description: 'Курорт на два сезона: летом — море, зимой — горнолыжная Красная Поляна. Рейсы в Сочи есть почти из всех городов сети.' },
+  { slug: 'kazan', name: 'Казань', nameFrom: 'Казани', nameTo: 'Казань', country: RU, worldPart: 'Европа', image: '/images/destinations/kazan.svg', description: 'Столица Татарстана, где рядом стоят мечеть Кул-Шариф и Благовещенский собор. Удобна для поездки на выходные: из Москвы лететь меньше двух часов.' },
+  { slug: 'vladivostok', name: 'Владивосток', nameFrom: 'Владивостока', nameTo: 'Владивосток', country: RU, worldPart: 'Азия', image: '/images/destinations/vladivostok.svg', description: 'Город на берегу Тихого океана в конце Транссиба. Самый дальний город сети внутри страны — девять часов полёта из Москвы.' },
+  { slug: 'yekaterinburg', name: 'Екатеринбург', nameFrom: 'Екатеринбурга', nameTo: 'Екатеринбург', country: RU, worldPart: 'Азия', image: '/images/destinations/yekaterinburg.svg', description: 'Столица Урала на границе Европы и Азии. Деловой город с конструктивистской архитектурой и прямыми рейсами в Сочи и Дубай.' },
+  { slug: 'novosibirsk', name: 'Новосибирск', nameFrom: 'Новосибирска', nameTo: 'Новосибирск', country: RU, worldPart: 'Азия', image: '/images/destinations/novosibirsk.svg', description: 'Крупнейший город Сибири и пересадочный узел на востоке сети. Отсюда летают в Пекин, Ташкент и соседние сибирские города.' },
+  { slug: 'samara', name: 'Самара', nameFrom: 'Самары', nameTo: 'Самару', country: RU, worldPart: 'Европа', image: '/images/destinations/samara.svg', description: 'Волжский город с самой длинной в стране набережной. Рейсы в Москву каждый день и в Сочи несколько раз в неделю.' },
+  { slug: 'ufa', name: 'Уфа', nameFrom: 'Уфы', nameTo: 'Уфу', country: RU, worldPart: 'Европа', image: '/images/destinations/ufa.svg', description: 'Столица Башкортостана на высоком берегу реки Белой. Рядом — Уральские горы и десятки озёр.' },
+  { slug: 'krasnoyarsk', name: 'Красноярск', nameFrom: 'Красноярска', nameTo: 'Красноярск', country: RU, worldPart: 'Азия', image: '/images/destinations/krasnoyarsk.svg', description: 'Город на Енисее рядом с заповедником «Столбы». Прямые рейсы в Москву, Новосибирск и Иркутск.' },
+  { slug: 'irkutsk', name: 'Иркутск', nameFrom: 'Иркутска', nameTo: 'Иркутск', country: RU, worldPart: 'Азия', image: '/images/destinations/irkutsk.svg', description: 'Ворота к Байкалу: до озера около часа на машине. Связан рейсами с Москвой, Красноярском и Владивостоком.' },
+  { slug: 'mineralnye-vody', name: 'Минеральные Воды', nameFrom: 'Минеральных Вод', nameTo: 'Минеральные Воды', country: RU, worldPart: 'Европа', image: '/images/destinations/mineralnye-vody.svg', description: 'Воздушные ворота Кавказских Минеральных Вод — Пятигорска, Кисловодска и Ессентуков. Сюда едут на лечение и в горы.' },
+  { slug: 'istanbul', name: 'Стамбул', nameFrom: 'Стамбула', nameTo: 'Стамбул', country: 'Турция', worldPart: 'Азия', image: '/images/destinations/istanbul.svg', description: 'Город на двух континентах по берегам Босфора. Летаем из Москвы, Санкт-Петербурга и Казани.' },
+  { slug: 'dubai', name: 'Дубай', nameFrom: 'Дубая', nameTo: 'Дубай', country: 'ОАЭ', worldPart: 'Азия', image: '/images/destinations/dubai.svg', description: 'Небоскрёбы, пустыня и тёплое море круглый год. Самый популярный зарубежный курорт в нашей сети.' },
+  { slug: 'yerevan', name: 'Ереван', nameFrom: 'Еревана', nameTo: 'Ереван', country: 'Армения', worldPart: 'Азия', image: '/images/destinations/yerevan.svg', description: 'Один из древнейших городов мира с видом на Арарат. Перелёт из Москвы — около трёх часов.' },
+  { slug: 'tashkent', name: 'Ташкент', nameFrom: 'Ташкента', nameTo: 'Ташкент', country: 'Узбекистан', worldPart: 'Азия', image: '/images/destinations/tashkent.svg', description: 'Столица Узбекистана: восточные базары, голубые купола и плов. Отсюда удобно ехать в Самарканд и Бухару.' },
+  { slug: 'beijing', name: 'Пекин', nameFrom: 'Пекина', nameTo: 'Пекин', country: 'Китай', worldPart: 'Азия', image: '/images/destinations/beijing.svg', description: 'Столица Китая: Запретный город, храм Неба и Великая стена в часе езды. Летаем из Москвы и Новосибирска.' },
 ];
 
 // 15 российских и 5 зарубежных аэропортов (docs/04-data-model.md); город — по citySlug.
@@ -61,12 +68,12 @@ const AIRPORTS: NewAirport[] = [
 // Авиакомпании выдуманные: названия, коды и цвета — из public/images/README.md.
 // prettier-ignore
 const AIRLINES: NewAirline[] = [
-  { code: 'LST', name: 'Ластавиа', color: '#2E4A7D', logo: '/images/airlines/lastavia.svg', baggageIncluded: false, description: 'Крупнейший перевозчик сети: частые рейсы между Москвой и городами-миллионниками.' },
-  { code: 'ORN', name: 'Орнавиа', color: '#9A4A2E', logo: '/images/airlines/ornavia.svg', baggageIncluded: false, description: 'Недорогие перелёты на юг и в столицы соседних стран.' },
-  { code: 'ARL', name: 'Аэрелла', color: '#5B4B8A', logo: '/images/airlines/aerella.svg', baggageIncluded: false, description: 'Региональная авиакомпания: прямые рейсы между городами Урала и Поволжья.' },
-  { code: 'STV', name: 'Стрива', color: '#1F6F6A', logo: '/images/airlines/striva.svg', baggageIncluded: false, description: 'Быстрые короткие рейсы на современных узкофюзеляжных самолётах.' },
-  { code: 'KRR', name: 'Кирра', color: '#3B78A0', logo: '/images/airlines/kirra.svg', baggageIncluded: true, description: 'Багаж 23 кг включён в эконом на всех рейсах.' },
-  { code: 'ALT', name: 'Альтэйра', color: '#A87B22', logo: '/images/airlines/altaira.svg', baggageIncluded: true, description: 'Дальние перелёты на широкофюзеляжных самолётах: Сибирь, Дальний Восток, Азия.' },
+  { code: 'LST', name: 'Ластавиа', color: '#2E4A7D', logo: '/images/airlines/lastavia.svg', baggageIncluded: false, country: RU, carrierType: 'Классическая', baseCitySlug: 'moscow', description: 'Крупнейший перевозчик сети: частые рейсы между Москвой и городами-миллионниками.' },
+  { code: 'ORN', name: 'Орнавиа', color: '#9A4A2E', logo: '/images/airlines/ornavia.svg', baggageIncluded: false, country: 'Узбекистан', carrierType: 'Лоукост', baseCitySlug: 'tashkent', description: 'Недорогие перелёты на юг и в столицы соседних стран.' },
+  { code: 'ARL', name: 'Аэрелла', color: '#5B4B8A', logo: '/images/airlines/aerella.svg', baggageIncluded: false, country: RU, carrierType: 'Классическая', baseCitySlug: 'kazan', description: 'Региональная авиакомпания: прямые рейсы между городами Урала и Поволжья.' },
+  { code: 'STV', name: 'Стрива', color: '#1F6F6A', logo: '/images/airlines/striva.svg', baggageIncluded: false, country: RU, carrierType: 'Лоукост', baseCitySlug: 'sochi', description: 'Быстрые короткие рейсы на современных узкофюзеляжных самолётах.' },
+  { code: 'KRR', name: 'Кирра', color: '#3B78A0', logo: '/images/airlines/kirra.svg', baggageIncluded: true, country: 'Турция', carrierType: 'Классическая', baseCitySlug: 'istanbul', description: 'Багаж 23 кг включён в эконом на всех рейсах.' },
+  { code: 'ALT', name: 'Альтэйра', color: '#A87B22', logo: '/images/airlines/altaira.svg', baggageIncluded: true, country: RU, carrierType: 'Классическая', baseCitySlug: 'irkutsk', description: 'Дальние перелёты на широкофюзеляжных самолётах: Сибирь, Дальний Восток, Азия.' },
 ];
 
 // Схема ряда: буквы кресел, дефис — проход (см. src/modules/catalog-data/cabin.ts).
@@ -79,10 +86,40 @@ const AIRCRAFT_MODELS: NewAircraftModel[] = [
   { manufacturer: 'Sukhoi', model: 'Superjet 100', businessRows: 3, businessLayout: 'AC-DF', economyRows: 18, economyLayout: 'AC-DEF' },
 ];
 
+// Списки форм, в которых есть значения шире того, что встречается в данных.
+const WORLD_PARTS = [
+  'Австралия и Океания',
+  'Азия',
+  'Африка',
+  'Европа',
+  'Северная Америка',
+  'Южная Америка',
+];
+const CARRIER_TYPES = ['Классическая', 'Лоукост', 'Чартерная'];
+
+/** Значения выпадающих списков форм: всё, что есть в данных, и общие варианты (ADR-0013). */
+function referenceRows() {
+  const rows = (kind: ReferenceKind, values: string[]) =>
+    [...new Set(values)].map((value) => ({ kind, value }));
+  return [
+    ...rows(
+      'country',
+      [...CITIES, ...AIRLINES].map((row) => row.country),
+    ),
+    ...rows('world_part', WORLD_PARTS),
+    ...rows(
+      'timezone',
+      AIRPORTS.map((airport) => airport.timezone),
+    ),
+    ...rows('airline_type', CARRIER_TYPES),
+  ];
+}
+
 /** Вставляет справочники и возвращает строки с id — на них ссылаются рейсы. */
 export async function seedCatalogData(db: Db) {
   // Города — первыми: на них ссылаются аэропорты.
   const cityRows = await db.insert(cities).values(CITIES).returning();
+  await db.insert(referenceValues).values(referenceRows());
   return {
     cities: cityRows,
     airports: await db.insert(airports).values(AIRPORTS).returning(),

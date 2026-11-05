@@ -28,6 +28,8 @@ import type {
   AirlineOption,
   AirlineRow,
   DbPassport,
+  DirectoryAirlineRow,
+  DirectoryCityRow,
   FlightRow,
   FlightSort,
   MonthRow,
@@ -237,6 +239,96 @@ export async function findRoutes(filter: {
       )
       .groupBy(originCity.name, destinationCity.name)
       .orderBy(desc(count()), asc(originCity.name), asc(destinationCity.name)),
+  );
+}
+
+/** Единичные сочетания значений справочника городов — для связанных списков поиска. */
+export function listDirectoryCities() {
+  return run(
+    db
+      .selectDistinct({
+        country: cities.country,
+        city: cities.slug,
+        name: cities.name,
+        part: cities.worldPart,
+        zone: airports.timezone,
+      })
+      .from(cities)
+      .innerJoin(airports, eq(airports.citySlug, cities.slug)),
+  );
+}
+
+/** Поиск по справочнику городов: город, страна, часть света, его аэропорты и часовые пояса. */
+export function findDirectoryCities(filter: {
+  country?: string;
+  city?: string;
+  part?: string;
+  zone?: string;
+}): Promise<Executed<DirectoryCityRow>> {
+  return run(
+    db
+      .select({
+        city: cities.name,
+        country: cities.country,
+        part: cities.worldPart,
+        airports: sql<string>`string_agg(distinct ${airports.iata}::text, ', ')`,
+        zones: sql<string>`string_agg(distinct ${airports.timezone}, ', ')`,
+      })
+      .from(cities)
+      .innerJoin(airports, eq(airports.citySlug, cities.slug))
+      .where(
+        and(
+          filter.country ? eq(cities.country, filter.country) : undefined,
+          filter.city ? eq(cities.slug, filter.city) : undefined,
+          filter.part ? eq(cities.worldPart, filter.part) : undefined,
+          filter.zone ? eq(airports.timezone, filter.zone) : undefined,
+        ),
+      )
+      .groupBy(cities.name, cities.country, cities.worldPart)
+      .orderBy(asc(cities.name)),
+  );
+}
+
+/** Единичные сочетания значений справочника авиакомпаний — для связанных списков поиска. */
+export function listDirectoryAirlines() {
+  return run(
+    db
+      .selectDistinct({
+        country: airlines.country,
+        airline: airlines.code,
+        name: airlines.name,
+        type: airlines.carrierType,
+      })
+      .from(airlines),
+  );
+}
+
+/** Поиск по справочнику авиакомпаний: страна, тип, базовый город и багаж. */
+export function findDirectoryAirlines(filter: {
+  country?: string;
+  airline?: string;
+  type?: string;
+}): Promise<Executed<DirectoryAirlineRow>> {
+  return run(
+    db
+      .select({
+        airline: airlines.name,
+        code: airlines.code,
+        country: airlines.country,
+        type: airlines.carrierType,
+        baseCity: cities.name,
+        baggageIncluded: airlines.baggageIncluded,
+      })
+      .from(airlines)
+      .innerJoin(cities, eq(cities.slug, airlines.baseCitySlug))
+      .where(
+        and(
+          filter.country ? eq(airlines.country, filter.country) : undefined,
+          filter.airline ? eq(airlines.code, filter.airline) : undefined,
+          filter.type ? eq(airlines.carrierType, filter.type) : undefined,
+        ),
+      )
+      .orderBy(asc(airlines.name)),
   );
 }
 

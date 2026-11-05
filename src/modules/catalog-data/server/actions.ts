@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/modules/auth/server';
 import type { ActionState } from '@/shared/ui/ActionForm';
@@ -8,6 +9,7 @@ import {
   cityInputSchema,
   newAirlineSchema,
   newCitySchema,
+  newReferenceValueSchema,
   referenceReturnHref,
   referenceReturnSchema,
   type CatalogDataError,
@@ -19,6 +21,8 @@ export type ReferenceFormState = {
   fieldErrors?: Record<string, string>;
   /** Введённое — чтобы после ошибки не набирать заново. */
   values?: Record<string, string>;
+  /** Город сохранён из окна кнопки «Добавить»: форма выберет его в своём списке. */
+  saved?: { value: string; label: string };
 };
 
 const MESSAGES: Record<CatalogDataError, string> = {
@@ -28,6 +32,13 @@ const MESSAGES: Record<CatalogDataError, string> = {
   CODE_TAKEN: 'Этот код уже занят другой авиакомпанией.',
   NAME_TAKEN: 'Авиакомпания с таким названием уже есть.',
   HAS_FLIGHTS: 'Сначала удалите рейсы: пока они есть, удалить запись нельзя.',
+  HAS_AIRLINES:
+    'Этот город — базовый у авиакомпании. Сначала выберите для неё другой город или удалите её.',
+  UNKNOWN_COUNTRY: 'Выберите страну из списка.',
+  UNKNOWN_WORLD_PART: 'Выберите часть света из списка.',
+  UNKNOWN_TIMEZONE: 'Выберите часовой пояс из списка.',
+  UNKNOWN_CARRIER_TYPE: 'Выберите тип авиакомпании из списка.',
+  UNKNOWN_BASE_CITY: 'Выберите базовый город из списка.',
 };
 
 /** Ошибка, которая относится к одному полю, показывается под ним. */
@@ -36,11 +47,25 @@ const FIELD_OF: Partial<Record<CatalogDataError, string>> = {
   IATA_TAKEN: 'iata',
   CODE_TAKEN: 'code',
   NAME_TAKEN: 'name',
+  UNKNOWN_COUNTRY: 'country',
+  UNKNOWN_WORLD_PART: 'worldPart',
+  UNKNOWN_TIMEZONE: 'timezone',
+  UNKNOWN_CARRIER_TYPE: 'carrierType',
+  UNKNOWN_BASE_CITY: 'baseCitySlug',
 };
 
-const CITY_FIELDS = ['name', 'nameFrom', 'nameTo', 'country', 'description'];
+const CITY_FIELDS = ['name', 'nameFrom', 'nameTo', 'country', 'worldPart', 'description'];
 const AIRPORT_FIELDS = ['iata', 'airportName', 'lat', 'lon', 'timezone'];
-const AIRLINE_FIELDS = ['code', 'name', 'color', 'description', 'baggageIncluded'];
+const AIRLINE_FIELDS = [
+  'code',
+  'name',
+  'color',
+  'description',
+  'baggageIncluded',
+  'country',
+  'carrierType',
+  'baseCitySlug',
+];
 
 function readForm(formData: FormData, fields: string[]) {
   return Object.fromEntries(fields.map((field) => [field, String(formData.get(field) ?? '')]));
@@ -60,6 +85,22 @@ function failure(error: CatalogDataError, values: Record<string, string>): Refer
   return field
     ? { fieldErrors: { [field]: MESSAGES[error] }, values }
     : { error: MESSAGES[error], values };
+}
+
+/**
+ * Новое значение выпадающего списка из окна кнопки «Добавить». Сохраняется сразу, поэтому
+ * появляется в списках всех форм; страницы админки получают списки заново.
+ */
+export async function addReferenceValueAction(
+  kind: unknown,
+  value: unknown,
+): Promise<{ value: string } | { error: string }> {
+  await requireAdmin();
+  const parsed = newReferenceValueSchema.safeParse({ kind, value });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Проверьте значение.' };
+  const saved = await service.addReferenceValue(parsed.data);
+  revalidatePath('/admin', 'layout');
+  return { value: saved };
 }
 
 /** Город: со `slug` в форме — правка, без — новый город с аэропортом. */
@@ -84,6 +125,11 @@ export async function saveCityAction(
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues), values };
   const result = await service.createCity(parsed.data);
   if (!result.ok) return failure(result.error, values);
+  // Открыли в окне кнопки «Добавить» в форме авиакомпании: без перехода, та форма не теряет ввод.
+  if (formData.get('inline')) {
+    revalidatePath('/admin', 'layout');
+    return { saved: { value: result.data.slug, label: parsed.data.name } };
+  }
   // Открыли кнопкой «Добавить» из формы рейсов — обратно туда, с аэропортом нового города.
   const back = referenceReturnSchema.parse(formData.get('returnTo'));
   if (back === 'flights-origin' || back === 'flights-destination') {

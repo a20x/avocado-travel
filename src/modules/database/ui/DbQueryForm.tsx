@@ -3,10 +3,14 @@ import { Button } from '@/shared/ui/Button';
 import { LinkedSelects } from '@/shared/ui/LinkedSelects';
 import { Select, type SelectOption } from '@/shared/ui/Select';
 import {
+  DIRECTORY_FIELDS,
+  DIRECTORY_REPORTS,
   FLIGHT_SORTS,
+  isDirectoryReport,
   type AirlineOption,
   type DbQuery,
   type DbReport,
+  type DirectoryChoices,
   type FlightCombo,
   type FlightSort,
   type SalesSpan,
@@ -22,6 +26,14 @@ const DESCRIPTIONS: Record<DbReport, string> = {
     'Рейсы с условиями по городам, авиакомпании и дате вылета, по 20 на страницу. Списки связаны — в них только сочетания, для которых есть рейсы. «Продано» — места, занятые действующими билетами.',
   routes:
     'Поиск по двум атрибутам — авиакомпании и направлению. Маршруты выбранной авиакомпании и цены эконома на них: минимальная, средняя и максимальная. Списки связаны — в них только сочетания, для которых есть рейсы.',
+  countryCity:
+    'Поиск по двум атрибутам в справочнике городов. Новый город и новая страна появляются в списках сразу после сохранения, рейсы для этого не нужны. Списки связаны — результат есть всегда.',
+  partZone:
+    'Поиск по двум атрибутам в справочнике городов: часть света и часовой пояс аэропорта. Новые значения появляются в списках, как только их выбрали у города. Списки связаны — результат есть всегда.',
+  countryAirline:
+    'Поиск по двум атрибутам в справочнике авиакомпаний. Новая авиакомпания и новая страна появляются в списках сразу после сохранения, рейсы для этого не нужны. Списки связаны — результат есть всегда.',
+  typeAirline:
+    'Поиск по двум атрибутам в справочнике авиакомпаний: тип и авиакомпания. Новый тип появляется в списке, как только его выбрали у авиакомпании. Списки связаны — результат есть всегда.',
   schedule:
     'Все авиакомпании справочника и их рейсы: всего и предстоящих, число маршрутов, минимальная, средняя и максимальная цена эконома, внизу — итог. Авиакомпания без рейсов — с нулями; после ввода рейсов числа сразу растут. Условий у запроса нет.',
   airlines:
@@ -42,6 +54,7 @@ export function DbQueryForm({
   airlines,
   combos,
   flightAirlines,
+  choices,
   salesSpans = [],
 }: {
   /** Вид запроса — без разделов «Ввод» и «Сведения о БД»: у них формы нет. */
@@ -53,13 +66,15 @@ export function DbQueryForm({
   combos: FlightCombo[];
   /** Варианты поиска по одному атрибуту — авиакомпании из таблицы рейсов. */
   flightAirlines: AirlineOption[];
+  /** Списки поиска по справочникам. */
+  choices?: DirectoryChoices;
   /** Периоды продаж авиакомпаний — границы календаря в сводках продаж. */
   salesSpans?: SalesSpan[];
 }) {
   const withDates = report === 'airlines' || report === 'months';
   // У этих запросов условий нет: форма — описание и кнопка.
   const noFields = report === 'ratings' || report === 'schedule';
-  const linked = report === 'flights' || report === 'routes';
+  const linked = report === 'flights' || report === 'routes' || isDirectoryReport(report);
   const sort = (
     <Select
       name="sort"
@@ -122,6 +137,20 @@ export function DbQueryForm({
               ]}
               combos={combos}
               initial={{ airline: query.airline, to: query.to }}
+            />
+          ) : null}
+
+          {isDirectoryReport(report) && choices ? (
+            <LinkedSelects<string>
+              fields={DIRECTORY_REPORTS[report].fields.map((field) => ({
+                name: field,
+                ...DIRECTORY_FIELDS[field],
+                options: choices.options[field] ?? [],
+              }))}
+              combos={choices.combos}
+              initial={Object.fromEntries(
+                DIRECTORY_REPORTS[report].fields.map((field) => [field, query[field]]),
+              )}
             />
           ) : null}
 

@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { requireAdmin } from '@/modules/auth/server';
 import { listAirlines, listCities } from '@/modules/catalog-data/server';
-import { listRoutesForAdmin } from '@/modules/flights/server';
+import { getRoutesForAdmin } from '@/modules/flights/server';
 import { AdminRouteTable } from '@/modules/flights/ui';
 import { plural } from '@/shared/lib/format';
 import { Button, buttonClasses } from '@/shared/ui/Button';
-import { Select } from '@/shared/ui/Select';
+import { LinkedSelects } from '@/shared/ui/LinkedSelects';
 import { Toast } from '@/shared/ui/Toast';
 
 export const metadata: Metadata = { title: 'Рейсы — админка', robots: { index: false } };
@@ -16,13 +16,11 @@ const flightsCount = (count: number) => `${count} ${plural(count, ['рейс', '
 export default async function AdminFlightsPage(props: PageProps<'/admin/flights'>) {
   await requireAdmin('/admin/flights');
   const params = await props.searchParams;
-  const [routes, cities, airlines] = await Promise.all([
-    listRoutesForAdmin(params),
+  const [{ routes, combos, city, airline, dropped }, cities, airlines] = await Promise.all([
+    getRoutesForAdmin(params),
     listCities(),
     listAirlines(),
   ]);
-  const city = typeof params.city === 'string' ? params.city : '';
-  const airline = typeof params.airline === 'string' ? params.airline : '';
   const created = Number(params.created);
   const deleted = Number(params.deleted);
 
@@ -40,7 +38,8 @@ export default async function AdminFlightsPage(props: PageProps<'/admin/flights'
       <p className="max-w-3xl text-slate">
         Рейсы заводятся по расписанию: авиакомпания, аэропорты, время вылета, период и дни недели.
         После этого маршрут появляется в поиске рейсов и в связанных списках вкладки «БД». Маршрут,
-        на который не продано ни одного билета, можно удалить.
+        на который не продано ни одного билета, можно удалить. Списки фильтра связаны: в них только
+        сочетания, для которых есть рейсы.
       </p>
 
       <form
@@ -48,29 +47,36 @@ export default async function AdminFlightsPage(props: PageProps<'/admin/flights'
         aria-label="Фильтр маршрутов"
         className="grid items-end gap-4 sm:grid-cols-[repeat(2,minmax(0,1fr))_auto]"
       >
-        <Select
-          name="city"
-          label="Город"
-          defaultValue={city}
-          options={[
-            { value: '', label: 'Все города' },
-            ...cities.map((item) => ({ value: item.slug, label: item.name })),
+        <LinkedSelects
+          fields={[
+            {
+              name: 'city',
+              label: 'Город',
+              anyLabel: 'Все города',
+              options: cities.map((item) => ({ value: item.slug, label: item.name })),
+            },
+            {
+              name: 'airline',
+              label: 'Авиакомпания',
+              anyLabel: 'Все авиакомпании',
+              options: airlines.map((item) => ({ value: item.code, label: item.name })),
+            },
           ]}
-        />
-        <Select
-          name="airline"
-          label="Авиакомпания"
-          defaultValue={airline}
-          options={[
-            { value: '', label: 'Все авиакомпании' },
-            ...airlines.map((item) => ({ value: item.code, label: item.name })),
-          ]}
+          combos={combos}
+          initial={{ city, airline }}
         />
         <div className="flex items-center gap-4">
           <Button type="submit">Показать</Button>
           {city || airline ? <Link href="/admin/flights">Сбросить</Link> : null}
         </div>
       </form>
+
+      {dropped ? (
+        <p role="status" className="text-sm text-slate">
+          У этой авиакомпании нет рейсов в выбранный город, поэтому условие снято. В списках
+          остаются только сочетания, для которых есть рейсы.
+        </p>
+      ) : null}
 
       {routes.length > 0 ? (
         <AdminRouteTable routes={routes} />

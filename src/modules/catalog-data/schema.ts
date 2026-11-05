@@ -26,7 +26,10 @@ export const cities = pgTable('cities', {
   nameFrom: text().notNull(),
   /** Название после «в»: «в Москву». */
   nameTo: text().notNull(),
+  /** Страна — значение справочника `reference_values`. */
   country: text().notNull(),
+  /** Часть света — значение справочника `reference_values`. */
+  worldPart: text().notNull(),
   description: text().notNull().default(''),
   /** Иллюстрация из public/images/destinations; новым городам — общая картинка. */
   image: text().notNull().default('/images/destinations/default.svg'),
@@ -61,6 +64,14 @@ export const airlines = pgTable('airlines', {
   logo: text().notNull(),
   description: text().notNull(),
   baggageIncluded: boolean().notNull().default(false),
+  /** Страна — значение справочника `reference_values`. */
+  country: text().notNull(),
+  /** Тип перевозчика — значение справочника `reference_values`. */
+  carrierType: text().notNull(),
+  /** Базовый город: пока он указан у авиакомпании, город удалить нельзя. */
+  baseCitySlug: text()
+    .notNull()
+    .references(() => cities.slug),
   createdAt,
   updatedAt,
 });
@@ -78,4 +89,19 @@ export const aircraftModels = pgTable(
     economyLayout: text().notNull(),
   },
   (table) => [unique().on(table.manufacturer, table.model)],
+);
+
+/**
+ * Значения выпадающих списков форм городов и авиакомпаний (ADR-0013): страны, части света,
+ * часовые пояса, типы авиакомпаний. Новое значение сохраняется здесь сразу, ещё до сохранения
+ * города или авиакомпании, поэтому оно появляется в списках всех форм.
+ */
+export const referenceValues = pgTable(
+  'reference_values',
+  {
+    id: serial().primaryKey(),
+    kind: text().notNull(),
+    value: text().notNull(),
+  },
+  (table) => [unique().on(table.kind, table.value)],
 );
