@@ -261,7 +261,9 @@ test('админ правит один рейс и все рейсы маршр�
     .getByRole('link', { name: /^Изменить рейс/ })
     .first()
     .click();
-  await expect(page).toHaveURL(/\/admin\/flights\/[0-9a-f-]{36}\/edit$/);
+  await expect(page).toHaveURL(
+    /\/admin\/flights\/[0-9a-f-]{36}\/edit\?back=%2Fadmin%2Fflights%2Froute/,
+  );
   await page.getByLabel('Время вылета').fill('11:15');
   await page.getByLabel('Цена эконома, ₽').fill('9999');
   await page.getByRole('button', { name: 'Сохранить рейс' }).click();
@@ -300,6 +302,19 @@ test('админ правит один рейс и все рейсы маршр�
     .first()
     .click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText(`${code} `);
+
+  // «←» и сохранение возвращают к тем же результатам вкладки «БД», а не в админку.
+  await page.getByRole('link', { name: '← К результатам запроса' }).click();
+  await expect(page).toHaveURL(`/database?report=airline&airline=${code}`);
+  await result
+    .getByRole('link', { name: /^Изменить рейс/ })
+    .first()
+    .click();
+  await page.getByLabel('Цена эконома, ₽').fill('8888');
+  await page.getByRole('button', { name: 'Сохранить рейс' }).click();
+  await expect(page).toHaveURL(`/database?report=airline&airline=${code}&saved=1`);
+  await expect(page.getByRole('status').filter({ hasText: 'Рейс изменён.' })).toBeVisible();
+  await expect(result.getByRole('row').nth(1)).toContainText(/8\s888/);
 
   // Убираем за собой.
   await page.goto(`/admin/flights?airline=${code}`);

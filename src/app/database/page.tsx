@@ -19,6 +19,7 @@ import {
 import { listAirlines, listCities } from '@/modules/catalog-data/server';
 import { Tabs } from '@/shared/ui/Tabs';
 import { pageMetadata } from '@/shared/lib/metadata';
+import { Toast } from '@/shared/ui/Toast';
 
 export const metadata = pageMetadata({
   title: 'База данных: ввод, поиск, агрегация',
@@ -110,6 +111,9 @@ export default async function DatabasePage(props: PageProps<'/database'>) {
           <SqlBlock queries={page.sql} />
         </section>
       ) : null}
+
+      {/* Вернулись сюда после правки рейса из результатов — сообщаем, что сохранилось. */}
+      {params.saved && user?.role === 'admin' ? <Toast message="Рейс изменён." /> : null}
     </div>
   );
 }

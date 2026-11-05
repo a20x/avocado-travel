@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { formatDuration, formatPrice } from '@/shared/lib/format';
 import { Table } from '@/shared/ui/Table';
-import { durationOf, type FlightEditView } from '../edit';
+import { durationOf, flightEditHref, type FlightEditView } from '../edit';
 
 const local = (at: Date, timeZone: string) =>
   new Intl.DateTimeFormat('ru-RU', {
@@ -18,10 +18,13 @@ export function RouteFlightsTable({
   flights,
   page,
   totalPages,
+  back,
 }: {
   flights: FlightEditView[];
   page: number;
   totalPages: number;
+  /** Эта страница маршрута — правка рейса вернётся на неё. */
+  back: string;
 }) {
   return (
     <Table caption={`Предстоящие рейсы, страница ${page} из ${totalPages}`}>
@@ -52,7 +55,7 @@ export function RouteFlightsTable({
             <td className="whitespace-nowrap tabular-nums">{formatPrice(flight.priceBusiness)}</td>
             <td className="tabular-nums">{flight.heldSeats}</td>
             <td>
-              <Link href={`/admin/flights/${flight.id}/edit`}>
+              <Link href={flightEditHref(flight.id, back)}>
                 Изменить<span className="sr-only"> рейс {flight.number}</span>
               </Link>
             </td>

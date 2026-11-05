@@ -256,6 +256,42 @@ export function adminRouteHref(
   return `${path}?${params}`;
 }
 
+/*
+ * Возврат после правки рейса. «Изменить» передаёт адрес страницы, с которой пришли (`?back=…`):
+ * результаты вкладки «БД» или страницу маршрута в админке. Туда ведут «←» и сохранение —
+ * на ту же страницу таблицы. Чужой адрес не принимается: подставить можно только эти страницы.
+ */
+const EDIT_RETURN_PATHS = ['/database', '/admin/flights/route'];
+const LOCAL = 'http://local';
+
+/** Адрес возврата, если он разрешён, иначе undefined. Отдаёт путь с параметрами, без хоста. */
+export function flightEditReturn(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !value.startsWith('/')) return undefined;
+  let url: URL;
+  try {
+    url = new URL(value, LOCAL);
+  } catch {
+    return undefined;
+  }
+  // `//site.ru` и `/\site.ru` браузер понял бы как другой сайт — у них другой хост.
+  if (url.origin !== LOCAL || !EDIT_RETURN_PATHS.includes(url.pathname)) return undefined;
+  url.searchParams.delete('saved');
+  return `${url.pathname}${url.search}`;
+}
+
+/** Страница правки рейса; back — откуда пришли, туда она и вернёт. */
+export function flightEditHref(id: string, back?: string): string {
+  const path = `/admin/flights/${id}/edit`;
+  return back ? `${path}?${new URLSearchParams({ back })}` : path;
+}
+
+/** Адрес возврата с отметкой «рейс сохранён» — страница покажет уведомление. */
+export function savedReturnHref(back: string): string {
+  const url = new URL(back, LOCAL);
+  url.searchParams.set('saved', '1');
+  return `${url.pathname}${url.search}`;
+}
+
 const moscowTime = new Intl.DateTimeFormat('ru-RU', {
   day: '2-digit',
   month: '2-digit',

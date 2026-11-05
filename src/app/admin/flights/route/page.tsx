@@ -53,6 +53,7 @@ export default async function AdminRoutePage(props: PageProps<'/admin/flights/ro
             flights={route.flights}
             page={route.page}
             totalPages={route.totalPages}
+            back={adminRouteHref(ref, route.page > 1 ? { page: route.page } : {})}
           />
           <Pagination
             page={route.page}
