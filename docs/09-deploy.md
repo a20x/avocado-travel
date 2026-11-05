@@ -87,7 +87,7 @@ Workflow `.github/workflows/production-db.yml` умеет три вещи: `migr
    - `DATABASE_URL` — строка подключения из шага 1;
    - `NEXT_PUBLIC_SITE_URL` — `https://avocado-travel.onrender.com` (если имя занято, Render даст другой адрес — тогда исправить переменную и выбрать **Manual Deploy → Deploy latest commit**);
    - `ADMIN_EMAIL`, `ADMIN_PASSWORD` — те же, что в шаге 2;
-   - `NEXT_PUBLIC_YANDEX_METRIKA_ID` — пусто, заполняется в T-34.
+   - `NEXT_PUBLIC_YANDEX_METRIKA_ID` — пусто: Метрику не подключаем (T-34 не делаем).
 
    `BETTER_AUTH_SECRET`, `CRON_SECRET` и `IP_HASH_SALT` Render создаст сам, `CLIENT_IP_HEADER` уже указан в `render.yaml`.
 3. Дождаться окончания первой сборки (5–10 минут) и открыть `https://<адрес>/api/health` — должно быть `{"status":"ok"}`.
@@ -195,7 +195,7 @@ Workflow «Сайт на alwaysdata» запускается сам, когда 
 
 `CLIENT_IP_HEADER` не задан: IP посетителя берётся из последнего адреса `X-Forwarded-For`. Правильно ли это для прокси alwaysdata, **не проверено**. Если в статистике или при бане все посетители окажутся «с одного IP» — разобраться, какой заголовок ставит прокси alwaysdata, и задать его ([03-architecture.md](03-architecture.md#безопасность)).
 
-`NEXT_PUBLIC_YANDEX_METRIKA_ID` не задан: Метрика на alwaysdata не подключена. Это публичная переменная — её нужно передать и в сборку (`env` в workflow), а не только в панель.
+`NEXT_PUBLIC_YANDEX_METRIKA_ID` не задан: Метрику не подключаем (T-34 не делаем). Если она понадобится, это публичная переменная — её нужно передать и в сборку (`env` в workflow), а не только в панель.
 
 ### Расписание для alwaysdata
 
