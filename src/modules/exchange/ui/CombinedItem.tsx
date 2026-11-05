@@ -12,12 +12,15 @@ const published = new Intl.DateTimeFormat('ru-RU', {
   timeZone: 'Europe/Moscow',
 });
 
-/** Новость в общей ленте: источник, дата, заголовок-ссылка и краткое описание. */
+/**
+ * Новость в общей ленте: источник, дата, заголовок-ссылка и краткое описание. Метка новости
+ * сайта — зелёная, у RSS-лент — серая: новости Avocado Travel сразу видны среди лент.
+ */
 export function CombinedItem({ item }: { item: CombinedNewsItem }) {
   return (
     <Card as="article" className="grid gap-2 p-5">
       <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate">
-        <Badge>{item.source}</Badge>
+        <Badge tone={item.isExternal ? 'neutral' : 'success'}>{item.source}</Badge>
         <time dateTime={item.publishedAt.toISOString()}>{published.format(item.publishedAt)}</time>
       </p>
       <h3 className="text-lg">
