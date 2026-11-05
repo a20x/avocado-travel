@@ -115,17 +115,18 @@ export const SITE_CONTENTS: ContentsGroup[] = [
       {
         href: '/xml',
         label: 'XML',
-        description: 'Пресс-релизы из XML-файла: поиск, сортировка, схема XSD и XSL',
+        description: 'Таблица пресс-релизов из XML-файла: поиск и сортировка по любой колонке',
       },
       {
         href: '/database',
         label: 'БД',
-        description: 'Паспорт базы и пять видов запросов с графиками и SQL',
+        description:
+          'Ввод данных, поиск по одному и по двум атрибутам, агрегация с графиками, сведения о базе',
       },
       {
         href: '/rss',
         label: 'RSS',
-        description: 'RSS-лента, внешние источники и выгрузки в CSV, XML и TXT',
+        description: 'Новости сайта вместе с новостями любой RSS-ленты, ввод новостей сайта',
       },
       { href: '/analytics', label: 'Аналитика', description: 'Отчёты о продажах с графиками' },
       { href: '/api/docs', label: 'API и выгрузки', description: 'Открытые данные для программ' },

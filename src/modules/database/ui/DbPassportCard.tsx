@@ -76,9 +76,9 @@ export function DbPassportCard({ passport }: { passport: DbPassport }) {
           базе.
         </p>
         <p>
-          <strong>Полнота:</strong> обязательные поля и связи заданы в самой базе (NOT NULL, внешние
-          ключи, проверки CHECK) — пустых значений там нет. Билеты есть у{' '}
-          {number.format(passport.ordersWithTickets)} из {number.format(counts.orders)} заказов (
+          <strong>Полнота:</strong> база сама не даёт сохранить запись без обязательных полей или со
+          ссылкой на несуществующий рейс, город или авиакомпанию — пустых значений нет. Билеты есть
+          у {number.format(passport.ordersWithTickets)} из {number.format(counts.orders)} заказов (
           {share(passport.ordersWithTickets, counts.orders).toLocaleString('ru-RU')}%), дата оплаты
           — у {number.format(passport.paidWithDate)} из {number.format(passport.paidOrders)}{' '}
           оплаченных.
