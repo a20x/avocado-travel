@@ -13,9 +13,12 @@ import {
   parseForecast,
   parseSavedCities,
   removeSavedCity,
+  setHomeCity as markHomeCity,
   type CityWeather,
   type GeoCity,
+  type HomeCityError,
   type SavedCitiesError,
+  type SavedCity,
   type WeatherPlace,
 } from '../model';
 
@@ -63,7 +66,7 @@ export function getCity(id: number): Promise<GeoCity | null> {
 const COOKIE = 'weather_cities';
 const COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
-export async function getSavedCities(): Promise<GeoCity[]> {
+export async function getSavedCities(): Promise<SavedCity[]> {
   const value = (await cookies()).get(COOKIE)?.value;
   if (!value) return [];
   try {
@@ -73,7 +76,7 @@ export async function getSavedCities(): Promise<GeoCity[]> {
   }
 }
 
-async function storeSavedCities(cities: GeoCity[]): Promise<void> {
+async function storeSavedCities(cities: SavedCity[]): Promise<void> {
   const store = await cookies();
   if (cities.length === 0) {
     store.delete(COOKIE);
@@ -103,4 +106,12 @@ export async function saveCity(id: number): Promise<Result<null, SaveCityError>>
 
 export async function forgetCity(id: number): Promise<void> {
   await storeSavedCities(removeSavedCity(await getSavedCities(), id));
+}
+
+/** «На главную» или «Убрать с главной» у города из «Моих городов». */
+export async function setHomeCity(id: number, home: boolean): Promise<Result<null, HomeCityError>> {
+  const result = markHomeCity(await getSavedCities(), id, home);
+  if (!result.ok) return result;
+  await storeSavedCities(result.data);
+  return ok(null);
 }
