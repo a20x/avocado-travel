@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/Button';
 import { Dialog } from '@/shared/ui/Dialog';
 import { Input } from '@/shared/ui/Input';
 import { Select, type SelectOption } from '@/shared/ui/Select';
-import type { ReferenceKind } from '../model';
+import { mergeOptions, type ReferenceKind } from '../model';
 import { addReferenceValueAction } from '../server/actions';
 
 type ReferenceSelectProps = {
@@ -55,10 +55,7 @@ export function ReferenceSelect({
   const [version, setVersion] = useState(0);
   const [open, setOpen] = useState(false);
 
-  const known = new Set(options.map((option) => option.value));
-  const all = [...options, ...added.filter((option) => !known.has(option.value))].sort((a, b) =>
-    a.label.localeCompare(b.label, 'ru'),
-  );
+  const all = mergeOptions(options, added);
 
   // Окно закрылось вместе с новым значением — фокус на списке, где оно теперь выбрано.
   useEffect(() => {
