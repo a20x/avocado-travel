@@ -3,17 +3,21 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/modules/auth/server';
 import { listAircraftModels } from '@/modules/catalog-data/server';
-import { adminRouteHref } from '@/modules/flights';
+import { adminRouteHref, flightEditHref, flightEditReturn } from '@/modules/flights';
 import { getFlightForEdit } from '@/modules/flights/server';
 import { FlightEditForm } from '@/modules/flights/ui';
 import { dateInZone } from '@/shared/lib/time';
 
 export const metadata: Metadata = { title: 'Правка рейса — админка', robots: { index: false } };
 
-/** Правка одного рейса: дата и время вылета, время в пути, самолёт, цены. */
+/**
+ * Правка одного рейса: дата и время вылета, время в пути, самолёт, цены. «←» и сохранение ведут
+ * туда, откуда пришли (`?back=…`): к результатам вкладки «БД» или на страницу маршрута.
+ */
 export default async function AdminFlightEditPage(props: PageProps<'/admin/flights/[id]/edit'>) {
   const { id } = await props.params;
-  await requireAdmin(`/admin/flights/${id}/edit`);
+  const back = flightEditReturn((await props.searchParams).back);
+  await requireAdmin(flightEditHref(id, back));
   const [flight, models] = await Promise.all([getFlightForEdit(id), listAircraftModels()]);
   if (!flight) notFound();
   const ref = {
@@ -27,7 +31,9 @@ export default async function AdminFlightEditPage(props: PageProps<'/admin/fligh
   return (
     <div className="container-site grid gap-6 py-8">
       <p>
-        <Link href={adminRouteHref(ref)}>← Рейсы маршрута</Link>
+        <Link href={back ?? adminRouteHref(ref)}>
+          {back?.startsWith('/database') ? '← К результатам запроса' : '← Рейсы маршрута'}
+        </Link>
       </p>
       <h1 className="text-3xl">
         Рейс {flight.number}: {flight.originCity} ({flight.originIata}) → {flight.destinationCity} (
@@ -44,6 +50,7 @@ export default async function AdminFlightEditPage(props: PageProps<'/admin/fligh
       ) : (
         <FlightEditForm
           flight={flight}
+          back={back}
           today={dateInZone(now, flight.originTimezone)}
           aircraft={models
             .map((model) => ({

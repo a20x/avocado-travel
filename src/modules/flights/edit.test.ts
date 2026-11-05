@@ -3,10 +3,13 @@ import {
   adminRouteHref,
   editDuplicateMessage,
   findRepeatedFlight,
+  flightEditHref,
+  flightEditReturn,
   flightEditSchema,
   planFlightEdit,
   planRouteEdit,
   routeEditSchema,
+  savedReturnHref,
   type EditableFlight,
 } from './edit';
 
@@ -201,6 +204,46 @@ describe('дубли и адреса при правке', () => {
     );
     expect(adminRouteHref(route, {}, '/admin/flights/route/edit')).toBe(
       '/admin/flights/route/edit?airline=STV&origin=SVO&destination=LED',
+    );
+  });
+});
+
+describe('возврат после правки рейса', () => {
+  it('принимает результаты вкладки «БД» и страницу маршрута — с параметрами', () => {
+    expect(flightEditReturn('/database?report=airline&airline=ORN&page=3')).toBe(
+      '/database?report=airline&airline=ORN&page=3',
+    );
+    expect(flightEditReturn('/admin/flights/route?airline=ALT&origin=VVO&destination=SVO')).toBe(
+      '/admin/flights/route?airline=ALT&origin=VVO&destination=SVO',
+    );
+  });
+
+  it('чужой адрес и другие страницы не принимает', () => {
+    for (const value of [
+      undefined,
+      ['/database'],
+      '',
+      'https://evil.example/database',
+      '//evil.example/database',
+      '/\\evil.example/database',
+      '/admin/users',
+      '/database/../admin',
+    ]) {
+      expect(flightEditReturn(value)).toBeUndefined();
+    }
+  });
+
+  it('старая отметка «сохранено» не переносится, новая ставится при сохранении', () => {
+    expect(flightEditReturn('/database?report=flights&saved=1')).toBe('/database?report=flights');
+    expect(savedReturnHref('/database?report=airline&page=2')).toBe(
+      '/database?report=airline&page=2&saved=1',
+    );
+  });
+
+  it('адрес правки несёт, куда вернуться', () => {
+    expect(flightEditHref('f1')).toBe('/admin/flights/f1/edit');
+    expect(flightEditHref('f1', '/database?report=airline&airline=ORN')).toBe(
+      '/admin/flights/f1/edit?back=%2Fdatabase%3Freport%3Dairline%26airline%3DORN',
     );
   });
 });

@@ -18,12 +18,15 @@ export function FlightEditForm({
   flight,
   aircraft,
   today,
+  back,
 }: {
   flight: FlightEditView;
   /** Самолёты справочника, по алфавиту. */
   aircraft: SelectOption[];
   /** Сегодня по местному времени аэропорта вылета. */
   today: string;
+  /** Куда вернуться после сохранения — страница, с которой пришли на правку. */
+  back?: string;
 }) {
   const [state, formAction, pending] = useActionState<FlightScheduleFormState, FormData>(
     updateFlightAction,
@@ -45,6 +48,7 @@ export function FlightEditForm({
     <Card className="p-4 md:p-6">
       <form action={formAction} noValidate className="grid gap-5 md:grid-cols-2">
         <input type="hidden" name="id" value={flight.id} />
+        {back ? <input type="hidden" name="back" value={back} /> : null}
         {state.error ? (
           <p role="alert" className="rounded-sm bg-error-bg px-4 py-3 text-error md:col-span-2">
             {state.error}

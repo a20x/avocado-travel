@@ -6,8 +6,10 @@ import type { ActionState } from '@/shared/ui/ActionForm';
 import {
   adminRouteHref,
   editDuplicateMessage,
+  flightEditReturn,
   flightEditSchema,
   routeEditSchema,
+  savedReturnHref,
   type FlightEditError,
 } from '../edit';
 import { duplicateMessage, flightScheduleSchema, type FlightScheduleError } from '../schedule';
@@ -161,7 +163,10 @@ function editFailure(
     : { error: EDIT_MESSAGES[result.error], values };
 }
 
-/** Правка одного рейса: после сохранения — на страницу его маршрута. */
+/**
+ * Правка одного рейса: после сохранения — туда, откуда пришли на правку (результаты вкладки «БД»
+ * или страница маршрута), а без адреса возврата — на страницу маршрута.
+ */
 export async function updateFlightAction(
   _: FlightScheduleFormState,
   formData: FormData,
@@ -175,7 +180,8 @@ export async function updateFlightAction(
 
   const result = await service.updateFlight(String(formData.get('id') ?? ''), parsed.data);
   if (!result.ok) return editFailure(result, values);
-  redirect(adminRouteHref(result.data.route, { saved: 1 }));
+  const back = flightEditReturn(formData.get('back'));
+  redirect(back ? savedReturnHref(back) : adminRouteHref(result.data.route, { saved: 1 }));
 }
 
 /** Правка всех предстоящих рейсов маршрута: пустые поля не меняются. */

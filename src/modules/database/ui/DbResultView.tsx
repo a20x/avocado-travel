@@ -1,4 +1,5 @@
 import { ChartData } from '@/modules/analytics/ui';
+import { flightEditHref } from '@/modules/flights';
 import Link from 'next/link';
 import { formatDate, formatPrice, plural } from '@/shared/lib/format';
 import { Card } from '@/shared/ui/Card';
@@ -110,8 +111,15 @@ function FlightsTable({
   /** Администратору — «Изменить» у рейсов, которые вылетают позже этого момента. */
   editableAfter?: Date;
 }) {
+  // Правка рейса вернёт на эту же страницу результатов.
+  const back = dbHref(query, result.page);
   return (
     <>
+      {editableAfter ? (
+        <p className="text-sm text-slate">
+          «Изменить» есть только у рейсов, которые ещё не вылетели: улетевший рейс не меняется.
+        </p>
+      ) : null}
       <Table caption={`Рейсы, страница ${result.page} из ${result.totalPages}`}>
         <thead>
           <tr>
@@ -146,7 +154,7 @@ function FlightsTable({
               {editableAfter ? (
                 <td>
                   {row.departsAt > editableAfter ? (
-                    <Link href={`/admin/flights/${row.id}/edit`}>
+                    <Link href={flightEditHref(row.id, back)}>
                       Изменить<span className="sr-only"> рейс {row.number}</span>
                     </Link>
                   ) : null}
