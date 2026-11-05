@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { requireAdmin, requireUser } from '@/modules/auth/server';
 import type { ActionState } from '@/shared/ui/ActionForm';
-import { postInputSchema, topicHref, topicInputSchema, type ForumError } from '../model';
+import { postHref, postInputSchema, topicHref, topicInputSchema, type ForumError } from '../model';
 import * as service from './service';
 
 export type ForumFormState = {
@@ -39,12 +39,12 @@ function topicPath(value: FormDataEntryValue | null): string {
 }
 
 /**
- * Переход к сохранённому сообщению. Адрес часто отличается от текущего только якорем, и роутер
- * считает это прокруткой, а не новой страницей, — поэтому страница темы обновляется явно.
+ * Переход к сохранённому сообщению. Страница темы обновляется явно: роутер может считать переход
+ * на неё прокруткой, а не новой страницей.
  */
 function redirectToPost(location: { topicId: string; postId: string; page: number }): never {
   revalidatePath(topicHref(location.topicId));
-  redirect(`${topicHref(location.topicId, location.page)}#post-${location.postId}`);
+  redirect(postHref(location.topicId, location.postId, location.page));
 }
 
 export async function createTopicAction(

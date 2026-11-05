@@ -384,6 +384,7 @@ pg_dump --host=ХОСТ_ALWAYSDATA --username=ПОЛЬЗОВАТЕЛЬ --dbname=
 | Процесс падает, «out of memory» | Предел 256 МБ памяти бесплатного тарифа |
 | Нет места на диске | `du -sh ~/apps/avocado/releases/* ~/private/*`: старые релизы (выкладка оставляет три), дампы базы |
 | 502, «Connection to upstream failed», в журнале `Upstream starting failed: … reason: No such file or directory` | Ошибка в пути в **Command** или **Working directory**. В журнале (команда из [«Где что лежит»](#где-что-лежит)) сверить `cwd:` и путь к `server.js` с `~/apps/avocado/current`. Случилось 4 ноября 2026 года: в Working directory было `apps/avocado-travel/current` вместо `apps/avocado/current` |
+| Кнопка формы висит на «Отправляем…», а данные сохранились | На alwaysdata сервер не может обратиться сам к себе (в журнале `failed to get redirect response … ECONNREFUSED`), поэтому после отправки формы браузер сам открывает новый адрес. Если адрес отличается только якорем (`#…`), страница не перезагрузится. Адрес перехода должен отличаться и до якоря. Случилось 6 ноября 2026 года с ответами на форуме |
 | `http://` открывается без перехода на `https://` | Не включена галочка **Force HTTPS** в разделе SSL настроек сайта |
 | Ссылки, sitemap или RSS ведут на onrender.com | Сборка с чужим `NEXT_PUBLIC_SITE_URL`: проверить `env` в `alwaysdata-deploy.yml` |
 | На alwaysdata нет новости или заказа, которые есть на Render | Так и должно быть: базы отдельные |

@@ -53,7 +53,7 @@ test('покупатель создаёт тему, отвечает и прав
   // Ответ — страница прокручивается к новому сообщению.
   await page.getByLabel('Сообщение').fill(`Ответ ${id}`);
   await page.getByRole('button', { name: 'Ответить' }).click();
-  await expect(page).toHaveURL(/#post-/);
+  await expect(page).toHaveURL(/[?&]post=[^#]+#post-/);
   const reply = page.getByRole('article').filter({ hasText: `Ответ ${id}` });
   await expect(reply).toBeVisible();
   await expectValidHtml(page, topicPath);

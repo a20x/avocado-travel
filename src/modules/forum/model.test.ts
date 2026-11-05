@@ -4,6 +4,7 @@ import {
   editMinutesLeft,
   pageOfPosition,
   postInputSchema,
+  postHref,
   topicHref,
   topicInputSchema,
 } from './model';
@@ -44,6 +45,9 @@ describe('страницы темы', () => {
     expect(topicHref('t1')).toBe('/forum/t1');
     expect(topicHref('t1', 1)).toBe('/forum/t1');
     expect(topicHref('t1', 3)).toBe('/forum/t1?page=3');
+    // Адрес сообщения отличается от адреса темы не только якорем: страница перезагрузится.
+    expect(postHref('t1', 'p9')).toBe('/forum/t1?post=p9#post-p9');
+    expect(postHref('t1', 'p9', 3)).toBe('/forum/t1?page=3&post=p9#post-p9');
   });
 });
 
