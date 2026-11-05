@@ -4,9 +4,12 @@ import { useActionState } from 'react';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { Input } from '@/shared/ui/Input';
+import type { SelectOption } from '@/shared/ui/Select';
 import { Textarea } from '@/shared/ui/Textarea';
-import type { ReferenceReturn } from '../model';
+import type { ReferenceLists, ReferenceReturn } from '../model';
 import { saveAirlineAction, type ReferenceFormState } from '../server/actions';
+import { CityForm, NEW_CITY_VALUES } from './CityForm';
+import { ReferenceSelect, ReferenceValueSelect } from './ReferenceSelect';
 
 export type AirlineFormValues = {
   code: string;
@@ -14,19 +17,40 @@ export type AirlineFormValues = {
   color: string;
   description: string;
   baggageIncluded: boolean;
+  country: string;
+  carrierType: string;
+  baseCitySlug: string;
+};
+
+/** Пустая форма новой авиакомпании. */
+export const NEW_AIRLINE_VALUES: AirlineFormValues = {
+  code: '',
+  name: '',
+  color: '#2E4A7D',
+  description: '',
+  baggageIncluded: false,
+  country: 'Россия',
+  carrierType: '',
+  baseCitySlug: '',
 };
 
 /**
  * Форма авиакомпании в админке: создание и правка. Код после создания не меняется.
  * `returnTo` — форму открыли кнопкой «Добавить» из формы рейсов: после сохранения — туда.
+ * Списки — из базы; «+ Добавить» у базового города открывает всю форму города в окне.
  */
 export function AirlineForm({
   code,
   initial,
+  lists,
+  cities,
   returnTo,
 }: {
   code?: string;
   initial: AirlineFormValues;
+  lists: ReferenceLists;
+  /** Города для списка «Базовый город», по алфавиту. */
+  cities: SelectOption[];
   returnTo?: ReferenceReturn;
 }) {
   const [state, formAction, pending] = useActionState<ReferenceFormState, FormData>(
@@ -75,6 +99,39 @@ export function AirlineForm({
             error={errors.code}
           />
         )}
+        <ReferenceValueSelect
+          kind="country"
+          name="country"
+          values={lists.country}
+          defaultValue={value('country')}
+          error={errors.country}
+        />
+        <ReferenceValueSelect
+          kind="airline_type"
+          name="carrierType"
+          values={lists.airline_type}
+          defaultValue={value('carrierType')}
+          error={errors.carrierType}
+        />
+        <ReferenceSelect
+          name="baseCitySlug"
+          label="Базовый город"
+          placeholder="Выберите город"
+          what="базовый город"
+          title="Новый город"
+          wide
+          options={cities}
+          defaultValue={value('baseCitySlug')}
+          error={errors.baseCitySlug}
+        >
+          {(done, cancel) => (
+            <CityForm
+              initial={NEW_CITY_VALUES}
+              lists={lists}
+              inline={{ onSaved: done, onCancel: cancel }}
+            />
+          )}
+        </ReferenceSelect>
         <Input
           name="color"
           type="color"

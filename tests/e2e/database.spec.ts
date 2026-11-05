@@ -36,6 +36,16 @@ test('БД: меню разделов словами преподавателя,
   );
   await expect(input.getByRole('link', { name: 'Войти как администратор' })).toBeVisible();
 
+  await menu.getByText('Поиск по двум атрибутам').click();
+  await expect(page.getByRole('navigation', { name: 'Вид поиска' }).getByRole('link')).toHaveText([
+    'Авиакомпания и направление',
+    'Страна и город',
+    'Часть света и часовой пояс',
+    'Страна и авиакомпания',
+    'Тип и авиакомпания',
+  ]);
+  await expect(page.getByRole('link', { name: 'Подробные отчёты о продажах →' })).toHaveCount(0);
+
   await menu.getByText('Агрегация').click();
   await expect(
     page.getByRole('navigation', { name: 'Вид агрегации' }).getByRole('link'),

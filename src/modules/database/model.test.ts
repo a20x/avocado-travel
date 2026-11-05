@@ -7,6 +7,7 @@ import {
   formatBytes,
   formatSql,
   clampToSales,
+  directoryChoices,
   pickAirline,
   salesPeriod,
   scheduleTotal,
@@ -227,5 +228,39 @@ describe('вкладка «БД»: даты сводок — в периоде �
       dateTo: undefined,
     });
     expect(clampToSales({ dateFrom: '2020-01-01' }, null)).toEqual({ dateFrom: '2020-01-01' });
+  });
+});
+
+describe('вкладка «БД»: поиск по справочникам', () => {
+  const rows = [
+    { country: 'Россия', city: 'moscow', name: 'Москва', part: 'Европа', zone: 'Europe/Moscow' },
+    { country: 'Россия', city: 'kazan', name: 'Казань', part: 'Европа', zone: 'Europe/Moscow' },
+    { country: 'Турция', city: 'istanbul', name: 'Стамбул', part: 'Азия', zone: 'Europe/Istanbul' },
+  ];
+  const names = { moscow: 'Москва', kazan: 'Казань', istanbul: 'Стамбул' };
+
+  it('значения в списках без повторов и по алфавиту, город — с названием', () => {
+    const { options } = directoryChoices(rows, ['country', 'city'], names);
+    expect(options.country?.map((option) => option.label)).toEqual(['Россия', 'Турция']);
+    expect(options.city).toEqual([
+      { value: 'kazan', label: 'Казань' },
+      { value: 'moscow', label: 'Москва' },
+      { value: 'istanbul', label: 'Стамбул' },
+    ]);
+  });
+
+  it('сочетания — только по полям поиска и без повторов', () => {
+    const { combos } = directoryChoices(rows, ['part', 'zone'], names);
+    expect(combos).toEqual([
+      { part: 'Европа', zone: 'Europe/Moscow' },
+      { part: 'Азия', zone: 'Europe/Istanbul' },
+    ]);
+  });
+
+  it('город с цифрой в адресе — допустимый параметр поиска', () => {
+    expect(dbQuerySchema.parse({ to: 'novyy-2', city: 'novyy-2' })).toMatchObject({
+      to: 'novyy-2',
+      city: 'novyy-2',
+    });
   });
 });

@@ -1,4 +1,5 @@
 import 'server-only';
+import { repairSelection } from '@/shared/lib/linked';
 import {
   listAircraftModels,
   listAirlines,
@@ -275,22 +276,40 @@ export async function createFlights(
 const filterValue = (value: unknown) =>
   typeof value === 'string' && /^[a-zA-Z0-9-]{1,80}$/.test(value) ? value : undefined;
 
-/** Маршруты для таблицы админки по алфавиту городов; фильтры — из адреса страницы. */
-export async function listRoutesForAdmin(params: {
-  city?: unknown;
-  airline?: unknown;
-}): Promise<AdminRoute[]> {
-  const rows = await repository.findAdminRoutes({
-    city: filterValue(params.city),
-    airline: filterValue(params.airline),
-  });
-  return rows.sort(
-    (a, b) =>
-      a.originCity.localeCompare(b.originCity, 'ru') ||
-      a.destinationCity.localeCompare(b.destinationCity, 'ru') ||
-      a.airlineName.localeCompare(b.airlineName, 'ru') ||
-      a.originIata.localeCompare(b.originIata),
+/**
+ * Маршруты для таблицы админки по алфавиту городов; фильтры — из адреса страницы.
+ * Списки «Город» и «Авиакомпания» связаны: `combos` — сочетания, для которых есть рейсы. Сочетание
+ * без рейсов (например, из старой ссылки) не даёт пустую таблицу: авиакомпания из него снимается.
+ */
+export async function getRoutesForAdmin(params: { city?: unknown; airline?: unknown }): Promise<{
+  routes: AdminRoute[];
+  combos: Array<{ city: string; airline: string }>;
+  city?: string;
+  airline?: string;
+  dropped: boolean;
+}> {
+  const combos = (await repository.findAdminRouteCombos()).flatMap(({ airline, from, to }) => [
+    { city: from, airline },
+    { city: to, airline },
+  ]);
+  const { selection, dropped } = repairSelection(
+    combos,
+    { city: filterValue(params.city), airline: filterValue(params.airline) },
+    ['city', 'airline'],
   );
+  const rows = await repository.findAdminRoutes(selection);
+  return {
+    routes: rows.sort(
+      (a, b) =>
+        a.originCity.localeCompare(b.originCity, 'ru') ||
+        a.destinationCity.localeCompare(b.destinationCity, 'ru') ||
+        a.airlineName.localeCompare(b.airlineName, 'ru') ||
+        a.originIata.localeCompare(b.originIata),
+    ),
+    combos,
+    ...selection,
+    dropped,
+  };
 }
 
 /** Удаляет все рейсы маршрута, если на них нет ни одного билета; сколько удалено. */

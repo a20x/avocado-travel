@@ -9,6 +9,7 @@ export type City = {
   slug: string;
   name: string;
   country: string;
+  worldPart: string;
   timezone: string;
   airports: Array<Pick<AirportRecord, 'iata' | 'name'>>;
   /** Координаты первого аэропорта города — для погоды и карты. */
@@ -37,6 +38,7 @@ export function groupCities(cities: CityRecord[], airports: AirportRecord[]): Ci
         slug: city.slug,
         name: city.name,
         country: city.country,
+        worldPart: city.worldPart,
         timezone: first.timezone,
         airports: own.map((airport) => ({ iata: airport.iata, name: airport.name })),
         lat: first.lat,

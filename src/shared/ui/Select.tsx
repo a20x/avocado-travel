@@ -13,14 +13,25 @@ type SelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, 'id' | 'childre
   options: SelectOption[];
   hint?: string;
   error?: string;
+  /** Когда то же поле уже есть на странице, например форма в окне поверх другой формы. */
+  idPrefix?: string;
 };
 
 /**
  * Выпадающий список на стандартном <select>: управление с клавиатуры и экранным диктором
  * браузер даёт сам, без сторонних библиотек.
  */
-export function Select({ name, label, options, hint, error, className, ...props }: SelectProps) {
-  const id = `field-${name}`;
+export function Select({
+  name,
+  label,
+  options,
+  hint,
+  error,
+  idPrefix = '',
+  className,
+  ...props
+}: SelectProps) {
+  const id = `${idPrefix}field-${name}`;
   const select = useRef<HTMLSelectElement>(null);
   const { defaultValue } = props;
 

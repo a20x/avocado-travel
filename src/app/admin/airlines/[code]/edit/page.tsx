@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/modules/auth/server';
-import { getAirlineForEdit } from '@/modules/catalog-data/server';
+import { getAirlineForEdit, getReferenceLists, listCities } from '@/modules/catalog-data/server';
 import { AirlineForm } from '@/modules/catalog-data/ui';
 
 export const metadata: Metadata = {
@@ -13,7 +13,11 @@ export const metadata: Metadata = {
 export default async function EditAirlinePage(props: PageProps<'/admin/airlines/[code]/edit'>) {
   const { code } = await props.params;
   await requireAdmin(`/admin/airlines/${code}/edit`);
-  const airline = await getAirlineForEdit(code);
+  const [airline, lists, cities] = await Promise.all([
+    getAirlineForEdit(code),
+    getReferenceLists(),
+    listCities(),
+  ]);
   if (!airline) notFound();
 
   return (
@@ -22,7 +26,12 @@ export default async function EditAirlinePage(props: PageProps<'/admin/airlines/
         <Link href="/admin/airlines">← Все авиакомпании</Link>
       </p>
       <h1 className="text-3xl">Правка авиакомпании</h1>
-      <AirlineForm code={airline.code} initial={airline} />
+      <AirlineForm
+        code={airline.code}
+        initial={airline}
+        lists={lists}
+        cities={cities.map((city) => ({ value: city.slug, label: city.name }))}
+      />
     </div>
   );
 }

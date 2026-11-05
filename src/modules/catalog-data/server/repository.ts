@@ -1,17 +1,19 @@
 import 'server-only';
-import { asc, count, countDistinct, eq, or, sql } from 'drizzle-orm';
+import { and, asc, count, countDistinct, eq, or, sql } from 'drizzle-orm';
 import { flights } from '@/modules/flights';
 import { db } from '@/server/db';
-import type { Airport, CityInput } from '../model';
-import { aircraftModels, airlines, airports, cities } from '../schema';
+import type { Airport, CityInput, ReferenceKind } from '../model';
+import { aircraftModels, airlines, airports, cities, referenceValues } from '../schema';
 
 type NewCity = typeof cities.$inferInsert;
 type NewAirport = typeof airports.$inferInsert;
 type NewAirline = typeof airlines.$inferInsert;
 
 // Названия городов и авиакомпаний сравниваются без учёта регистра: «казань» — та же Казань.
-const sameText = (column: typeof cities.name | typeof airlines.name, value: string) =>
-  sql`lower(${column}) = lower(${value})`;
+const sameText = (
+  column: typeof cities.name | typeof airlines.name | typeof referenceValues.value,
+  value: string,
+) => sql`lower(${column}) = lower(${value})`;
 
 /** Города по алфавиту. */
 export function findAllCities() {
@@ -137,7 +139,16 @@ export async function insertAirline(airline: NewAirline): Promise<void> {
 
 export async function updateAirline(
   code: string,
-  values: Pick<NewAirline, 'name' | 'color' | 'description' | 'baggageIncluded'>,
+  values: Pick<
+    NewAirline,
+    | 'name'
+    | 'color'
+    | 'description'
+    | 'baggageIncluded'
+    | 'country'
+    | 'carrierType'
+    | 'baseCitySlug'
+  >,
 ): Promise<boolean> {
   const updated = await db
     .update(airlines)
@@ -155,6 +166,15 @@ export async function deleteAirline(code: string): Promise<boolean> {
   return deleted.length > 0;
 }
 
+/** Сколько авиакомпаний считают город базовым. */
+export async function countAirlinesBasedIn(slug: string): Promise<number> {
+  const [row] = await db
+    .select({ airlines: count() })
+    .from(airlines)
+    .where(eq(airlines.baseCitySlug, slug));
+  return row?.airlines ?? 0;
+}
+
 /** Рейсов у каждой авиакомпании: код → число рейсов. */
 export async function countFlightsByAirline(): Promise<Map<string, number>> {
   const rows = await db
@@ -170,4 +190,36 @@ export function findAllAircraftModels() {
     .select()
     .from(aircraftModels)
     .orderBy(asc(aircraftModels.manufacturer), asc(aircraftModels.model));
+}
+
+/** Единичные значения выпадающих списков (замечание преподавателя: выборка из базы). */
+export function findReferenceValues() {
+  return db
+    .selectDistinct({ kind: referenceValues.kind, value: referenceValues.value })
+    .from(referenceValues);
+}
+
+/** Такое значение в списке, написанное как угодно: «россия» — та же Россия. */
+export async function findReferenceValue(
+  kind: ReferenceKind,
+  value: string,
+): Promise<string | undefined> {
+  const [row] = await db
+    .select({ value: referenceValues.value })
+    .from(referenceValues)
+    .where(and(eq(referenceValues.kind, kind), sameText(referenceValues.value, value)));
+  return row?.value;
+}
+
+export async function insertReferenceValue(kind: ReferenceKind, value: string): Promise<void> {
+  await db.insert(referenceValues).values({ kind, value }).onConflictDoNothing();
+}
+
+/** Есть ли в списке именно такое значение: то, что сохраняется в город или авиакомпанию. */
+export async function referenceValueExists(kind: ReferenceKind, value: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: referenceValues.id })
+    .from(referenceValues)
+    .where(and(eq(referenceValues.kind, kind), eq(referenceValues.value, value)));
+  return row !== undefined;
 }

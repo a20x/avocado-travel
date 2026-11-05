@@ -12,6 +12,7 @@ function city(slug: string, name: string): CityRecord {
     nameFrom: `из ${name}`,
     nameTo: `в ${name}`,
     country: 'Россия',
+    worldPart: 'Европа',
     description: '',
     image: '/images/destinations/default.svg',
     createdAt: created,

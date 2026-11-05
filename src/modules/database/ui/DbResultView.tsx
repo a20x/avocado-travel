@@ -278,6 +278,76 @@ function ResultBody({
         </>
       );
 
+    case 'countryCity':
+    case 'partZone':
+      return (
+        <>
+          <Summary count={result.rows.length} fetchedAt={fetchedAt} />
+          {result.rows.length === 0 ? (
+            <Empty />
+          ) : (
+            <Table caption="Города по выбранным условиям">
+              <thead>
+                <tr>
+                  <th scope="col">Город</th>
+                  <th scope="col">Страна</th>
+                  <th scope="col">Часть света</th>
+                  <th scope="col">Аэропорты</th>
+                  <th scope="col">Часовой пояс</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.rows.map((row) => (
+                  <tr key={row.city}>
+                    <td>{row.city}</td>
+                    <td>{row.country}</td>
+                    <td>{row.part}</td>
+                    <td>{row.airports}</td>
+                    <td>{row.zones}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </>
+      );
+
+    case 'countryAirline':
+    case 'typeAirline':
+      return (
+        <>
+          <Summary count={result.rows.length} fetchedAt={fetchedAt} />
+          {result.rows.length === 0 ? (
+            <Empty />
+          ) : (
+            <Table caption="Авиакомпании по выбранным условиям">
+              <thead>
+                <tr>
+                  <th scope="col">Авиакомпания</th>
+                  <th scope="col">Код</th>
+                  <th scope="col">Страна</th>
+                  <th scope="col">Тип</th>
+                  <th scope="col">Базовый город</th>
+                  <th scope="col">Багаж в экономе</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.rows.map((row) => (
+                  <tr key={row.code}>
+                    <td>{row.airline}</td>
+                    <td>{row.code}</td>
+                    <td>{row.country}</td>
+                    <td>{row.type}</td>
+                    <td>{row.baseCity}</td>
+                    <td>{row.baggageIncluded ? 'Включён' : 'Не включён'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </>
+      );
+
     case 'schedule': {
       const total = scheduleTotal(result.rows);
       const price = (value: number, flights: number) => (flights > 0 ? formatPrice(value) : '—');

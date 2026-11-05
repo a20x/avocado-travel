@@ -1,16 +1,20 @@
 import 'server-only';
 import { nearestDates } from '@/shared/lib/available-days';
+import { repairSelection } from '@/shared/lib/linked';
 import { addDays, dateInZone, zonedTimeToUtc } from '@/shared/lib/time';
 import {
+  DIRECTORY_REPORTS,
   FLIGHTS_PAGE_SIZE,
   dbQuerySchema,
   clampToSales,
+  directoryChoices,
   fillScores,
   pickAirline,
   salesPeriod,
   type DbPassport,
   type DbQuery,
   type DbResult,
+  type DirectoryField,
   type FlightCombo,
   type SalesSpan,
   type SqlText,
@@ -18,6 +22,10 @@ import {
 import * as repository from './repository';
 
 const ZONE = 'Europe/Moscow';
+
+/** По русскому алфавиту: порядок строк в PostgreSQL зависит от настроек сервера. */
+const sortByLabel = <T>(rows: T[], label: (row: T) => string) =>
+  rows.sort((a, b) => label(a).localeCompare(label(b), 'ru'));
 
 /** Даты формы (по Москве, включительно) → период в UTC; пустая дата не ограничивает. */
 function rangeOf(query: DbQuery): repository.Range {
@@ -35,7 +43,22 @@ export type DatabasePage = {
   sql: SqlText[];
   /** Периоды продаж авиакомпаний — границы календаря в сводках продаж (только у них). */
   salesSpans?: SalesSpan[];
+  /** Сочетания для связанных списков поиска рейсов и «Авиакомпании и направления». */
+  combos?: FlightCombo[];
+  /** Выбрали сочетание без записей — часть условий снята, чтобы результат был. */
+  dropped?: boolean;
 };
+
+/** Запрос с исправленным выбором: снятые значения становятся пустыми. */
+function withSelection<F extends 'from' | 'to' | 'airline' | DirectoryField>(
+  query: DbQuery,
+  fields: readonly F[],
+  selection: Partial<Record<F, string>>,
+): DbQuery {
+  const next: DbQuery = { ...query };
+  for (const field of fields) next[field as keyof Pick<DbQuery, F>] = selection[field];
+  return next;
+}
 
 /**
  * Запрос вкладки «БД» по параметрам адреса (лаба 3): форма → проверка Zod → запрос к базе.
@@ -83,6 +106,14 @@ export async function runDatabaseQuery(
       };
     }
     case 'flights': {
+      const combos = await repository.listFlightCombos();
+      const fields = ['from', 'to', 'airline'] as const;
+      const { selection, dropped } = repairSelection(
+        combos,
+        { from: query.from, to: query.to, airline: query.airline },
+        [...fields],
+      );
+      query = withSelection(query, fields, selection);
       const page = query.page;
       const filter = { from: query.from, to: query.to, airline: query.airline };
       const found = await repository.searchFlights({ ...filter, range }, query.sort, {
@@ -110,11 +141,69 @@ export async function runDatabaseQuery(
           nearestDates: start && end ? nearestDates(days, start, end) : [],
         },
         sql: found.sql,
+        combos,
+        dropped,
       };
     }
     case 'routes': {
-      const found = await repository.findRoutes({ airline: query.airline, to: query.to });
-      return { query, result: { report: 'routes', rows: found.rows }, sql: [found.sql] };
+      const combos = await repository.listFlightCombos();
+      const fields = ['airline', 'to'] as const;
+      const { selection, dropped } = repairSelection(
+        combos,
+        { airline: query.airline, to: query.to },
+        [...fields],
+      );
+      query = withSelection(query, fields, selection);
+      const found = await repository.findRoutes(selection);
+      return {
+        query,
+        result: { report: 'routes', rows: found.rows },
+        sql: [found.sql],
+        combos,
+        dropped,
+      };
+    }
+    case 'countryCity':
+    case 'partZone': {
+      const report = query.report;
+      const { fields } = DIRECTORY_REPORTS[report];
+      const list = await repository.listDirectoryCities();
+      const names = Object.fromEntries(list.rows.map((row) => [row.city, row.name]));
+      const choices = directoryChoices(list.rows, fields, names);
+      const { selection, dropped } = repairSelection(
+        choices.combos,
+        Object.fromEntries(fields.map((field) => [field, query[field]])),
+        [...fields],
+      );
+      query = withSelection(query, fields, selection);
+      const found = await repository.findDirectoryCities(selection);
+      return {
+        query,
+        result: { report, rows: sortByLabel(found.rows, (row) => row.city), choices },
+        sql: [list.sql, found.sql],
+        dropped,
+      };
+    }
+    case 'countryAirline':
+    case 'typeAirline': {
+      const report = query.report;
+      const { fields } = DIRECTORY_REPORTS[report];
+      const list = await repository.listDirectoryAirlines();
+      const names = Object.fromEntries(list.rows.map((row) => [row.airline, row.name]));
+      const choices = directoryChoices(list.rows, fields, names);
+      const { selection, dropped } = repairSelection(
+        choices.combos,
+        Object.fromEntries(fields.map((field) => [field, query[field]])),
+        [...fields],
+      );
+      query = withSelection(query, fields, selection);
+      const found = await repository.findDirectoryAirlines(selection);
+      return {
+        query,
+        result: { report, rows: sortByLabel(found.rows, (row) => row.airline), choices },
+        sql: [list.sql, found.sql],
+        dropped,
+      };
     }
     case 'schedule': {
       const found = await repository.summarizeSchedule(now);
@@ -159,12 +248,4 @@ export async function runDatabaseQuery(
 /** Паспорт базы (раздел «Сведения о БД»). */
 export function getPassport(): Promise<DbPassport> {
   return repository.readPassport();
-}
-
-/**
- * Сочетания «откуда — куда — авиакомпания», для которых есть рейсы, с их датами: из них строятся
- * связанные списки первого и второго запросов (замечание преподавателя по лабе 3).
- */
-export function getFlightCombos(): Promise<FlightCombo[]> {
-  return repository.listFlightCombos();
 }

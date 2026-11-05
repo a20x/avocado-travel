@@ -8,7 +8,7 @@ import {
   type DbView,
 } from '@/modules/database';
 import { getCurrentUser } from '@/modules/auth/server';
-import { getFlightCombos, getPassport, runDatabaseQuery } from '@/modules/database/server';
+import { getPassport, runDatabaseQuery } from '@/modules/database/server';
 import {
   DbInputCard,
   DbPassportCard,
@@ -44,10 +44,9 @@ export default async function DatabasePage(props: PageProps<'/database'>) {
 
   // Каждому разделу — только свои данные: списки форм, паспорт или пользователь.
   const linked = view === 'flights' || view === 'routes';
-  const [passport, user, combos, cities, airlines] = await Promise.all([
+  const [passport, user, cities, airlines] = await Promise.all([
     view === 'about' ? getPassport() : null,
     view === 'input' || view === 'airline' || view === 'flights' ? getCurrentUser() : null,
-    linked ? getFlightCombos() : [],
     linked ? listCities() : [],
     linked || view === 'months' ? listAirlines() : [],
   ]);
@@ -81,27 +80,36 @@ export default async function DatabasePage(props: PageProps<'/database'>) {
             // Сетка, а не flex: полоса вкладок на узком экране прокручивается внутри себя.
             <div className="grid gap-2">
               <Tabs
-                label="Вид агрегации"
+                label={'viewsLabel' in section ? section.viewsLabel : section.label}
                 current={viewHref(view)}
                 items={section.views.filter(isReport).map((item) => ({
                   href: viewHref(item),
                   label: DB_REPORTS[item],
                 }))}
               />
-              <p>
-                <Link href="/analytics">Подробные отчёты о продажах →</Link>
-              </p>
+              {section.label === 'Агрегация' ? (
+                <p>
+                  <Link href="/analytics">Подробные отчёты о продажах →</Link>
+                </p>
+              ) : null}
             </div>
           ) : null}
           <DbQueryForm
             report={view}
             query={query}
-            combos={combos}
+            combos={page.combos ?? []}
+            choices={'choices' in result ? result.choices : undefined}
             cities={cities.map((city) => ({ value: city.slug, label: city.name }))}
             airlines={airlines.map((airline) => ({ value: airline.code, label: airline.name }))}
             flightAirlines={result.report === 'airline' ? result.airlines : []}
             salesSpans={page.salesSpans}
           />
+          {page.dropped ? (
+            <p role="status" className="text-sm text-slate">
+              По этому сочетанию записей нет, поэтому лишнее условие снято. В связанных списках
+              остаются только сочетания, для которых есть записи.
+            </p>
+          ) : null}
           <DbResultView
             query={query}
             result={result}

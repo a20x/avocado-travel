@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { choosePhrase } from './helpers';
+import { choosePhrase, openAsAdmin } from './helpers';
 
 // Замечание преподавателя по лабе 3: «При поиске по двум синхронизированным значениям атрибутов
 // всегда должны быть результаты. Выбрал Москва — Владивосток, компания Стрива — нет результатов».
@@ -59,6 +59,62 @@ test('БД: в выбранные даты рейсов нет — ссылки 
   await expect(result.getByRole('table').getByRole('row').nth(1)).toContainText(
     'Москва → Владивосток',
   );
+});
+
+test('Админка, рейсы: «Город» и «Авиакомпания» связаны, сочетания без рейсов не выбрать', async ({
+  page,
+}) => {
+  await openAsAdmin(page, '/admin/flights');
+  const form = page.getByRole('form', { name: 'Фильтр маршрутов' });
+  await form.getByLabel('Город').selectOption('vladivostok');
+  await expect(form.getByLabel('Авиакомпания').locator('option')).not.toContainText(['Стрива']);
+  await form.getByLabel('Авиакомпания').selectOption({ label: 'Ластавиа' });
+  await form.getByRole('button', { name: 'Показать' }).click();
+  await expect(page).toHaveURL(/city=vladivostok.*airline=LST/);
+  await expect(page.getByRole('row').filter({ hasText: 'Ластавиа' }).first()).toBeVisible();
+
+  // Сочетание без рейсов из старой ссылки: условие снято, таблица не пустая.
+  await page.goto('/admin/flights?city=vladivostok&airline=STV');
+  await expect(page.getByRole('status').filter({ hasText: 'условие снято' })).toBeVisible();
+  await expect(page.getByRole('row').filter({ hasText: 'Владивосток' }).first()).toBeVisible();
+});
+
+test('Сочетание без записей из старой ссылки: условие снято, результат есть', async ({ page }) => {
+  await page.goto('/database?report=routes&airline=STV&to=vladivostok');
+  await expect(page.getByRole('status').filter({ hasText: 'условие снято' })).toBeVisible();
+  await expect(
+    page.getByRole('table', { name: 'Маршруты: рейсы, цены эконома и проданные места' }),
+  ).toBeVisible();
+  const form = page.getByRole('form', { name: 'Условия запроса' });
+  await expect(form.getByLabel('Авиакомпания')).toHaveValue('STV');
+  await expect(form.getByLabel('Направление')).toHaveValue('');
+
+  await page.goto('/database?report=flights&from=vladivostok&airline=STV');
+  await expect(
+    page.getByRole('region', { name: 'Результат запроса: Поиск рейсов' }).getByRole('table'),
+  ).toBeVisible();
+
+  await page.goto('/database?report=countryCity&country=Турция&city=moscow');
+  await expect(page.getByRole('table', { name: 'Города по выбранным условиям' })).toContainText(
+    'Стамбул',
+  );
+
+  await page.goto('/analytics?airline=STV&destination=vladivostok');
+  await expect(page.getByRole('heading', { name: '1. Выручка по месяцам' })).toBeVisible();
+});
+
+test('Поиск по справочникам: списки связаны, результат есть сразу', async ({ page }) => {
+  await page.goto('/database?report=countryCity');
+  const form = page.getByRole('form', { name: 'Условия запроса' });
+  await form.getByLabel('Страна').selectOption({ label: 'Турция' });
+  await expect(form.getByLabel('Город').locator('option')).toHaveText(['Все города', 'Стамбул']);
+  await form.getByRole('button', { name: 'Выполнить запрос' }).click();
+  await expect(page).toHaveURL(/report=countryCity.*country=/);
+  await expect(page.getByRole('table', { name: 'Города по выбранным условиям' })).toContainText(
+    'IST',
+  );
+  const sql = page.getByRole('group').filter({ hasText: 'SQL этих запросов' });
+  await expect(sql.locator('pre').first()).toContainText('select distinct');
 });
 
 test('Аналитика: «Направление» — только города, куда авиакомпания продавала билеты', async ({

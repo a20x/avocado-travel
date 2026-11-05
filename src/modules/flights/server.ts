@@ -13,7 +13,7 @@ export {
   listDestinationStats,
   listRoutes,
   listNearestSearchDates,
-  listRoutesForAdmin,
+  getRoutesForAdmin,
   listSchedule,
   listSearchRoutes,
   searchFlights,

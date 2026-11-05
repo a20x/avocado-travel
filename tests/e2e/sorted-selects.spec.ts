@@ -32,6 +32,10 @@ test('выпадающие списки сайта — по алфавиту', a
     ['/database', ['Авиакомпания']],
     ['/database?report=flights', ['Откуда', 'Куда', 'Авиакомпания']],
     ['/database?report=routes', ['Авиакомпания', 'Направление']],
+    ['/database?report=countryCity', ['Страна', 'Город']],
+    ['/database?report=partZone', ['Часть света', 'Часовой пояс']],
+    ['/database?report=countryAirline', ['Страна', 'Авиакомпания']],
+    ['/database?report=typeAirline', ['Тип авиакомпании', 'Авиакомпания']],
     ['/analytics', ['Авиакомпания', 'Направление']],
     ['/xml', ['Категория', 'Автор']],
     ['/rss?view=search', ['Источник']],
@@ -54,6 +58,10 @@ test('выпадающие списки админки — по алфавиту
     ['/rss?view=input', ['Рубрика']],
     ['/admin/flights', ['Город', 'Авиакомпания']],
     ['/admin/flights/new', ['Авиакомпания', 'Самолёт', 'Откуда', 'Куда']],
+    ['/admin/cities/new', ['Страна', 'Часть света', 'Часовой пояс']],
+    ['/admin/cities/kazan/edit', ['Страна', 'Часть света']],
+    ['/admin/airlines/new', ['Страна', 'Тип авиакомпании', 'Базовый город']],
+    ['/admin/airlines/STV/edit', ['Страна', 'Тип авиакомпании', 'Базовый город']],
   ];
   for (const [path, labels] of pages) {
     await page.goto(path);

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { requireAdmin } from '@/modules/auth/server';
-import { listTimeZones, referenceReturnSchema } from '@/modules/catalog-data';
-import { CityForm } from '@/modules/catalog-data/ui';
+import { referenceReturnSchema } from '@/modules/catalog-data';
+import { getReferenceLists } from '@/modules/catalog-data/server';
+import { CityForm, NEW_CITY_VALUES } from '@/modules/catalog-data/ui';
 
 export const metadata: Metadata = { title: 'Новый город — админка', robots: { index: false } };
 
@@ -11,6 +12,7 @@ export default async function NewCityPage(props: PageProps<'/admin/cities/new'>)
   // Открыли кнопкой «Добавить» у списка «Откуда» или «Куда» формы рейсов — туда и вернёмся.
   const back = referenceReturnSchema.parse((await props.searchParams).return);
   const returnTo = back === 'flights-airline' ? undefined : back;
+  const lists = await getReferenceLists();
 
   return (
     <div className="container-site grid gap-6 py-8">
@@ -28,22 +30,7 @@ export default async function NewCityPage(props: PageProps<'/admin/cities/new'>)
           аэропорт уже будет выбран в списке.
         </p>
       ) : null}
-      <CityForm
-        returnTo={returnTo}
-        timezones={listTimeZones().map((zone) => ({ value: zone, label: zone }))}
-        initial={{
-          name: '',
-          nameFrom: '',
-          nameTo: '',
-          country: 'Россия',
-          description: '',
-          iata: '',
-          airportName: '',
-          lat: '',
-          lon: '',
-          timezone: 'Europe/Moscow',
-        }}
-      />
+      <CityForm returnTo={returnTo} lists={lists} initial={NEW_CITY_VALUES} />
     </div>
   );
 }

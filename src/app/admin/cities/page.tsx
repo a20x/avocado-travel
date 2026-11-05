@@ -25,9 +25,11 @@ export default async function AdminCitiesPage(props: PageProps<'/admin/cities'>)
         </Link>
       </header>
       <p className="max-w-3xl text-slate">
-        Новый город сразу появляется во всех выпадающих списках сайта. Чтобы поиск находил по нему
-        рейсы, заведите их в разделе <Link href="/admin/flights">«Рейсы»</Link>. Город с рейсами
-        удалить нельзя — сначала удалите рейсы.
+        Новый город сразу появляется в списках форм и в поиске{' '}
+        <Link href="/database?report=countryCity">«Страна и город»</Link> на вкладке «БД». В поиске
+        рейсов он появится с первым рейсом: заведите его в разделе{' '}
+        <Link href="/admin/flights">«Рейсы»</Link>. Город с рейсами и город, который базовый у
+        авиакомпании, удалить нельзя.
       </p>
       <CityTable cities={cities} />
       {params.saved ? <Toast message="Город сохранён." /> : null}

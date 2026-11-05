@@ -5,7 +5,7 @@
  */
 
 /** Таблицы публикуются для внешних ключей и чтения в чужих репозиториях (ADR-0007). */
-export { aircraftModels, airlines, airports, cities } from './schema';
+export { aircraftModels, airlines, airports, cities, referenceValues } from './schema';
 
 export type {
   AircraftModel,
@@ -26,14 +26,15 @@ export {
   airlineInputSchema,
   cityInputSchema,
   isTimeZone,
-  listTimeZones,
   newAirlineSchema,
   newCitySchema,
+  newReferenceValueSchema,
+  REFERENCE_KINDS,
   REFERENCE_RETURNS,
   referenceReturnHref,
   referenceReturnSchema,
 } from './model';
-export type { ReferenceReturn } from './model';
+export type { ReferenceKind, ReferenceLists, ReferenceReturn } from './model';
 
 /** Схема салона и вместимость самолёта. */
 export { buildCabin, listSeats, parseLayout, seatCapacity, seatClass } from './cabin';

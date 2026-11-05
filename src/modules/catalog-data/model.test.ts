@@ -3,9 +3,9 @@ import {
   airlineInputSchema,
   cityInputSchema,
   isTimeZone,
-  listTimeZones,
   newAirlineSchema,
   newCitySchema,
+  newReferenceValueSchema,
   referenceReturnHref,
   referenceReturnSchema,
 } from './model';
@@ -15,6 +15,7 @@ const city = {
   nameFrom: 'Мурманска',
   nameTo: 'Мурманск',
   country: 'Россия',
+  worldPart: 'Европа',
   description: '',
 };
 const airport = {
@@ -60,12 +61,9 @@ describe('форма города', () => {
 });
 
 describe('часовые пояса', () => {
-  it('знает пояса IANA и даёт их список по алфавиту', () => {
+  it('знает пояса IANA', () => {
     expect(isTimeZone('Asia/Vladivostok')).toBe(true);
     expect(isTimeZone('Mars/Olympus')).toBe(false);
-    const zones = listTimeZones();
-    expect(zones).toContain('Europe/Moscow');
-    expect([...zones].sort()).toEqual(zones);
   });
 });
 
@@ -73,6 +71,9 @@ describe('форма авиакомпании', () => {
   const airline = {
     name: 'Нордавиа',
     color: '#336699',
+    country: 'Россия',
+    carrierType: 'Лоукост',
+    baseCitySlug: 'moscow',
     description: 'Рейсы на север: Мурманск и Архангельск.',
     baggageIncluded: 'on',
   };
@@ -110,5 +111,33 @@ describe('кнопка «Добавить» в форме рейсов: возв
     expect(referenceReturnSchema.parse('https://evil.example')).toBeUndefined();
     expect(referenceReturnSchema.parse(null)).toBeUndefined();
     expect(referenceReturnSchema.parse(undefined)).toBeUndefined();
+  });
+});
+
+describe('новое значение списка из окна «Добавить»', () => {
+  it('страну принимает без лишних пробелов', () => {
+    expect(newReferenceValueSchema.parse({ kind: 'country', value: '  Грузия ' }).value).toBe(
+      'Грузия',
+    );
+  });
+
+  it('не принимает пустое значение и значение без букв', () => {
+    expect(newReferenceValueSchema.safeParse({ kind: 'country', value: ' ' }).success).toBe(false);
+    expect(newReferenceValueSchema.safeParse({ kind: 'airline_type', value: '123' }).success).toBe(
+      false,
+    );
+  });
+
+  it('часовой пояс — только настоящий и в правильном написании', () => {
+    expect(newReferenceValueSchema.parse({ kind: 'timezone', value: 'asia/tokyo' }).value).toBe(
+      'Asia/Tokyo',
+    );
+    expect(newReferenceValueSchema.safeParse({ kind: 'timezone', value: 'Обнинск' }).success).toBe(
+      false,
+    );
+  });
+
+  it('не принимает чужой вид списка', () => {
+    expect(newReferenceValueSchema.safeParse({ kind: 'users', value: 'Иван' }).success).toBe(false);
   });
 });

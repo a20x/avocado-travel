@@ -41,12 +41,13 @@ erDiagram
 | name | text | «Москва» |
 | name_from | text | Форма после «из»: «Москвы» — для поиска-фразы |
 | name_to | text | Форма после «в»: «Москву» |
-| country | text | |
+| country | text | Страна — значение из `reference_values` |
+| world_part | text | Часть света — значение из `reference_values` |
 | description | text | Описание для страницы направления, может быть пустым |
 | image | text | Иллюстрация, например `/images/destinations/moscow.svg`; у новых городов — общая `default.svg` |
 | created_at, updated_at | timestamptz | |
 
-Города заводит и правит администратор в `/admin/cities` (ADR-0011). Город с рейсами не удаляется.
+Города заводит и правит администратор в `/admin/cities` (ADR-0011). Город с рейсами и город, который базовый у авиакомпании, не удаляются.
 
 ### `airports` — аэропорты
 
@@ -72,9 +73,22 @@ erDiagram
 | logo | text | Адрес SVG на сайте, например `/images/airlines/lastavia.svg` (файл в `public/images/airlines/`) |
 | description | text | |
 | baggage_included | boolean | Включён ли багаж в эконом |
+| country | text | Страна — значение из `reference_values` |
+| carrier_type | text | Тип: лоукост, классическая, чартерная — значение из `reference_values` |
+| base_city_slug | → cities.slug | Базовый город |
 | created_at, updated_at | timestamptz | |
 
 Авиакомпании заводит и правит администратор в `/admin/airlines`; код после создания не меняется, логотип новой авиакомпании — общий `/images/airlines/default.svg`. Авиакомпания с рейсами не удаляется.
+
+### `reference_values` — значения выпадающих списков
+
+| Поле | Тип | Описание |
+|---|---|---|
+| id | serial | |
+| kind | text | Какой это список: `country`, `world_part`, `timezone`, `airline_type` |
+| value | text | Значение; пара `(kind, value)` уникальна |
+
+Списки форм городов и авиакомпаний строятся `SELECT DISTINCT` по этой таблице (ADR-0013). Новое значение заводится кнопкой «+ Добавить» рядом со списком и сохраняется сразу, ещё до сохранения города или авиакомпании.
 
 ### `aircraft_models` — модели самолётов («вид транспорта»)
 

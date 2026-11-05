@@ -7,11 +7,21 @@ type TextareaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id'> & {
   label: string;
   hint?: string;
   error?: string;
+  /** Когда то же поле уже есть на странице, например форма в окне поверх другой формы. */
+  idPrefix?: string;
 };
 
 /** Многострочное поле с подписью — текст новости, сообщение в гостевой книге. */
-export function Textarea({ name, label, hint, error, className, ...props }: TextareaProps) {
-  const id = `field-${name}`;
+export function Textarea({
+  name,
+  label,
+  hint,
+  error,
+  idPrefix = '',
+  className,
+  ...props
+}: TextareaProps) {
+  const id = `${idPrefix}field-${name}`;
   return (
     <Field id={id} label={label} hint={hint} error={error} className={className}>
       <textarea

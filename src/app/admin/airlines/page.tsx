@@ -25,9 +25,11 @@ export default async function AdminAirlinesPage(props: PageProps<'/admin/airline
         </Link>
       </header>
       <p className="max-w-3xl text-slate">
-        Новая авиакомпания сразу появляется во всех выпадающих списках сайта. Чтобы поиск находил её
-        рейсы, заведите их в разделе <Link href="/admin/flights">«Рейсы»</Link>. Авиакомпанию с
-        рейсами удалить нельзя — сначала удалите рейсы.
+        Новая авиакомпания сразу появляется в списках форм и в поиске{' '}
+        <Link href="/database?report=countryAirline">«Страна и авиакомпания»</Link> на вкладке «БД».
+        В поиске рейсов она появится с первым рейсом: заведите его в разделе{' '}
+        <Link href="/admin/flights">«Рейсы»</Link>. Авиакомпанию с рейсами удалить нельзя — сначала
+        удалите рейсы.
       </p>
       <AirlineTable airlines={airlines} />
       {params.saved ? <Toast message="Авиакомпания сохранена." /> : null}

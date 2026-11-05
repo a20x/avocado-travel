@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { linkedOptions, matchingCombos } from './linked';
+import { linkedOptions, matchingCombos, repairSelection } from './linked';
 
 // Рейсы: Москва → Владивосток летают только Альтэйра и Ластавиа, Стрива — на ближних маршрутах.
 const combos = [
@@ -48,5 +48,35 @@ describe('связанные списки', () => {
       { from: 'kazan', to: 'sochi', airline: 'ORN' },
     ]);
     expect(matchingCombos(combos, { from: 'moscow', airline: 'ORN' })).toEqual([]);
+  });
+});
+
+describe('выбор без записей исправляется', () => {
+  const order = ['from', 'to', 'airline'] as Array<'from' | 'to' | 'airline'>;
+
+  it('рабочий выбор не меняется', () => {
+    const selected = { from: 'moscow', to: 'vladivostok', airline: 'ALT' };
+    expect(repairSelection(combos, selected, order)).toEqual({
+      selection: selected,
+      dropped: false,
+    });
+  });
+
+  it('Москва и Орнавиа не сочетаются — остаётся первое по порядку условие', () => {
+    expect(repairSelection(combos, { from: 'moscow', airline: 'ORN' }, order)).toEqual({
+      selection: { from: 'moscow' },
+      dropped: true,
+    });
+  });
+
+  it('значения, которого нет совсем, не остаётся, остальные условия работают', () => {
+    expect(repairSelection(combos, { from: 'nowhere', airline: 'STV' }, order)).toEqual({
+      selection: { airline: 'STV' },
+      dropped: true,
+    });
+  });
+
+  it('пустой выбор остаётся пустым', () => {
+    expect(repairSelection(combos, {}, order)).toEqual({ selection: {}, dropped: false });
   });
 });
