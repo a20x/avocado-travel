@@ -34,11 +34,12 @@ export function Tabs({ items, current, label }: TabsProps) {
     // На узком экране вкладки прокручиваются вбок внутри полосы, страница не уезжает.
     // Нижняя линия — тень внутри полосы, а не рамка: подчёркивание вкладки ложится на неё, не
     // выходя за край. Выступ даже в 1 px браузер прокручивал бы, и сбоку появлялась полоса
-    // вертикальной прокрутки.
+    // вертикальной прокрутки. Промежуток 16 px: на компьютере (окно от 1200 px) все вкладки
+    // помещаются, в том числе шесть длинных на «RSS»; прокрутка остаётся для узких экранов.
     <nav
       ref={nav}
       aria-label={label}
-      className="relative flex gap-6 overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_var(--color-line)]"
+      className="relative flex gap-4 overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_var(--color-line)]"
     >
       {items.map((item) => {
         const isCurrent = item.href === current;
