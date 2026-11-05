@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useActionState, type ReactNode } from 'react';
+import { withBack } from '@/shared/lib/return-path';
 import { Button, buttonClasses } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { DatePicker } from '@/shared/ui/DatePicker';
@@ -19,6 +20,8 @@ type FlightScheduleFormProps = {
   today: string;
   /** Выбранное заранее — значение, только что добавленное кнопкой «Добавить». */
   initial?: { airline?: string; origin?: string; destination?: string };
+  /** Откуда пришли: туда форма вернёт после сохранения. */
+  back?: string;
 };
 
 /**
@@ -46,6 +49,7 @@ export function FlightScheduleForm({
   aircraft,
   today,
   initial = {},
+  back,
 }: FlightScheduleFormProps) {
   const [state, formAction, pending] = useActionState<FlightScheduleFormState, FormData>(
     createFlightsAction,
@@ -63,6 +67,7 @@ export function FlightScheduleForm({
   return (
     <Card className="p-4 md:p-6">
       <form action={formAction} noValidate className="grid gap-5 md:grid-cols-2">
+        {back ? <input type="hidden" name="back" value={back} /> : null}
         {state.error ? (
           <p role="alert" className="rounded-sm bg-error-bg px-4 py-3 text-error md:col-span-2">
             {state.error}
@@ -75,7 +80,10 @@ export function FlightScheduleForm({
         </p>
 
         {/* key: после ошибки форма сбрасывается, а список без пересоздания вернулся бы к первому пункту. */}
-        <WithAdd href="/admin/airlines/new?return=flights-airline" what="авиакомпанию">
+        <WithAdd
+          href={withBack('/admin/airlines/new?return=flights-airline', back)}
+          what="авиакомпанию"
+        >
           <Select
             key={`airline-${value('airline', initial.airline)}`}
             name="airline"
@@ -93,7 +101,10 @@ export function FlightScheduleForm({
           defaultValue={value('aircraftModelId')}
           error={errors.aircraftModelId}
         />
-        <WithAdd href="/admin/cities/new?return=flights-origin" what="город вылета">
+        <WithAdd
+          href={withBack('/admin/cities/new?return=flights-origin', back)}
+          what="город вылета"
+        >
           <Select
             key={`origin-${value('origin', initial.origin)}`}
             name="origin"
@@ -103,7 +114,10 @@ export function FlightScheduleForm({
             error={errors.origin}
           />
         </WithAdd>
-        <WithAdd href="/admin/cities/new?return=flights-destination" what="город прилёта">
+        <WithAdd
+          href={withBack('/admin/cities/new?return=flights-destination', back)}
+          what="город прилёта"
+        >
           <Select
             key={`destination-${value('destination', initial.destination)}`}
             name="destination"

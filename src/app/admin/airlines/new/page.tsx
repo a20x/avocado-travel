@@ -4,6 +4,7 @@ import { requireAdmin } from '@/modules/auth/server';
 import { referenceReturnSchema } from '@/modules/catalog-data';
 import { getReferenceLists, listCities } from '@/modules/catalog-data/server';
 import { AirlineForm, NEW_AIRLINE_VALUES } from '@/modules/catalog-data/ui';
+import { returnPath, withBack } from '@/shared/lib/return-path';
 
 export const metadata: Metadata = {
   title: 'Новая авиакомпания — админка',
@@ -11,19 +12,21 @@ export const metadata: Metadata = {
 };
 
 export default async function NewAirlinePage(props: PageProps<'/admin/airlines/new'>) {
-  await requireAdmin('/admin/airlines/new');
+  const params = await props.searchParams;
+  const back = returnPath(params.back);
+  await requireAdmin(withBack('/admin/airlines/new', back));
   // Открыли кнопкой «Добавить» у списка «Авиакомпания» формы рейсов — туда и вернёмся.
-  const back = referenceReturnSchema.parse((await props.searchParams).return);
-  const returnTo = back === 'flights-airline' ? back : undefined;
+  const target = referenceReturnSchema.parse(params.return);
+  const returnTo = target === 'flights-airline' ? target : undefined;
   const [lists, cities] = await Promise.all([getReferenceLists(), listCities()]);
 
   return (
     <div className="container-site grid gap-6 py-8">
       <p>
         {returnTo ? (
-          <Link href="/admin/flights/new">← К новым рейсам</Link>
+          <Link href={withBack('/admin/flights/new', back)}>← К новым рейсам</Link>
         ) : (
-          <Link href="/admin/airlines">← Все авиакомпании</Link>
+          <Link href={back ?? '/admin/airlines'}>{back ? '← Назад' : '← Все авиакомпании'}</Link>
         )}
       </p>
       <h1 className="text-3xl">Новая авиакомпания</h1>
@@ -34,6 +37,7 @@ export default async function NewAirlinePage(props: PageProps<'/admin/airlines/n
       ) : null}
       <AirlineForm
         returnTo={returnTo}
+        back={back}
         lists={lists}
         cities={cities.map((city) => ({ value: city.slug, label: city.name }))}
         initial={NEW_AIRLINE_VALUES}

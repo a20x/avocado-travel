@@ -239,7 +239,7 @@ test('списки форм города и авиакомпании: «+ Доб
 
   const suffix = random('абвгдежзиклмнопрстуфх', 6);
   const country = `Страна${suffix}`;
-  const part = `Материк${suffix}`;
+  const part = 'Африка';
   const type = `Тип${suffix}`;
   const city = `Списокград${suffix}`;
   const base = `Базоград${suffix}`;
@@ -290,8 +290,9 @@ test('списки форм города и авиакомпании: «+ Доб
   await expect(page.getByLabel('Страна')).toHaveValue(country);
   await expect(page.getByLabel('Страна').locator('option', { hasText: country })).toHaveCount(1);
 
-  await addValue('часть света', part);
-  await expect(page.getByLabel('Часть света')).toHaveValue(part);
+  // Части света — закрытый список: кнопки «Добавить» у него нет.
+  await expect(page.getByRole('button', { name: '+ Добавить часть света' })).toHaveCount(0);
+  await page.getByLabel('Часть света').selectOption({ label: part });
 
   // Ошибка в форме не сбрасывает новое значение в списке.
   await page.getByRole('button', { name: 'Добавить город' }).click();
@@ -489,6 +490,96 @@ test('админ правит один рейс и все рейсы маршр�
   await page.goto('/admin/airlines');
   await confirmDelete(page, airline);
   await expect(page).toHaveURL('/admin/airlines?deleted=1');
+});
+
+test('формы и списки ввода возвращают туда, откуда пришли', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'админка одна на оба экрана, база общая');
+  test.slow(); // Длинный сценарий: шесть стрелок, три сохранения и уборка.
+  const INPUT = '/database?report=input';
+  const suffix = random('абвгдежзиклмнопрстуфх', 6);
+  const airline = `Возвратавиа${suffix}`;
+  const code = `U${random('ABCDEFGHIJKLMNOPRSTUVWXYZ', 2)}`;
+  const city = `Возвратоград${suffix}`;
+  const iata = `H${random('ABCDEFGHIJKLMNOPRSTUVWXYZ', 2)}`;
+  const inputCard = page.getByRole('region', { name: 'Ввод данных' });
+
+  await openAsAdmin(page, '/admin');
+  await page.goto(INPUT);
+
+  // Стрелка на всех трёх формах и в списках ведёт обратно на вкладку «БД».
+  for (const name of ['Добавить рейсы', 'Добавить город', 'Добавить авиакомпанию']) {
+    await inputCard.getByRole('link', { name }).click();
+    await page.getByRole('link', { name: '← Назад' }).click();
+    await expect(page).toHaveURL(INPUT);
+  }
+  for (const name of ['Все рейсы — правка', 'Все города — правка', 'Все авиакомпании — правка']) {
+    await inputCard.getByRole('link', { name }).click();
+    await page.getByRole('link', { name: '← Назад' }).click();
+    await expect(page).toHaveURL(INPUT);
+  }
+
+  // Сохранение: тоже обратно, с уведомлением.
+  await inputCard.getByRole('link', { name: 'Добавить авиакомпанию' }).click();
+  await page.getByLabel('Название', { exact: true }).fill(airline);
+  await page.getByLabel('Код', { exact: true }).fill(code);
+  await page.getByLabel('Описание').fill('Проверка возврата после сохранения.');
+  await chooseAirlineLists(page);
+  await page.getByRole('button', { name: 'Добавить авиакомпанию' }).click();
+  await expect(page).toHaveURL(new RegExp(`/database\\?report=input&saved=${code}`));
+  await expect(page.getByRole('status').filter({ hasText: 'Запись сохранена.' })).toBeVisible();
+
+  // Рейсы: «+ Добавить» уводит в форму города, но путь обратно на вкладку «БД» не теряется.
+  await inputCard.getByRole('link', { name: 'Добавить рейсы' }).click();
+  await page.getByRole('link', { name: '+ Добавить город прилёта' }).click();
+  await fillCity(page, city, iata);
+  await expect(page).toHaveURL(/\/admin\/flights\/new\?destination=.*back=/);
+  await page.getByLabel('Авиакомпания').selectOption(code);
+  await page.getByLabel('Самолёт').selectOption({ label: 'Boeing 737-800' });
+  await page.getByLabel('Откуда').selectOption('SVO');
+  await page.getByLabel('Первый день').fill(inDays(150));
+  await page.getByLabel('Последний день').fill(inDays(150));
+  await page.getByRole('button', { name: 'Создать рейсы' }).click();
+  await expect(page).toHaveURL(`${INPUT}&created=2`);
+  await expect(page.getByRole('status').filter({ hasText: 'Создано: 2 рейса.' })).toBeVisible();
+
+  // Из списка: стрелка формы — в список, стрелка списка — на вкладку «БД».
+  await inputCard.getByRole('link', { name: 'Все города — правка' }).click();
+  await expect(page).toHaveURL(/\/admin\/cities\?back=/);
+  const list = page.url();
+  await page.getByRole('main').getByRole('link', { name: 'Добавить город' }).click();
+  await page.getByRole('link', { name: '← Назад' }).click();
+  await expect(page).toHaveURL(list);
+  await page
+    .getByRole('row')
+    .filter({ hasText: city })
+    .getByRole('link', { name: /^Изменить/ })
+    .click();
+  await page.getByRole('button', { name: 'Сохранить изменения' }).click();
+  await expect(page).toHaveURL(/\/admin\/cities\?back=.*saved=/);
+  await page.getByRole('link', { name: '← Назад' }).click();
+  await expect(page).toHaveURL(INPUT);
+
+  // Чужой адрес не принимается: обычная стрелка.
+  await page.goto('/admin/cities/new?back=https%3A%2F%2Fevil.example');
+  await expect(page.getByRole('link', { name: '← Все города' })).toHaveAttribute(
+    'href',
+    '/admin/cities',
+  );
+
+  // Убираем за собой; удаление из списка тоже помнит, куда возвращаться.
+  await page.goto(`/admin/flights?airline=${code}`);
+  await confirmDelete(page, '(SVO) →');
+  await expect(page).toHaveURL('/admin/flights?deleted=1');
+  await page.goto(`/admin/flights?airline=${code}`);
+  await confirmDelete(page, `(${iata}) →`);
+  await expect(page).toHaveURL('/admin/flights?deleted=1');
+  await page.goto('/admin/airlines');
+  await confirmDelete(page, airline);
+  await expect(page).toHaveURL('/admin/airlines?deleted=1');
+  await page.goto(`/admin/cities?back=${encodeURIComponent(INPUT)}`);
+  const back = encodeURIComponent(INPUT);
+  await confirmDelete(page, city);
+  await expect(page).toHaveURL(`/admin/cities?back=${back}&deleted=1`);
 });
 
 test('страницы справочников в админке — валидный HTML', async ({ page }, testInfo) => {

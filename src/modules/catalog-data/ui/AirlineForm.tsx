@@ -45,6 +45,7 @@ export function AirlineForm({
   lists,
   cities,
   returnTo,
+  back,
 }: {
   code?: string;
   initial: AirlineFormValues;
@@ -52,6 +53,8 @@ export function AirlineForm({
   /** Города для списка «Базовый город», по алфавиту. */
   cities: SelectOption[];
   returnTo?: ReferenceReturn;
+  /** Откуда пришли: туда форма вернёт после сохранения. */
+  back?: string;
 }) {
   const [state, formAction, pending] = useActionState<ReferenceFormState, FormData>(
     saveAirlineAction,
@@ -68,6 +71,7 @@ export function AirlineForm({
       <form action={formAction} noValidate className="grid gap-5 md:grid-cols-2">
         {code ? <input type="hidden" name="currentCode" value={code} /> : null}
         {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
+        {back ? <input type="hidden" name="back" value={back} /> : null}
         {state.error ? (
           <p role="alert" className="rounded-sm bg-error-bg px-4 py-3 text-error md:col-span-2">
             {state.error}

@@ -1,5 +1,6 @@
 'use server';
 
+import { returnPath, withParams } from '@/shared/lib/return-path';
 import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/modules/auth/server';
 import type { ActionState } from '@/shared/ui/ActionForm';
@@ -87,7 +88,8 @@ export async function createFlightsAction(
       ? { fieldErrors: { [field]: MESSAGES[result.error] }, values }
       : { error: MESSAGES[result.error], values };
   }
-  redirect(`/admin/flights?created=${result.data.flights}`);
+  const back = returnPath(formData.get('back')) ?? '/admin/flights';
+  redirect(withParams(back, { created: result.data.flights }));
 }
 
 export async function deleteRouteAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -98,7 +100,8 @@ export async function deleteRouteAction(_: ActionState, formData: FormData): Pro
     destination: String(formData.get('destination') ?? ''),
   });
   if (!result.ok) return { error: MESSAGES[result.error] };
-  redirect(`/admin/flights?deleted=${result.data.flights}`);
+  const back = returnPath(formData.get('back')) ?? '/admin/flights';
+  redirect(withParams(back, { deleted: result.data.flights }));
 }
 
 /*

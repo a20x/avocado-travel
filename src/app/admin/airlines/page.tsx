@@ -3,24 +3,29 @@ import Link from 'next/link';
 import { requireAdmin } from '@/modules/auth/server';
 import { listAirlinesForAdmin } from '@/modules/catalog-data/server';
 import { AirlineTable } from '@/modules/catalog-data/ui';
+import { returnPath, withBack } from '@/shared/lib/return-path';
 import { buttonClasses } from '@/shared/ui/Button';
 import { Toast } from '@/shared/ui/Toast';
 
 export const metadata: Metadata = { title: 'Авиакомпании — админка', robots: { index: false } };
 
 export default async function AdminAirlinesPage(props: PageProps<'/admin/airlines'>) {
-  await requireAdmin('/admin/airlines');
   const params = await props.searchParams;
+  const back = returnPath(params.back);
+  await requireAdmin(withBack('/admin/airlines', back));
   const airlines = await listAirlinesForAdmin();
 
   return (
     <div className="container-site grid gap-6 py-8">
       <p>
-        <Link href="/admin">← Админка</Link>
+        <Link href={back ?? '/admin'}>{back ? '← Назад' : '← Админка'}</Link>
       </p>
       <header className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl">Авиакомпании</h1>
-        <Link href="/admin/airlines/new" className={buttonClasses()}>
+        <Link
+          href={withBack('/admin/airlines/new', withBack('/admin/airlines', back))}
+          className={buttonClasses()}
+        >
           Добавить авиакомпанию
         </Link>
       </header>
@@ -31,7 +36,7 @@ export default async function AdminAirlinesPage(props: PageProps<'/admin/airline
         <Link href="/admin/flights">«Рейсы»</Link>. Авиакомпанию с рейсами удалить нельзя — сначала
         удалите рейсы.
       </p>
-      <AirlineTable airlines={airlines} />
+      <AirlineTable airlines={airlines} back={back} />
       {params.saved ? <Toast message="Авиакомпания сохранена." /> : null}
       {params.deleted ? <Toast message="Авиакомпания удалена." /> : null}
     </div>

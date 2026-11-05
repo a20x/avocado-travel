@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { requireAdmin } from '@/modules/auth/server';
 import { listAircraftModels, listAirlines, listAirports } from '@/modules/catalog-data/server';
 import { FlightScheduleForm } from '@/modules/flights/ui';
+import { returnPath, withBack } from '@/shared/lib/return-path';
 import { dateInZone } from '@/shared/lib/time';
 
 export const metadata: Metadata = { title: 'Новые рейсы — админка', robots: { index: false } };
@@ -13,9 +14,10 @@ const byLabel = (a: { label: string }, b: { label: string }) =>
 const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
 
 export default async function NewFlightsPage(props: PageProps<'/admin/flights/new'>) {
-  await requireAdmin('/admin/flights/new');
-  const [params, airlines, airports, models] = await Promise.all([
-    props.searchParams,
+  const params = await props.searchParams;
+  const back = returnPath(params.back);
+  await requireAdmin(withBack('/admin/flights/new', back));
+  const [airlines, airports, models] = await Promise.all([
     listAirlines(),
     listAirports(),
     listAircraftModels(),
@@ -36,10 +38,11 @@ export default async function NewFlightsPage(props: PageProps<'/admin/flights/ne
   return (
     <div className="container-site grid gap-6 py-8">
       <p>
-        <Link href="/admin/flights">← Все рейсы</Link>
+        <Link href={back ?? '/admin/flights'}>{back ? '← Назад' : '← Все рейсы'}</Link>
       </p>
       <h1 className="text-3xl">Новые рейсы</h1>
       <FlightScheduleForm
+        back={back}
         initial={initial}
         today={dateInZone(new Date(), 'Europe/Moscow')}
         airlines={airlines.map((airline) => ({ value: airline.code, label: airline.name }))}

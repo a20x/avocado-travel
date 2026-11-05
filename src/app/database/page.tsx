@@ -18,6 +18,7 @@ import {
 } from '@/modules/database/ui';
 import { listAirlines, listCities } from '@/modules/catalog-data/server';
 import { Tabs } from '@/shared/ui/Tabs';
+import { plural } from '@/shared/lib/format';
 import { pageMetadata } from '@/shared/lib/metadata';
 import { Toast } from '@/shared/ui/Toast';
 
@@ -41,6 +42,7 @@ export default async function DatabasePage(props: PageProps<'/database'>) {
   const { query, result } = page;
   const view = query.report;
   const section = sectionOf(view);
+  const created = Number(params.created);
 
   // Каждому разделу — только свои данные: списки форм, паспорт или пользователь.
   const linked = view === 'flights' || view === 'routes';
@@ -121,7 +123,13 @@ export default async function DatabasePage(props: PageProps<'/database'>) {
       ) : null}
 
       {/* Вернулись сюда после правки рейса из результатов — сообщаем, что сохранилось. */}
-      {params.saved && user?.role === 'admin' ? <Toast message="Рейс изменён." /> : null}
+      {params.saved && user?.role === 'admin' ? (
+        <Toast message={view === 'input' ? 'Запись сохранена.' : 'Рейс изменён.'} />
+      ) : null}
+      {/* Вернулись из форм ввода — сообщаем, что сделано. */}
+      {view === 'input' && created > 0 && user?.role === 'admin' ? (
+        <Toast message={`Создано: ${created} ${plural(created, ['рейс', 'рейса', 'рейсов'])}.`} />
+      ) : null}
     </div>
   );
 }

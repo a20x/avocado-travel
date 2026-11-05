@@ -5,6 +5,7 @@ import { listAirlines, listCities } from '@/modules/catalog-data/server';
 import { getRoutesForAdmin } from '@/modules/flights/server';
 import { AdminRouteTable } from '@/modules/flights/ui';
 import { plural } from '@/shared/lib/format';
+import { returnPath, withBack } from '@/shared/lib/return-path';
 import { Button, buttonClasses } from '@/shared/ui/Button';
 import { LinkedSelects } from '@/shared/ui/LinkedSelects';
 import { Toast } from '@/shared/ui/Toast';
@@ -14,8 +15,9 @@ export const metadata: Metadata = { title: 'Рейсы — админка', robo
 const flightsCount = (count: number) => `${count} ${plural(count, ['рейс', 'рейса', 'рейсов'])}`;
 
 export default async function AdminFlightsPage(props: PageProps<'/admin/flights'>) {
-  await requireAdmin('/admin/flights');
   const params = await props.searchParams;
+  const back = returnPath(params.back);
+  await requireAdmin(withBack('/admin/flights', back));
   const [{ routes, combos, city, airline, dropped }, cities, airlines] = await Promise.all([
     getRoutesForAdmin(params),
     listCities(),
@@ -27,11 +29,14 @@ export default async function AdminFlightsPage(props: PageProps<'/admin/flights'
   return (
     <div className="container-site grid gap-6 py-8">
       <p>
-        <Link href="/admin">← Админка</Link>
+        <Link href={back ?? '/admin'}>{back ? '← Назад' : '← Админка'}</Link>
       </p>
       <header className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl">Рейсы</h1>
-        <Link href="/admin/flights/new" className={buttonClasses()}>
+        <Link
+          href={withBack('/admin/flights/new', withBack('/admin/flights', back))}
+          className={buttonClasses()}
+        >
           Добавить рейсы
         </Link>
       </header>
@@ -47,6 +52,7 @@ export default async function AdminFlightsPage(props: PageProps<'/admin/flights'
         aria-label="Фильтр маршрутов"
         className="grid items-end gap-4 sm:grid-cols-[repeat(2,minmax(0,1fr))_auto]"
       >
+        {back ? <input type="hidden" name="back" value={back} /> : null}
         <LinkedSelects
           fields={[
             {
@@ -67,7 +73,7 @@ export default async function AdminFlightsPage(props: PageProps<'/admin/flights'
         />
         <div className="flex items-center gap-4">
           <Button type="submit">Показать</Button>
-          {city || airline ? <Link href="/admin/flights">Сбросить</Link> : null}
+          {city || airline ? <Link href={withBack('/admin/flights', back)}>Сбросить</Link> : null}
         </div>
       </form>
 
@@ -79,7 +85,7 @@ export default async function AdminFlightsPage(props: PageProps<'/admin/flights'
       ) : null}
 
       {routes.length > 0 ? (
-        <AdminRouteTable routes={routes} />
+        <AdminRouteTable routes={routes} back={back} />
       ) : (
         <p className="text-slate">Рейсов с такими условиями нет.</p>
       )}

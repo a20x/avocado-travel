@@ -28,6 +28,8 @@ export type CatalogDataError =
 /** Какие выпадающие списки форм хранятся в таблице `reference_values` (ADR-0013). */
 export const REFERENCE_KINDS = ['country', 'world_part', 'timezone', 'airline_type'] as const;
 export type ReferenceKind = (typeof REFERENCE_KINDS)[number];
+/** Списки, которые можно пополнять кнопкой «+ Добавить». Части света — закрытый список. */
+export type AddableReferenceKind = Exclude<ReferenceKind, 'world_part'>;
 /** Значения всех списков: каждое один раз, по алфавиту. */
 export type ReferenceLists = Record<ReferenceKind, string[]>;
 
@@ -108,7 +110,7 @@ export const newReferenceValueSchema = z.discriminatedUnion('kind', [
       .transform(canonicalTimeZone),
   }),
   z.object({
-    kind: z.enum(['country', 'world_part', 'airline_type']),
+    kind: z.enum(['country', 'airline_type']),
     value: text('Значение', 2, 50).refine(
       (value) => /\p{L}/u.test(value),
       'Значение должно содержать буквы',
@@ -192,7 +194,9 @@ export const referenceReturnSchema = z
   .catch(undefined);
 
 /** Адрес формы рейсов с новым значением в нужном списке: `/admin/flights/new?origin=MMK`. */
-export function referenceReturnHref(target: ReferenceReturn, value: string): string {
+export function referenceReturnHref(target: ReferenceReturn, value: string, back?: string): string {
   const field = target.slice('flights-'.length);
-  return `/admin/flights/new?${new URLSearchParams({ [field]: value })}`;
+  const params = new URLSearchParams({ [field]: value });
+  if (back) params.set('back', back);
+  return `/admin/flights/new?${params}`;
 }

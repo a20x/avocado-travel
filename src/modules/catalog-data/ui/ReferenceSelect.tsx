@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/Button';
 import { Dialog } from '@/shared/ui/Dialog';
 import { Input } from '@/shared/ui/Input';
 import { Select, type SelectOption } from '@/shared/ui/Select';
-import { mergeOptions, type ReferenceKind } from '../model';
+import { mergeOptions, type AddableReferenceKind } from '../model';
 import { addReferenceValueAction } from '../server/actions';
 
 type ReferenceSelectProps = {
@@ -108,7 +108,7 @@ export function ReferenceSelect({
 
 /** Подписи списков из таблицы `reference_values`. */
 const KIND_TEXTS: Record<
-  ReferenceKind,
+  AddableReferenceKind,
   { label: string; placeholder: string; what: string; title: string; hint?: string }
 > = {
   country: {
@@ -116,12 +116,6 @@ const KIND_TEXTS: Record<
     placeholder: 'Выберите страну',
     what: 'страну',
     title: 'Новая страна',
-  },
-  world_part: {
-    label: 'Часть света',
-    placeholder: 'Выберите часть света',
-    what: 'часть света',
-    title: 'Новая часть света',
   },
   timezone: {
     label: 'Часовой пояс',
@@ -144,7 +138,7 @@ function ReferenceValueForm({
   done,
   cancel,
 }: {
-  kind: ReferenceKind;
+  kind: AddableReferenceKind;
   done: (value: string) => void;
   cancel: () => void;
 }) {
@@ -194,7 +188,7 @@ export function ReferenceValueSelect({
   hint,
   idPrefix,
 }: {
-  kind: ReferenceKind;
+  kind: AddableReferenceKind;
   name: string;
   values: string[];
   defaultValue: string;
