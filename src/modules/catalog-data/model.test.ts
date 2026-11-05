@@ -3,6 +3,7 @@ import {
   airlineInputSchema,
   cityInputSchema,
   isTimeZone,
+  mergeOptions,
   newAirlineSchema,
   newCitySchema,
   newReferenceValueSchema,
@@ -139,5 +140,28 @@ describe('новое значение списка из окна «Добави�
 
   it('не принимает чужой вид списка', () => {
     expect(newReferenceValueSchema.safeParse({ kind: 'users', value: 'Иван' }).success).toBe(false);
+  });
+});
+
+describe('варианты списка с кнопкой «+ Добавить»', () => {
+  const option = (value: string) => ({ value, label: value });
+
+  it('новое значение встаёт по алфавиту', () => {
+    expect(mergeOptions([option('Армения'), option('Китай')], [option('Грузия')])).toEqual([
+      option('Армения'),
+      option('Грузия'),
+      option('Китай'),
+    ]);
+  });
+
+  it('значение, добавленное дважды подряд, в списке одно', () => {
+    expect(mergeOptions([option('Китай')], [option('Грузия'), option('Грузия')])).toEqual([
+      option('Грузия'),
+      option('Китай'),
+    ]);
+  });
+
+  it('значение, которое уже пришло из базы, не повторяется', () => {
+    expect(mergeOptions([option('Грузия')], [option('Грузия')])).toEqual([option('Грузия')]);
   });
 });

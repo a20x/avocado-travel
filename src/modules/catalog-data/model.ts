@@ -161,6 +161,19 @@ export const newAirlineSchema = airlineInputSchema.extend({
 export type NewAirlineInput = z.infer<typeof newAirlineSchema>;
 
 /**
+ * Варианты списка: из базы и только что добавленные кнопкой «+ Добавить» — без повторов, по алфавиту.
+ * Одно и то же значение могут добавить дважды подряд, пока страница не получила свежий список.
+ */
+export function mergeOptions<O extends { value: string; label: string }>(
+  options: O[],
+  added: O[],
+): O[] {
+  return [...new Map([...options, ...added].map((option) => [option.value, option])).values()].sort(
+    (a, b) => a.label.localeCompare(b.label, 'ru'),
+  );
+}
+
+/**
  * Куда вернуться после нового города или авиакомпании, если форму открыли кнопкой «Добавить»
  * у списка в форме рейсов: обратно в неё, и новое значение уже выбрано в своём списке.
  * Только эти три адреса — чужой адрес из формы не примется (нет открытой переадресации).
