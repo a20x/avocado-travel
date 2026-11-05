@@ -82,6 +82,15 @@ export function topicHref(topicId: string, page = 1): string {
   return page > 1 ? `/forum/${topicId}?page=${page}` : `/forum/${topicId}`;
 }
 
+/**
+ * Адрес сообщения в теме. Параметр `post` делает адрес новым: если бы он отличался от текущего
+ * только якорем, браузер не перезагрузил бы страницу после отправки формы (docs/09-deploy.md).
+ */
+export function postHref(topicId: string, postId: string, page = 1): string {
+  const base = topicHref(topicId, page);
+  return `${base}${base.includes('?') ? '&' : '?'}post=${postId}#post-${postId}`;
+}
+
 /** Документ поискового индекса для темы: заголовок и все сообщения — тема ищется целиком. */
 export function topicSearchDocument(
   topic: { id: string; title: string },

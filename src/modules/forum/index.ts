@@ -12,6 +12,7 @@ export {
   editMinutesLeft,
   pageOfPosition,
   postInputSchema,
+  postHref,
   topicHref,
   topicInputSchema,
   topicSearchDocument,
