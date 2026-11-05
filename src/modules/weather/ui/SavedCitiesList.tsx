@@ -1,31 +1,35 @@
 import Link from 'next/link';
 import { ActionForm } from '@/shared/ui/ActionForm';
+import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import {
+  HOME_WEATHER_COUNT,
   MAX_SAVED_CITIES,
   describeWeather,
   formatTemperature,
   weatherCityHref,
   type CityWeather,
-  type GeoCity,
+  type SavedCity,
 } from '../model';
-import { forgetCityAction } from '../server/actions';
+import { forgetCityAction, setHomeCityAction } from '../server/actions';
 import { WeatherIcon } from './WeatherIcon';
 
 /**
- * «Мои города» на странице «Погода»: погода сейчас в каждом отмеченном городе и кнопка
- * «Удалить». Если прогноз недоступен, список всё равно виден — города можно убрать.
+ * «Мои города» на странице «Погода»: погода сейчас в каждом отмеченном городе, кнопки
+ * «На главную» / «Убрать с главной» и «Удалить». Если прогноз недоступен, список всё равно
+ * виден — города можно убрать.
  */
 export function SavedCitiesList({
   cities,
   weather,
   permalink,
 }: {
-  cities: GeoCity[];
+  cities: SavedCity[];
   weather: CityWeather[] | null;
   permalink: string;
 }) {
+  const home = cities.filter((city) => city.home).length;
   return (
     <Card as="section" aria-labelledby="saved-cities-title" className="grid gap-4 p-5 md:p-6">
       <div className="grid gap-1">
@@ -34,7 +38,7 @@ export function SavedCitiesList({
         </h2>
         <p className="text-sm text-slate">
           {cities.length > 0
-            ? `${cities.length} из ${MAX_SAVED_CITIES}. Список хранится в этом браузере.`
+            ? `${cities.length} из ${MAX_SAVED_CITIES}, на главной — ${home} из ${HOME_WEATHER_COUNT}. Список хранится в этом браузере.`
             : 'Найдите город и нажмите «В мои города» — здесь будет погода сразу во всех.'}
         </p>
       </div>
@@ -46,29 +50,47 @@ export function SavedCitiesList({
             return (
               <li
                 key={city.id}
-                className="flex items-center gap-3 border-t border-line pt-2 first:border-0 first:pt-0"
+                className="grid gap-2 border-t border-line pt-2 first:border-0 first:pt-0"
               >
-                {described ? <WeatherIcon kind={described.kind} /> : null}
-                <div className="min-w-0 flex-1">
-                  <Link href={weatherCityHref(city.id)} className="font-semibold">
-                    {city.name}
-                  </Link>
-                  <p className="truncate text-sm text-slate">
-                    {described ? described.label : city.area || 'Прогноз недоступен'}
-                  </p>
+                <div className="flex items-center gap-3">
+                  {described ? <WeatherIcon kind={described.kind} /> : null}
+                  <div className="min-w-0 flex-1">
+                    <Link href={weatherCityHref(city.id)} className="font-semibold">
+                      {city.name}
+                    </Link>
+                    <p className="truncate text-sm text-slate">
+                      {described ? described.label : city.area || 'Прогноз недоступен'}
+                    </p>
+                  </div>
+                  {now ? (
+                    <span className="text-xl font-semibold tabular-nums">
+                      {formatTemperature(now.temperature)}
+                    </span>
+                  ) : null}
+                  <ActionForm action={forgetCityAction} permalink={permalink}>
+                    <input type="hidden" name="city" value={city.id} />
+                    <Button type="submit" variant="ghost" className="px-3">
+                      <span aria-hidden="true">✕</span>
+                      <span className="sr-only">Удалить {city.name} из моих городов</span>
+                    </Button>
+                  </ActionForm>
                 </div>
-                {now ? (
-                  <span className="text-xl font-semibold tabular-nums">
-                    {formatTemperature(now.temperature)}
-                  </span>
-                ) : null}
-                <ActionForm action={forgetCityAction} permalink={permalink}>
-                  <input type="hidden" name="city" value={city.id} />
-                  <Button type="submit" variant="ghost" className="px-3">
-                    <span aria-hidden="true">✕</span>
-                    <span className="sr-only">Удалить {city.name} из моих городов</span>
-                  </Button>
-                </ActionForm>
+                {/* Город на главной занимает место стандартного; убрали — место снова за ним. */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {city.home ? <Badge tone="success">На главной</Badge> : null}
+                  <ActionForm action={setHomeCityAction} permalink={permalink}>
+                    <input type="hidden" name="city" value={city.id} />
+                    <input type="hidden" name="home" value={city.home ? '0' : '1'} />
+                    <Button
+                      type="submit"
+                      variant={city.home ? 'ghost' : 'secondary'}
+                      className="px-3 py-1 text-sm"
+                      aria-label={`${city.home ? 'Убрать с главной' : 'На главную'}: ${city.name}`}
+                    >
+                      {city.home ? 'Убрать с главной' : 'На главную'}
+                    </Button>
+                  </ActionForm>
+                </div>
               </li>
             );
           })}

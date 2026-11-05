@@ -11,7 +11,7 @@ import { getActivePoll } from '@/modules/poll/server';
 import { PollWidget } from '@/modules/poll/ui';
 import { getRating } from '@/modules/rating/server';
 import { RatingWidget } from '@/modules/rating/ui';
-import { geoPlace } from '@/modules/weather';
+import { HOME_WEATHER_COUNT, geoPlace, homeWeatherPlaces } from '@/modules/weather';
 import { getSavedCities, getWeather } from '@/modules/weather/server';
 import { WeatherWidget } from '@/modules/weather/ui';
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME } from '@/shared/config/site';
@@ -35,9 +35,28 @@ export const metadata: Metadata = {
 /** Популярные направления считаются от главного узла сети. */
 const HUB = 'moscow';
 const POPULAR_COUNT = 6;
-/** Погода на главной — в городах с разным климатом, пока посетитель не отметил свои. */
-const WEATHER_CITIES = ['kaliningrad', 'sochi', 'kazan', 'vladivostok'];
-const WEATHER_COUNT = WEATHER_CITIES.length;
+/**
+ * Стандартные города баннера погоды — по порядку, первые четыре свободных места. Обнинска нет
+ * среди городов сайта: он задан точкой GeoNames, как город из «Моих городов». За ним — города
+ * сети; последние — запас: они встают на место стандартного, который посетитель уже вынес
+ * «На главную» сам (два Сочи баннер не покажет).
+ */
+const OBNINSK = geoPlace({
+  id: 516436,
+  name: 'Обнинск',
+  area: 'Калужская область, Россия',
+  lat: 55.10993,
+  lon: 36.61238,
+});
+const WEATHER_CITIES = [
+  'sochi',
+  'saint-petersburg',
+  'vladivostok',
+  'kaliningrad',
+  'kazan',
+  'yekaterinburg',
+  'novosibirsk',
+];
 
 export default async function HomePage(props: PageProps<'/'>) {
   const now = new Date();
@@ -66,11 +85,12 @@ export default async function HomePage(props: PageProps<'/'>) {
   const today = dateInZone(now, 'Europe/Moscow');
 
   const citiesBySlug = new Map(cities.map((city) => [city.slug, city]));
-  const weather = await getWeather(
-    savedCities.length > 0
-      ? savedCities.slice(0, WEATHER_COUNT).map(geoPlace)
-      : WEATHER_CITIES.flatMap((slug) => citiesBySlug.get(slug) ?? []),
+  const homeWeather = homeWeatherPlaces(
+    savedCities,
+    [OBNINSK, ...WEATHER_CITIES.flatMap((slug) => citiesBySlug.get(slug) ?? [])],
+    HOME_WEATHER_COUNT,
   );
+  const weather = await getWeather(homeWeather.places);
   const popular = [...routes]
     .sort((a, b) => b.flightsPerWeek - a.flightsPerWeek)
     .slice(0, POPULAR_COUNT);
@@ -116,7 +136,7 @@ export default async function HomePage(props: PageProps<'/'>) {
 
         {/* Погода, опрос, рейтинг — в одном ряду (docs/06-design.md). */}
         <div className="grid items-start gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <WeatherWidget weather={weather} mine={savedCities.length > 0} />
+          <WeatherWidget weather={weather} mine={homeWeather.mine} />
           {poll ? <PollWidget poll={poll} /> : null}
           <RatingWidget rating={rating} />
         </div>

@@ -1,6 +1,7 @@
-import { CITY_QUERY_MAX, cityIdSchema, geoPlace } from '@/modules/weather';
+import { CITY_QUERY_MAX, HOME_WEATHER_COUNT, cityIdSchema, geoPlace } from '@/modules/weather';
 import { findCities, getCity, getSavedCities, getWeather } from '@/modules/weather/server';
 import {
+  CitySearchBox,
   CitySearchResults,
   CityWeatherCard,
   SavedCitiesList,
@@ -8,7 +9,6 @@ import {
 } from '@/modules/weather/ui';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
-import { Input } from '@/shared/ui/Input';
 import { pageMetadata } from '@/shared/lib/metadata';
 
 export const metadata = pageMetadata({
@@ -52,25 +52,19 @@ export default async function WeatherPage(props: PageProps<'/weather'>) {
       <header className="grid max-w-2xl gap-2">
         <h1 className="text-3xl">Погода в любом городе</h1>
         <p className="text-slate">
-          Найдите город — покажем погоду в нём прямо сейчас и на три дня. Нужные города можно
-          отметить: они соберутся в списке «Мои города» и появятся в баннере на главной.
+          Начните вводить название — появятся подсказки; покажем погоду в городе прямо сейчас и на
+          три дня. Нужные города отметьте «В мои города» — искать их снова не придётся. До{' '}
+          {HOME_WEATHER_COUNT} из них можно вынести «На главную»: они встанут в баннер погоды на
+          главной вместо стандартных.
         </p>
       </header>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="grid gap-6">
           {/* Обычная форма GET: запрос — в адресе, работает и без JavaScript. */}
+          {/* key: после поиска поле показывает новый запрос, а не набранное до перехода. */}
           <form action="/weather" role="search" className="flex flex-wrap items-end gap-3">
-            <Input
-              name="q"
-              type="search"
-              label="Город"
-              defaultValue={q}
-              placeholder="например, Париж"
-              maxLength={CITY_QUERY_MAX}
-              required
-              className="min-w-0 flex-1"
-            />
+            <CitySearchBox key={q} defaultValue={q} />
             <Button type="submit">Найти</Button>
           </form>
 

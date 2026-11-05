@@ -121,6 +121,10 @@ export type GeoCity = { id: number; name: string; area: string; lat: number; lon
 
 /** Сколько городов можно отметить: список хранится в cookie, а она невелика. */
 export const MAX_SAVED_CITIES = 10;
+/** Сколько городов в баннере погоды на главной; столько же можно отметить «На главную». */
+export const HOME_WEATHER_COUNT = 4;
+/** С какой длины названия показывать подсказки городов: геокодер ищет от двух букв. */
+export const CITY_SUGGEST_MIN = 2;
 /** Сколько городов показывать по запросу. */
 export const CITY_SEARCH_LIMIT = 10;
 export const CITY_QUERY_MAX = 100;
@@ -187,42 +191,95 @@ export function parseCity(json: unknown): GeoCity | null {
   return result.success ? toGeoCity(result.data) : null;
 }
 
+/** Город из «Моих городов»; `home` — показывать в баннере на главной. */
+export type SavedCity = GeoCity & { home: boolean };
+
 const savedCitySchema = z.object({
   id: cityIdSchema,
   name: z.string().min(1).max(100),
   area: z.string().max(200),
   lat: z.number().min(-90).max(90),
   lon: z.number().min(-180).max(180),
+  // В cookie, записанной до появления кнопки «На главную», отметки нет — город не на главной.
+  home: z.boolean().default(false),
 });
 
 /**
  * «Мои города» из cookie. Её может изменить кто угодно в своём браузере, поэтому каждая запись
- * проверяется: битые отбрасываются, повторы и всё сверх MAX_SAVED_CITIES — тоже.
+ * проверяется: битые отбрасываются, повторы и всё сверх MAX_SAVED_CITIES — тоже, а отметок
+ * «На главную» — не больше HOME_WEATHER_COUNT.
  */
-export function parseSavedCities(json: unknown): GeoCity[] {
+export function parseSavedCities(json: unknown): SavedCity[] {
   if (!Array.isArray(json)) return [];
-  const cities: GeoCity[] = [];
+  const cities: SavedCity[] = [];
+  let home = 0;
   for (const item of json) {
     const city = savedCitySchema.safeParse(item);
-    if (city.success && !cities.some((c) => c.id === city.data.id)) cities.push(city.data);
+    if (!city.success || cities.some((c) => c.id === city.data.id)) continue;
+    const onHome = city.data.home && home < HOME_WEATHER_COUNT;
+    if (onHome) home += 1;
+    cities.push({ ...city.data, home: onHome });
   }
   return cities.slice(0, MAX_SAVED_CITIES);
 }
 
 export type SavedCitiesError = 'LIMIT';
 
-/** Новый город — в конец списка; уже отмеченный — список не меняется. */
+/** Новый город — в конец списка, пока не на главной; уже отмеченный — список не меняется. */
 export function addSavedCity(
-  cities: GeoCity[],
+  cities: SavedCity[],
   city: GeoCity,
-): Result<GeoCity[], SavedCitiesError> {
+): Result<SavedCity[], SavedCitiesError> {
   if (cities.some((c) => c.id === city.id)) return ok(cities);
   if (cities.length >= MAX_SAVED_CITIES) return fail('LIMIT');
-  return ok([...cities, city]);
+  return ok([...cities, { ...city, home: false }]);
 }
 
-export function removeSavedCity(cities: GeoCity[], id: number): GeoCity[] {
+export function removeSavedCity(cities: SavedCity[], id: number): SavedCity[] {
   return cities.filter((city) => city.id !== id);
+}
+
+/** NOT_SAVED — города нет в «Моих городах»; HOME_LIMIT — на главной уже четыре города. */
+export type HomeCityError = 'NOT_SAVED' | 'HOME_LIMIT';
+
+/** «На главную» и «Убрать с главной»: отметка у города из «Моих городов». */
+export function setHomeCity(
+  cities: SavedCity[],
+  id: number,
+  home: boolean,
+): Result<SavedCity[], HomeCityError> {
+  const city = cities.find((c) => c.id === id);
+  if (!city) return fail('NOT_SAVED');
+  if (city.home === home) return ok(cities);
+  if (home && cities.filter((c) => c.home).length >= HOME_WEATHER_COUNT) return fail('HOME_LIMIT');
+  return ok(cities.map((c) => (c.id === id ? { ...c, home } : c)));
+}
+
+const sameName = (a: string, b: string) => a.localeCompare(b, 'ru', { sensitivity: 'base' }) === 0;
+
+/**
+ * Города баннера на главной: сначала отмеченные «На главную», оставшиеся места — стандартные
+ * города по порядку. Стандартный город с тем же названием, что и отмеченный, пропускается:
+ * Сочи из «Моих городов» и Сочи из списка сайта — один город.
+ */
+export function homeWeatherPlaces(
+  saved: SavedCity[],
+  defaults: WeatherPlace[],
+  count = HOME_WEATHER_COUNT,
+): { places: WeatherPlace[]; mine: number } {
+  const mine = saved
+    .filter((city) => city.home)
+    .slice(0, count)
+    .map(geoPlace);
+  const rest = defaults.filter((place) => !mine.some((m) => sameName(m.name, place.name)));
+  return { places: [...mine, ...rest].slice(0, count), mine: mine.length };
+}
+
+/** Подсказки при наборе города: строка запроса без пробелов по краям или null — рано искать. */
+export function citySuggestQuery(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const query = value.trim().slice(0, CITY_QUERY_MAX);
+  return query.length >= CITY_SUGGEST_MIN ? query : null;
 }
 
 /** Город из геокодера → место для прогноза; название ведёт на его погоду. */

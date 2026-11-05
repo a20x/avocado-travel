@@ -36,7 +36,7 @@ test('сумма из адреса подставляется в конверт�
 test('погода на главной и на странице направления', async ({ page }) => {
   await page.goto('/');
   const weather = page.getByRole('region', { name: 'Погода сейчас' });
-  await expect(weather.getByText(/Калининград|недоступен/).first()).toBeVisible();
+  await expect(weather.getByText(/Обнинск|недоступен/).first()).toBeVisible();
 
   await page.goto('/destinations/sochi');
   await expect(

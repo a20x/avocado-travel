@@ -4,3 +4,4 @@
 import 'server-only';
 
 export { findCities, getCity, getSavedCities, getWeather } from './server/service';
+export { handleCitySuggestRequest } from './server/suggest';

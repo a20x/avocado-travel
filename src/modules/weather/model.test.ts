@@ -1,18 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import {
+  HOME_WEATHER_COUNT,
   MAX_SAVED_CITIES,
   addSavedCity,
   citySearchUrl,
+  citySuggestQuery,
   describeWeather,
   forecastUrl,
   formatTemperature,
   geoPlace,
+  homeWeatherPlaces,
   parseCity,
   parseCitySearch,
   parseForecast,
   parseSavedCities,
   removeSavedCity,
+  setHomeCity,
   type GeoCity,
+  type SavedCity,
 } from './model';
 
 const KALININGRAD = { slug: 'kaliningrad', name: 'Калининград', lat: 54.89, lon: 20.5926 };
@@ -84,6 +89,9 @@ const PARIS: GeoCity = {
   lon: 2.35,
 };
 const city = (id: number): GeoCity => ({ ...PARIS, id, name: `Город ${id}` });
+/** Город из «Моих городов»: в cookie у него ещё и отметка «На главную». */
+const saved = (id: number, home = false): SavedCity => ({ ...city(id), home });
+const SAVED_PARIS: SavedCity = { ...PARIS, home: false };
 
 describe('погода в любом городе', () => {
   it('поиск города — по-русски, не больше десяти', () => {
@@ -119,24 +127,89 @@ describe('погода в любом городе', () => {
 
   it('мои города из cookie: битые записи, повторы и лишние отбрасываются', () => {
     expect(parseSavedCities('не список')).toEqual([]);
+    // Старая cookie — без отметки «На главную»: город не на главной.
     expect(parseSavedCities([PARIS, PARIS, { ...PARIS, id: 2, lat: 500 }, { id: 3 }])).toEqual([
-      PARIS,
+      SAVED_PARIS,
     ]);
     const many = Array.from({ length: MAX_SAVED_CITIES + 3 }, (_, i) => city(i + 1));
     expect(parseSavedCities(many)).toHaveLength(MAX_SAVED_CITIES);
   });
 
-  it('добавить: в конец, повтор не дублируется, больше десяти нельзя', () => {
-    const one = addSavedCity([city(1)], PARIS);
-    expect(one.ok && one.data.map((c) => c.id)).toEqual([1, PARIS.id]);
-    expect(addSavedCity([PARIS], PARIS)).toEqual({ ok: true, data: [PARIS] });
+  it('из cookie на главную — не больше четырёх отметок, лишние снимаются', () => {
+    const all = Array.from({ length: 6 }, (_, i) => saved(i + 1, true));
+    const home = parseSavedCities(all).filter((c) => c.home);
+    expect(home.map((c) => c.id)).toEqual([1, 2, 3, 4]);
+    expect(HOME_WEATHER_COUNT).toBe(4);
+  });
 
-    const full = Array.from({ length: MAX_SAVED_CITIES }, (_, i) => city(i + 1));
+  it('добавить: в конец и не на главную, повтор не дублируется, больше десяти нельзя', () => {
+    const one = addSavedCity([saved(1)], PARIS);
+    expect(one.ok && one.data).toEqual([saved(1), SAVED_PARIS]);
+    expect(addSavedCity([SAVED_PARIS], PARIS)).toEqual({ ok: true, data: [SAVED_PARIS] });
+
+    const full = Array.from({ length: MAX_SAVED_CITIES }, (_, i) => saved(i + 1));
     expect(addSavedCity(full, PARIS)).toEqual({ ok: false, error: 'LIMIT' });
   });
 
   it('удалить и показать: название ведёт на погоду в городе', () => {
-    expect(removeSavedCity([city(1), PARIS], PARIS.id)).toEqual([city(1)]);
+    expect(removeSavedCity([saved(1), SAVED_PARIS], PARIS.id)).toEqual([saved(1)]);
     expect(geoPlace(PARIS)).toMatchObject({ name: 'Париж', href: '/weather?city=2988507' });
+  });
+
+  it('подсказки городов — от двух букв, без пробелов по краям', () => {
+    expect(citySuggestQuery('  об ')).toBe('об');
+    expect(citySuggestQuery('о')).toBeNull();
+    expect(citySuggestQuery(null)).toBeNull();
+    expect(citySuggestQuery('я'.repeat(150))).toHaveLength(100);
+  });
+});
+
+describe('города на главной', () => {
+  const place = (name: string) => ({ slug: name, name, lat: 0, lon: 0 });
+  const DEFAULTS = ['Обнинск', 'Сочи', 'Санкт-Петербург', 'Владивосток', 'Калининград'].map(place);
+  const names = (list: { name: string }[]) => list.map((p) => p.name);
+
+  it('отметить «На главную» и снять отметку', () => {
+    const marked = setHomeCity([saved(1), saved(2)], 2, true);
+    expect(marked.ok && marked.data).toEqual([saved(1), saved(2, true)]);
+    const unmarked = setHomeCity([saved(1, true)], 1, false);
+    expect(unmarked.ok && unmarked.data).toEqual([saved(1)]);
+  });
+
+  it('пятый город на главную не встаёт, чужой город — ошибка', () => {
+    const four = [1, 2, 3, 4].map((id) => saved(id, true));
+    expect(setHomeCity([...four, saved(5)], 5, true)).toEqual({ ok: false, error: 'HOME_LIMIT' });
+    // Снять отметку можно и при полной главной.
+    expect(setHomeCity(four, 1, false).ok).toBe(true);
+    expect(setHomeCity(four, 99, true)).toEqual({ ok: false, error: 'NOT_SAVED' });
+  });
+
+  it('без своих городов — первые четыре стандартных', () => {
+    const result = homeWeatherPlaces([saved(1)], DEFAULTS);
+    expect(names(result.places)).toEqual(['Обнинск', 'Сочи', 'Санкт-Петербург', 'Владивосток']);
+    expect(result.mine).toBe(0);
+  });
+
+  it('свои — первыми, остальные места — стандартные по порядку', () => {
+    const result = homeWeatherPlaces([saved(1), saved(2, true)], DEFAULTS);
+    expect(names(result.places)).toEqual(['Город 2', 'Обнинск', 'Сочи', 'Санкт-Петербург']);
+    expect(result.mine).toBe(1);
+    expect(result.places[0]?.href).toBe('/weather?city=2');
+  });
+
+  it('стандартный город с тем же названием второй раз не показывается', () => {
+    const sochi: SavedCity = { ...saved(7, true), name: 'сочи' };
+    const result = homeWeatherPlaces([sochi], DEFAULTS);
+    expect(names(result.places)).toEqual(['сочи', 'Обнинск', 'Санкт-Петербург', 'Владивосток']);
+  });
+
+  it('четыре своих — стандартных нет', () => {
+    const four = [1, 2, 3, 4].map((id) => saved(id, true));
+    expect(names(homeWeatherPlaces(four, DEFAULTS).places)).toEqual([
+      'Город 1',
+      'Город 2',
+      'Город 3',
+      'Город 4',
+    ]);
   });
 });

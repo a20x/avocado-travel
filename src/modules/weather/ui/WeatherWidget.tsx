@@ -4,15 +4,15 @@ import { describeWeather, formatTemperature, type CityWeather } from '../model';
 import { WeatherIcon } from './WeatherIcon';
 
 /**
- * Баннер погоды на главной (L1-12): сейчас в нескольких городах — в отмеченных посетителем
- * на странице «Погода» (`mine`) или, пока их нет, в городах с разным климатом.
+ * Баннер погоды на главной (L1-12): сейчас в четырёх городах — сначала в отмеченных
+ * посетителем «На главную» на странице «Погода» (`mine` — сколько их), остальные — стандартные.
  */
 export function WeatherWidget({
   weather,
-  mine = false,
+  mine = 0,
 }: {
   weather: CityWeather[] | null;
-  mine?: boolean;
+  mine?: number;
 }) {
   return (
     <Card
@@ -24,7 +24,7 @@ export function WeatherWidget({
         <h2 id="weather-title" className="text-xl">
           Погода сейчас
         </h2>
-        {mine ? <p className="text-sm text-slate">В ваших городах</p> : null}
+        {mine > 0 ? <p className="text-sm text-slate">Ваши города — первыми</p> : null}
       </div>
       {weather && weather.length > 0 ? (
         <ul className="grid gap-3">
@@ -50,7 +50,7 @@ export function WeatherWidget({
         <p className="text-slate">Прогноз сейчас недоступен — загляните позже.</p>
       )}
       <Link href="/weather" className="text-sm">
-        {mine ? 'Все мои города' : 'Погода в любом городе'} →
+        {mine > 0 ? 'Мои города' : 'Выбрать свои города'} →
       </Link>
       <p className="text-xs text-slate">
         Данные:{' '}
